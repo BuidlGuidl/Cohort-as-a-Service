@@ -32,7 +32,7 @@ contract CohortFactory is Ownable {
      * @dev Constructor sets the price feed address for ETH/USD conversion
      * @param _priceFeed Chainlink price feed address for ETH/USD
      */
-    constructor(address _priceFeed) Ownable(msg.sender) {
+    constructor(address _priceFeed) {
         if (_priceFeed == address(0)) revert PriceFeedInvalid();
         priceFeed = AggregatorV3Interface(_priceFeed);
     }
