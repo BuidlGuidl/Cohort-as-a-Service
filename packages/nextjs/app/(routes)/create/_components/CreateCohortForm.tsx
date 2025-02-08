@@ -50,9 +50,6 @@ const CreateCohortForm = () => {
     mode: "onChange",
   });
 
-  const creatorAddresses = form.watch("creatorAddresses");
-  const creatorCaps = form.watch("creatorCaps");
-
   const [selectedCurrency, setSelectedCurrency] = useState<string>(initialCurrency);
 
   const { isSubmitting, isValid, errors } = form.formState;
