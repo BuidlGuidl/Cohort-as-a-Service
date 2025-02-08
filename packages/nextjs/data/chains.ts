@@ -6,7 +6,7 @@ export interface Chain {
   isEVM: boolean;
 }
 
-export const baseChainId = 31337;
+export const baseChainId = 84532;
 
 export const chains: Chain[] = [
   {
