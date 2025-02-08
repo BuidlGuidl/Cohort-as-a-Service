@@ -44,7 +44,7 @@ export type CohortData = {
 export const useCohortData = (cohortAddress: string) => {
   const { address, chainId } = useAccount();
   const publicClient = usePublicClient({ chainId });
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<CohortData | null>(null);
   const [creators, setCreators] = useState<string[]>([]);

@@ -34,11 +34,12 @@ error InvalidNewAdminAddress();
 contract Cohort is AccessControl, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    // Fixed cycle, max creators and minimum cap
-    uint256 constant CYCLE = 30 days;
     uint256 constant MAXCREATORS = 25;
     uint256 constant MINIMUM_CAP = 0.25 ether;
     uint256 constant MINIMUM_ERC20_CAP = 10 * 10 ** 18;
+
+    // Cycle duration for the flow
+    uint256 public cycle;
 
     // ERC20 support
     bool public isERC20;
@@ -65,16 +66,42 @@ contract Cohort is AccessControl, ReentrancyGuard {
     }
 
     // Constructor to setup admin role and initial creators
-    constructor(address _primaryAdmin, address _tokenAddress, string memory _name, string memory _description) {
+    constructor(
+        address _primaryAdmin,
+        address _tokenAddress,
+        string memory _name,
+        string memory _description,
+        uint256 _cycle,
+        address[] memory _creators,
+        uint256[] memory _caps
+    ) {
         _grantRole(DEFAULT_ADMIN_ROLE, _primaryAdmin);
         isAdmin[_primaryAdmin] = true;
         primaryAdmin = _primaryAdmin;
         name = _name;
         description = _description;
+        cycle = _cycle;
 
         if (_tokenAddress != address(0)) {
             isERC20 = true;
             tokenAddress = _tokenAddress;
+        }
+
+        if (_creators.length == 0) return;
+
+        uint256 cLength = _creators.length;
+        if (_creators.length >= MAXCREATORS) revert MaxCreatorsReached();
+        if (cLength != _caps.length) revert LengthsMismatch();
+        for (uint256 i = 0; i < cLength; ) {
+            validateCreatorInput(payable(_creators[i]), _caps[i]);
+            flowingCreators[_creators[i]] = CreatorFlowInfo(_caps[i], block.timestamp - _cycle);
+            activeCreators.push(_creators[i]);
+            creatorIndex[_creators[i]] = activeCreators.length - 1;
+            emit AddBuilder(_creators[i], _caps[i]);
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -182,8 +209,8 @@ contract Cohort is AccessControl, ReentrancyGuard {
         CreatorFlowInfo memory creatorFlow = flowingCreators[_creator];
         uint256 timePassed = block.timestamp - creatorFlow.last;
 
-        if (timePassed < CYCLE) {
-            uint256 availableAmount = (timePassed * creatorFlow.cap) / CYCLE;
+        if (timePassed < cycle) {
+            uint256 availableAmount = (timePassed * creatorFlow.cap) / cycle;
             return availableAmount;
         } else {
             return creatorFlow.cap;
@@ -196,7 +223,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
         if (activeCreators.length >= MAXCREATORS) revert MaxCreatorsReached();
 
         validateCreatorInput(_creator, _cap);
-        flowingCreators[_creator] = CreatorFlowInfo(_cap, block.timestamp - CYCLE);
+        flowingCreators[_creator] = CreatorFlowInfo(_cap, block.timestamp - cycle);
         activeCreators.push(_creator);
         creatorIndex[_creator] = activeCreators.length - 1;
         emit AddBuilder(_creator, _cap);
@@ -237,7 +264,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
 
         creatorFlow.cap = _newCap;
 
-        creatorFlow.last = block.timestamp - (CYCLE);
+        creatorFlow.last = block.timestamp - (cycle);
 
         emit UpdateBuilder(_creator, _newCap);
     }
@@ -273,7 +300,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
 
         uint256 creatorflowLast = creatorFlow.last;
         uint256 timestamp = block.timestamp;
-        uint256 cappedLast = timestamp - CYCLE;
+        uint256 cappedLast = timestamp - cycle;
         if (creatorflowLast < cappedLast) {
             creatorflowLast = cappedLast;
         }
@@ -321,8 +348,6 @@ contract Cohort is AccessControl, ReentrancyGuard {
             emit AgreementDrained(remainingBalance);
         }
     }
-
-    
 
     // Fallback function to receive ether
     receive() external payable {}

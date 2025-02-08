@@ -4,6 +4,7 @@ import { formatEther, parseEther } from "viem";
 import { erc20Abi } from "viem";
 import { useAccount } from "wagmi";
 import { useWriteContract } from "wagmi";
+import { baseChainId } from "~~/data/chains";
 import { useTransactor } from "~~/hooks/scaffold-eth";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
@@ -35,7 +36,7 @@ export const useFunding = ({ tokenAddress, amount, isTransferLoading, cohortAddr
 
   const { isPending, writeContractAsync } = useWriteContract();
 
-  const cohort = contracts?.[84532]["Cohort"];
+  const cohort = contracts?.[baseChainId]["Cohort"];
 
   const approve = async () => {
     if (!chain) {

@@ -3,6 +3,7 @@ import { useTransactor } from "./scaffold-eth";
 import { parseEther } from "viem";
 import { useAccount } from "wagmi";
 import { useWriteContract } from "wagmi";
+import { baseChainId } from "~~/data/chains";
 import { notification } from "~~/utils/scaffold-eth";
 import { getParsedError } from "~~/utils/scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
@@ -16,7 +17,7 @@ interface useCohortWithdrawProps {
 export const useCohortWithdraw = ({ cohortAddress, amount, reason }: useCohortWithdrawProps) => {
   const { chain, chainId } = useAccount();
   const { targetNetwork } = useTargetNetwork();
-  const cohort = contracts?.[84532]["Cohort"];
+  const cohort = contracts?.[baseChainId]["Cohort"];
   const writeTx = useTransactor();
   const { isPending, writeContractAsync } = useWriteContract();
 

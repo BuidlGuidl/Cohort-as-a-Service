@@ -30,6 +30,7 @@ const deployYourContract: DeployFunction = async function (hre: HardhatRuntimeEn
 
   const name = "Cohort";
   const description = "Cohort contract";
+  const cycle = 30 * 24 * 60 * 60; // 30 days
 
   await deploy("Cohort", {
     from: deployer,
@@ -38,7 +39,8 @@ const deployYourContract: DeployFunction = async function (hre: HardhatRuntimeEn
     // First Argument: Address of primary admin
     // Second Argument: Enter zero address for eth mode or enter address of ERC20 token contract for token mode
     // args: ["0x11E91FB4793047a68dFff29158387229eA313ffE", ZERO_ADDRESS],
-    args: ["0xa8DF02c5607100Eb108B5C39dCdD8c2aE44185Df", ZERO_ADDRESS, name, description],
+
+    args: ["0xa8DF02c5607100Eb108B5C39dCdD8c2aE44185Df", ZERO_ADDRESS, name, description, cycle, [], []],
 
     log: true,
     // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by

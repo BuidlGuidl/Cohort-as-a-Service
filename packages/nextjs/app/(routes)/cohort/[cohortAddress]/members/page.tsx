@@ -13,8 +13,18 @@ import { useScaffoldEventHistory } from "~~/hooks/scaffold-eth";
 import { useCohortData } from "~~/hooks/useCohortData";
 
 const Page = ({ params }: { params: { cohortAddress: string } }) => {
-  const { name, primaryAdmin, creatorFlows, isCreator, isAdmin, tokenAddress, isERC20, tokenSymbol, balance } =
-    useCohortData(params.cohortAddress);
+  const {
+    name,
+    primaryAdmin,
+    creatorFlows,
+    isCreator,
+    isAdmin,
+    tokenAddress,
+    isERC20,
+    tokenSymbol,
+    balance,
+    isLoading,
+  } = useCohortData(params.cohortAddress);
 
   const [selectedAddress, setSelectedAddress] = useState("");
 
@@ -72,51 +82,61 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
 
           <div className="flex flex-col gap-6">
             {isAdmin && <AddBatch cohortAddress={params.cohortAddress} isErc20={isERC20 ?? false} />}
-            {Array.from(creatorFlows?.values() || []).map(creatorFlow => {
-              if (creatorFlow.cap == 0) return;
-              const cap = creatorFlow.cap;
-              const unlocked = creatorFlow.availableAmount;
-              const percentage = Math.floor((unlocked / cap) * 100);
-              return (
-                <div className="flex items-center" key={creatorFlow.creatorAddress}>
-                  <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-6">
-                    <div className="flex flex-col md:items-center">
-                      <div>
-                        {isERC20 ? tokenSymbol : "Ξ"} {unlocked.toFixed(4)} / {cap}
-                      </div>
-                      <progress
-                        className="progress w-56 progress-primary bg-white"
-                        value={percentage}
-                        max="100"
-                      ></progress>
-                    </div>
-                    <div className="md:w-1/2 flex items-center">
-                      <label
-                        htmlFor="withdraw-events-modal"
-                        className="cursor-pointer"
-                        onClick={() => {
-                          setSelectedAddress(creatorFlow.creatorAddress);
-                        }}
-                      >
-                        <Address address={creatorFlow.creatorAddress} disableAddressLink={true} />
-                      </label>
-                      {isAdmin && (
-                        <div className="ml-4 flex">
-                          <UpdateCreator
-                            cohortAddress={params.cohortAddress as string}
-                            creatorAddress={creatorFlow.creatorAddress}
-                          />
-                          <RemoveCreator
-                            cohortAddress={params.cohortAddress as string}
-                            creatorAddress={creatorFlow.creatorAddress}
-                          />
+
+            {isLoading ? (
+              <div>
+                <div className="text-4xl animate-bounce mb-2">👾</div>
+                <div className="text-lg ">Loading...</div>
+              </div>
+            ) : !creatorFlows || Array.from(creatorFlows.values()).length == 0 ? (
+              <div>No creators</div>
+            ) : (
+              Array.from(creatorFlows.values()).map(creatorFlow => {
+                if (creatorFlow.cap == 0) return;
+                const cap = creatorFlow.cap;
+                const unlocked = creatorFlow.availableAmount;
+                const percentage = Math.floor((unlocked / cap) * 100);
+                return (
+                  <div className="flex items-center" key={creatorFlow.creatorAddress}>
+                    <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-6">
+                      <div className="flex flex-col md:items-center">
+                        <div>
+                          {isERC20 ? tokenSymbol : "Ξ"} {unlocked.toFixed(4)} / {cap}
                         </div>
-                      )}
+                        <progress
+                          className="progress w-56 progress-primary bg-white"
+                          value={percentage}
+                          max="100"
+                        ></progress>
+                      </div>
+                      <div className="md:w-1/2 flex items-center">
+                        <label
+                          htmlFor="withdraw-events-modal"
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setSelectedAddress(creatorFlow.creatorAddress);
+                          }}
+                        >
+                          <Address address={creatorFlow.creatorAddress} disableAddressLink={true} />
+                        </label>
+                        {isAdmin && (
+                          <div className="ml-4 flex">
+                            <UpdateCreator
+                              cohortAddress={params.cohortAddress as string}
+                              creatorAddress={creatorFlow.creatorAddress}
+                            />
+                            <RemoveCreator
+                              cohortAddress={params.cohortAddress as string}
+                              creatorAddress={creatorFlow.creatorAddress}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
         {isAdmin && (
@@ -154,7 +174,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
               {isLoadingWithdrawEvents ? (
                 <div>
                   <div className="text-4xl animate-bounce mb-2">👾</div>
-                  <div className="text-lg loading-dots">Loading...</div>
+                  <div className="text-lg">Loading...</div>
                 </div>
               ) : filteredWithdrawnEvents?.length > 0 ? (
                 <div className="flex flex-col">
