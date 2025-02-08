@@ -4,20 +4,33 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getTransactionReceipt } from "@wagmi/core";
+import { Plus, Trash } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { formatEther, parseEther } from "viem";
 import { useAccount } from "wagmi";
 import * as z from "zod";
+import { AddressInput } from "~~/components/scaffold-eth";
 import currencies from "~~/data/currencies";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { CreateCohortSchema } from "~~/schemas";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 
+const PREDEFINED_CYCLES = [
+  { label: "1 Day", value: 1 },
+  { label: "7 Days", value: 7 },
+  { label: "14 Days", value: 14 },
+  { label: "30 Days", value: 30 },
+  { label: "Custom", value: 0 },
+];
+
 const CreateCohortForm = () => {
   const router = useRouter();
   const { address, chainId } = useAccount();
 
-  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [showCustomCurrencyInput, setShowCustomCurrencyInput] = useState(false);
+  const [showCustomCycleInput, setShowCustomCycleInput] = useState(false);
+  const [selectedCycle, setSelectedCycle] = useState(PREDEFINED_CYCLES[3].value);
+  const [isCreatorsExpanded, setIsCreatorsExpanded] = useState(false);
 
   const currentChainCurrencies = chainId ? currencies[chainId]?.contracts || [] : [];
 
@@ -30,9 +43,15 @@ const CreateCohortForm = () => {
       description: "",
       adminAddress: address || "",
       currencyAddress: initialCurrency,
+      cycle: PREDEFINED_CYCLES[3].value,
+      creatorAddresses: [],
+      creatorCaps: [],
     },
     mode: "onChange",
   });
+
+  const creatorAddresses = form.watch("creatorAddresses");
+  const creatorCaps = form.watch("creatorCaps");
 
   const [selectedCurrency, setSelectedCurrency] = useState<string>(initialCurrency);
 
@@ -62,11 +81,79 @@ const CreateCohortForm = () => {
     contractName: "CohortFactory",
   });
 
+  const cycleInSeconds = (cycle: number) => cycle * 24 * 60 * 60;
+
+  const handleCycleSelect = (cycle: number) => {
+    setSelectedCycle(cycle);
+
+    form.setValue("cycle", cycle, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+
+    if (cycle !== 0) {
+      setShowCustomCycleInput(false);
+    } else {
+      setShowCustomCycleInput(true);
+    }
+  };
+
+  const handleCurrencySelect = (address: string) => {
+    setSelectedCurrency(address);
+    form.setValue("currencyAddress", address, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setShowCustomCurrencyInput(false);
+  };
+
+  const handleAddCreator = () => {
+    const currentAddresses = form.getValues("creatorAddresses") || [];
+    const currentCaps = form.getValues("creatorCaps") || [];
+
+    form.setValue("creatorAddresses", [...currentAddresses, ""], {
+      shouldValidate: true,
+    });
+
+    form.setValue("creatorCaps", [...currentCaps, 1], {
+      shouldValidate: true,
+    });
+  };
+
+  const handleRemoveCreator = (index: number) => {
+    const currentAddresses = form.getValues("creatorAddresses") || [];
+    const currentCaps = form.getValues("creatorCaps") || [];
+
+    const newAddresses = currentAddresses.filter((_, i) => i !== index);
+    const newCaps = currentCaps.filter((_, i) => i !== index);
+
+    form.setValue("creatorAddresses", newAddresses, {
+      shouldValidate: true,
+    });
+
+    form.setValue("creatorCaps", newCaps, {
+      shouldValidate: true,
+    });
+  };
+
   const onSubmit = async (values: z.infer<typeof CreateCohortSchema>) => {
     try {
+      const filteredAddresses = values.creatorAddresses.filter(addr => addr !== "");
+      const filteredCaps = values.creatorCaps.filter((_, index) => values.creatorAddresses[index] !== "");
+
+      const FormattedCreatorCaps = filteredCaps.map(cap => parseEther(cap.toString() || "0"));
+
       const hash = await writeYourContractAsync({
         functionName: "createCohort",
-        args: [values.adminAddress, values.currencyAddress, values.name, values.description],
+        args: [
+          values.adminAddress,
+          values.currencyAddress,
+          values.name,
+          values.description,
+          BigInt(cycleInSeconds(values.cycle)),
+          filteredAddresses || [],
+          FormattedCreatorCaps || [],
+        ],
         value: parseEther(costWithAllowance),
       });
 
@@ -77,21 +164,11 @@ const CreateCohortForm = () => {
       router.push(`/cohort/${receipt.logs[0].address}`);
     } catch (e) {
       console.error("Error creating cohort", e);
-      // Consider adding error handling UI feedback here
     }
   };
 
-  const handleCurrencySelect = (address: string) => {
-    setSelectedCurrency(address);
-    form.setValue("currencyAddress", address, {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
-    setShowCustomInput(false);
-  };
-
   return (
-    <div>
+    <div className="p-4">
       <div>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="form-control w-full">
@@ -146,11 +223,15 @@ const CreateCohortForm = () => {
               <span className="label-text font-medium">Admin address</span>
             </label>
 
-            <input
-              className={`input input-sm rounded-md input-bordered border border-base-300 w-full ${errors.adminAddress ? "input-error" : ""}`}
-              placeholder="0x1234567890abcdef1234567890abcdef12345678"
-              disabled={isSubmitting}
-              {...form.register("adminAddress")}
+            <AddressInput
+              name="adminAddress"
+              value={form.watch("adminAddress")}
+              onChange={value => {
+                form.setValue("adminAddress", value, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              }}
             />
 
             <label className="label">
@@ -182,33 +263,155 @@ const CreateCohortForm = () => {
               ))}
               <button
                 type="button"
-                className={`btn btn-sm rounded-md ${showCustomInput ? "btn-primary" : "btn-outline"}`}
-                onClick={() => setShowCustomInput(true)}
+                className={`btn btn-sm rounded-md ${showCustomCurrencyInput ? "btn-primary" : "btn-outline"}`}
+                onClick={() => setShowCustomCurrencyInput(true)}
               >
                 Custom
               </button>
             </div>
 
-            {showCustomInput && (
+            {showCustomCurrencyInput && (
               <div className="form-control">
-                <input
-                  type="text"
-                  className={`input input-sm rounded-md input-bordered border border-base-300 w-full ${errors.currencyAddress ? "input-error" : ""}`}
-                  placeholder="Enter custom currency address"
-                  {...form.register("currencyAddress")}
-                  onChange={e => {
-                    setSelectedCurrency(e.target.value);
-                    form.setValue("currencyAddress", e.target.value, {
+                <AddressInput
+                  name="currencyAddress"
+                  value={form.watch("currencyAddress")}
+                  onChange={value => {
+                    setSelectedCurrency(value);
+                    form.setValue("currencyAddress", value, {
                       shouldValidate: true,
                       shouldDirty: true,
                     });
                   }}
+                  placeholder="Enter custom currency address"
                 />
                 {errors.currencyAddress && (
                   <label className="label">
                     <span className="label-text-alt text-error">{errors.currencyAddress.message}</span>
                   </label>
                 )}
+              </div>
+            )}
+          </div>
+
+          <div className="form-control w-full">
+            <label className="label">
+              <span className="label-text font-medium">Cohort Cycle</span>
+            </label>
+
+            <div className="flex flex-wrap gap-2 mb-2">
+              {PREDEFINED_CYCLES.map(cycle => (
+                <button
+                  key={cycle.value}
+                  type="button"
+                  className={`btn btn-sm rounded-md ${selectedCycle === cycle.value ? "btn-primary" : "btn-outline"}`}
+                  onClick={() => handleCycleSelect(cycle.value)}
+                >
+                  {cycle.label}
+                </button>
+              ))}
+            </div>
+
+            {showCustomCycleInput && (
+              <div className="form-control">
+                <input
+                  type="number"
+                  value={form.watch("cycle")}
+                  className={`input input-sm rounded-md input-bordered border border-base-300 w-full ${errors.cycle ? "input-error" : ""}`}
+                  placeholder="Enter custom cycle days"
+                  {...form.register("cycle", {
+                    onChange: e => {
+                      const value = e.target.value;
+                      form.setValue("cycle", parseFloat(value), {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      });
+                    },
+                  })}
+                />
+                {errors.cycle && (
+                  <label className="label">
+                    <span className="label-text-alt text-error">{errors.cycle.message}</span>
+                  </label>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="form-control w-full">
+            <div className="flex justify-between items-center">
+              <label className="label">
+                <span className="label-text font-medium">Creators (Optional)</span>
+              </label>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => setIsCreatorsExpanded(!isCreatorsExpanded)}
+              >
+                {isCreatorsExpanded ? "Hide" : "Add Creators"}
+              </button>
+            </div>
+
+            {isCreatorsExpanded && (
+              <div className="">
+                {form.watch("creatorAddresses").map((_, index) => (
+                  <div key={index} className="flex gap-2 items-start mt-2 flex-col md:flex-row">
+                    <div className="flex-grow md:w-[60%] w-full">
+                      <AddressInput
+                        name={`creatorAddresses.${index}`}
+                        value={form.watch(`creatorAddresses.${index}`)}
+                        onChange={value => {
+                          form.setValue(`creatorAddresses.${index}`, value, {
+                            shouldValidate: true,
+                          });
+                        }}
+                        placeholder="Enter creator address"
+                      />
+                      {form.formState.errors.creatorAddresses?.[index] && (
+                        <label className="label">
+                          <span className="label-text-alt text-error">
+                            {form.formState.errors.creatorAddresses[index]?.message}
+                          </span>
+                        </label>
+                      )}
+                    </div>
+                    <div className="flex flex-grow md:w-[40%] w-full">
+                      <div className="w-full">
+                        <input
+                          className="input input-sm rounded-md input-bordered border border-base-300 w-full"
+                          placeholder="Enter stream cap"
+                          type="number"
+                          step="any"
+                          {...form.register(`creatorCaps.${index}`, {
+                            valueAsNumber: true,
+                            onChange: e => {
+                              const value = e.target.value;
+                              form.setValue(`creatorCaps.${index}`, value, {
+                                shouldValidate: true,
+                              });
+                            },
+                          })}
+                        />
+                        {form.formState.errors.creatorCaps?.[index] && (
+                          <label className="label">
+                            <span className="label-text-alt text-error">
+                              {form.formState.errors.creatorCaps[index]?.message}
+                            </span>
+                          </label>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm "
+                        onClick={() => handleRemoveCreator(index)}
+                      >
+                        <Trash className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <button type="button" className="btn btn-primary btn-sm rounded-md mt-4" onClick={handleAddCreator}>
+                  <Plus className="h-4 w-4 mr-5" /> Add Creator
+                </button>
               </div>
             )}
           </div>

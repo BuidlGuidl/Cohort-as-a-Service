@@ -6,6 +6,8 @@ export interface Chain {
   isEVM: boolean;
 }
 
+export const baseChainId = 31337;
+
 export const chains: Chain[] = [
   {
     id: "bnb",
