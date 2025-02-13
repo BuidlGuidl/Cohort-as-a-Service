@@ -81,7 +81,6 @@ export const StreamContractInfo = ({
       <input type="checkbox" id="withdraw-modal" className="modal-toggle" />
       <label htmlFor="withdraw-modal" className="modal cursor-pointer">
         <label className="modal-box relative shadow shadow-primary">
-          {/* dummy input to capture event onclick on modal box */}
           <input className="h-0 w-0 absolute top-0 left-0" />
           <h3 className="font-bold mb-8">Withdraw from your stream</h3>
           <label htmlFor="withdraw-modal" className="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">

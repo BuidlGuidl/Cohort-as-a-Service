@@ -20,6 +20,7 @@ const ChainItem = ({ chainId, icon, name }: ChainItemProps) => {
 
   const currentChainId = searchParams.get("chainId");
   const currentCohort = searchParams.get("cohort");
+  const currentFilter = searchParams.get("filter");
 
   const isSelected = currentChainId === chainId.toString();
 
@@ -30,6 +31,7 @@ const ChainItem = ({ chainId, icon, name }: ChainItemProps) => {
         query: {
           cohort: currentCohort,
           chainId: isSelected ? null : chainId,
+          filter: currentFilter,
         },
       },
       {
