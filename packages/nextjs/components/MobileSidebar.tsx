@@ -1,4 +1,3 @@
-// MobileSidebar.tsx
 import React, { useCallback, useRef, useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Bars3Icon } from "@heroicons/react/24/outline";
@@ -15,12 +14,10 @@ export const MobileSidebar = () => {
 
   return (
     <div ref={sidebarRef}>
-      {/* Drawer Toggle Button */}
       <button className="btn btn-ghost drawer-button" onClick={() => setIsOpen(true)}>
         <Bars3Icon className="h-6 w-6" />
       </button>
 
-      {/* Drawer Content */}
       <div
         className={`
         fixed inset-y-0 left-0 z-50
@@ -33,7 +30,6 @@ export const MobileSidebar = () => {
         </div>
       </div>
 
-      {/* Backdrop */}
       {isOpen && <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setIsOpen(false)} />}
     </div>
   );

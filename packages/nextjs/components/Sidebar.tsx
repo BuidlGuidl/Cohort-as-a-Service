@@ -6,7 +6,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Compass, Home } from "lucide-react";
 
-// Keep the existing menu links
 export const menuLinks = [
   {
     label: "Home",
@@ -14,8 +13,8 @@ export const menuLinks = [
     icon: <Home className="h-4 w-4" />,
   },
   {
-    label: "Browse",
-    href: "/search",
+    label: "My Cohorts",
+    href: "/cohorts",
     icon: <Compass className="h-4 w-4" />,
   },
 ];

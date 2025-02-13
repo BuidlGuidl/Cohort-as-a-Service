@@ -12,7 +12,7 @@ const SearchInputInner = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentCohortName = searchParams.get("name");
+  const currentChainId = searchParams.get("chainId");
 
   useEffect(() => {
     const url = qs.stringifyUrl(
@@ -20,7 +20,7 @@ const SearchInputInner = () => {
         url: pathname,
         query: {
           cohort: debouncedValue,
-          chainId: currentCohortName,
+          chainId: currentChainId,
         },
       },
       {
@@ -30,7 +30,7 @@ const SearchInputInner = () => {
     );
 
     router.push(url);
-  }, [debouncedValue, currentCohortName, router, pathname]);
+  }, [debouncedValue, currentChainId, router, pathname]);
 
   return (
     <div className="relative">

@@ -7,8 +7,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 //A smart contract for streaming Eth or ERC20 tokens to creators
-//This is intended for research and development purposes only. Use this contract at your own risk and discretion.
-//Pipoca
 
 // Custom errors
 error NoValueSent();

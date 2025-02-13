@@ -1,4 +1,5 @@
 import { CohortCard } from "./CohortCard";
+import { CohortLoadingCard } from "./CohortLoadingCard";
 import { AllowedChainIds } from "~~/utils/scaffold-eth/networks.js";
 
 type Cohort = {
@@ -12,12 +13,22 @@ type Cohort = {
 
 interface CohortsListProps {
   items: Cohort[];
+  loading: boolean;
 }
+const CohortsList = ({ items, loading }: CohortsListProps) => {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, index) => (
+          <CohortLoadingCard key={index} />
+        ))}
+      </div>
+    );
+  }
 
-const CohortsList = ({ items }: CohortsListProps) => {
   return (
     <div>
-      <div className=" grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {items.map(item => (
           <CohortCard
             key={item.cohortAddress}
