@@ -20,10 +20,12 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
   const [isLoadingAdmin, setIsLoadingAdmin] = useState(true);
   const [isLoadingCreator, setIsLoadingCreator] = useState(true);
 
-  const { address } = useAccount();
+
+
+
+  const { address, isConnecting, isReconnecting } = useAccount();
   const { data: deployedContract } = useLocalDeployedContractInfo({ contractName: "Cohort" });
 
-  // Pre-fetch and maintain admin cohorts
   useEffect(() => {
     const fetchAdminCohorts = async () => {
       try {
@@ -61,7 +63,6 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
     fetchAdminCohorts();
   }, [deployedContract, cohorts, address]);
 
-  // Pre-fetch and maintain creator cohorts
   useEffect(() => {
     const fetchCreatorCohorts = async () => {
       try {
@@ -119,6 +120,10 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
   return {
     cohorts: getFilteredCohorts(),
     isLoading:
-      isLoadingCohorts || (filter === "admin" ? isLoadingAdmin : filter === "creator" ? isLoadingCreator : false),
+      isLoadingCohorts ||
+      isConnecting ||
+      isReconnecting ||
+      !address ||
+      (filter === "admin" ? isLoadingAdmin : filter === "creator" ? isLoadingCreator : false),
   };
 };

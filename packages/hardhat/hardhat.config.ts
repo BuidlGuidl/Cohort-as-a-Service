@@ -11,6 +11,7 @@ import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import { task } from "hardhat/config";
 import generateTsAbis from "./scripts/generateTsAbis";
+import source from "./scripts/generateSourceFiles";
 
 // If not set, it uses the hardhat account 0 private key.
 // You can generate a random account with `yarn generate` or `yarn account:import` to import your existing PK
@@ -182,6 +183,7 @@ task("deploy").setAction(async (args, hre, runSuper) => {
   await runSuper(args);
   // Force run the generateTsAbis script
   await generateTsAbis(hre);
+  await source();
 });
 
 export default config;
