@@ -8,7 +8,7 @@ interface ChainListProps {
 
 const ChainsLoader = () => {
   return (
-    <div className="flex items-center gap-x-2 overflow-x-auto pb-2">
+    <div className="flex items-center gap-x-2 overflow-x-auto pb-2 ">
       {[1, 2].map(i => (
         <div key={i} className="h-8 w-24 rounded-lg bg-gray-200 animate-pulse" />
       ))}
@@ -18,7 +18,7 @@ const ChainsLoader = () => {
 
 const ChainsList = ({ items }: ChainListProps) => {
   return (
-    <div className="flex items-center gap-x-2 overflow-x-auto pb-2">
+    <div className="flex items-center gap-x-2 overflow-x-auto pb-2 justify-center">
       {items.map(item => (
         <ChainItem key={item.chainId} chainId={item.chainId} icon={item.icon} name={item.name} />
       ))}

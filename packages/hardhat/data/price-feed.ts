@@ -73,7 +73,6 @@ export const CHAINLINK_PRICE_FEEDS: Record<SupportedChainId, ChainInfo> = {
   },
 };
 
-// Helper functions for chain operations
 export const isChainSupported = (chainId: number): chainId is SupportedChainId => {
   return chainId in CHAINLINK_PRICE_FEEDS;
 };
