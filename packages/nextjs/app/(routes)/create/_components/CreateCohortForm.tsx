@@ -11,7 +11,7 @@ import { useAccount } from "wagmi";
 import * as z from "zod";
 import { AddressInput } from "~~/components/scaffold-eth";
 import currencies from "~~/data/currencies";
-import { useScaffoldReadContract, useScaffoldWriteContract, useTargetNetwork } from "~~/hooks/scaffold-eth";
+import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { useContractSourceCode } from "~~/hooks/useContractSourceCode";
 import { useLocalDeployedContractInfo } from "~~/hooks/useLocalDeployedContractInfo";
 import { CreateCohortSchema } from "~~/schemas";
@@ -40,7 +40,6 @@ const CreateCohortForm = () => {
   const initialCurrency = currentChainCurrencies.length > 0 ? currentChainCurrencies[0].address : "";
 
   const { data: localDeployedContract } = useLocalDeployedContractInfo({ contractName: "Cohort" });
-  const { targetNetwork } = useTargetNetwork();
 
   const cohortSourceCode = useContractSourceCode({ contractName: "Cohort" });
 
