@@ -75,9 +75,7 @@ export const useCohortData = (cohortAddress: string) => {
     if (creatorAdded && creatorAdded.length > 0) {
       if (!creatorAdded[0].args) {
         refetch()
-          .then(() => {
-            console.log("Refreshed creatorAdded events");
-          })
+          .then(() => {})
           .catch(() => {
             console.error("Error refreshing creatorAdded events");
           });

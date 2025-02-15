@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { getTransactionReceipt } from "@wagmi/core";
+import { getBytecode, getTransactionReceipt } from "@wagmi/core";
 import { Plus, Trash } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { formatEther, parseEther } from "viem";
@@ -12,8 +12,11 @@ import * as z from "zod";
 import { AddressInput } from "~~/components/scaffold-eth";
 import currencies from "~~/data/currencies";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { useContractSourceCode } from "~~/hooks/useContractSourceCode";
+import { useLocalDeployedContractInfo } from "~~/hooks/useLocalDeployedContractInfo";
 import { CreateCohortSchema } from "~~/schemas";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
+import { verifyContract } from "~~/utils/verify";
 
 const PREDEFINED_CYCLES = [
   { label: "1 Day", value: 1 },
@@ -35,6 +38,10 @@ const CreateCohortForm = () => {
   const currentChainCurrencies = chainId ? currencies[chainId]?.contracts || [] : [];
 
   const initialCurrency = currentChainCurrencies.length > 0 ? currentChainCurrencies[0].address : "";
+
+  const { data: localDeployedContract } = useLocalDeployedContractInfo({ contractName: "Cohort" });
+
+  const cohortSourceCode = useContractSourceCode({ contractName: "Cohort" });
 
   const form = useForm<z.infer<typeof CreateCohortSchema>>({
     resolver: zodResolver(CreateCohortSchema),
@@ -158,7 +165,37 @@ const CreateCohortForm = () => {
         hash: hash as `0x${string}`,
       });
 
-      router.push(`/cohort/${receipt.logs[0].address}`);
+      const deployedAddress = receipt.logs[0].address as `0x${string}`;
+
+      const bytecode = await getBytecode(wagmiConfig, {
+        address: deployedAddress,
+      });
+
+      try {
+        await verifyContract({
+          address: deployedAddress,
+          constructorArguments: [
+            values.adminAddress,
+            values.currencyAddress,
+            values.name,
+            values.description,
+            BigInt(cycleInSeconds(values.cycle)),
+            filteredAddresses || [],
+            FormattedCreatorCaps || [],
+          ],
+          contract: {
+            abi: localDeployedContract?.abi,
+            bytecode: bytecode,
+            source: cohortSourceCode,
+          },
+          chainId: chainId || 0,
+        });
+        console.log("Contract verification submitted successfully");
+      } catch (verifyError) {
+        console.error("Contract verification failed:", verifyError);
+      }
+
+      router.push(`/cohort/${deployedAddress}`);
     } catch (e) {
       console.error("Error creating cohort", e);
     }
