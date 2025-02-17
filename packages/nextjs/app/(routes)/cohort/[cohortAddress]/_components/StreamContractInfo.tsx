@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { AdminsList } from "./AdminsList";
 import { TokenBalance } from "./TokenBalance";
 import { TriangleAlert } from "lucide-react";
 import { useAccount } from "wagmi";
@@ -17,6 +18,9 @@ interface StreamContractInfoProps {
   balance: number;
   chainId?: number;
   chainName?: string;
+  admins: string[];
+  isLoading: boolean;
+  isAdmin: boolean;
 }
 
 export const StreamContractInfo = ({
@@ -28,6 +32,9 @@ export const StreamContractInfo = ({
   balance,
   chainId: cohortChainId,
   chainName,
+  admins,
+  isLoading,
+  isAdmin,
 }: StreamContractInfoProps) => {
   const { address, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
@@ -118,6 +125,13 @@ export const StreamContractInfo = ({
         <p className="font-bold mb-2 text-secondary">Owner</p>
         <Address address={owner} />
       </div>
+
+      {isAdmin && (
+        <div className="mt-8">
+          <p className="font-bold mb-2 text-secondary">Admins</p>
+          <AdminsList admins={admins} cohortAddress={cohortAddress} adminsLoading={isLoading} />
+        </div>
+      )}
     </>
   );
 };

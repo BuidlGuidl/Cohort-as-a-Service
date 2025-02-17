@@ -24,6 +24,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
     tokenSymbol,
     balance,
     isLoading,
+    admins,
   } = useCohortData(params.cohortAddress);
 
   const [selectedAddress, setSelectedAddress] = useState("");
@@ -154,6 +155,9 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
           isErc20={isERC20 ?? false}
           tokenSymbol={tokenSymbol ?? ""}
           balance={balance ?? 0}
+          admins={admins ?? []}
+          isLoading={isLoading}
+          isAdmin={isAdmin ?? false}
         />
       </div>
 

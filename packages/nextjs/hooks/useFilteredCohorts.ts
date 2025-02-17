@@ -20,9 +20,6 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
   const [isLoadingAdmin, setIsLoadingAdmin] = useState(true);
   const [isLoadingCreator, setIsLoadingCreator] = useState(true);
 
-
-
-
   const { address, isConnecting, isReconnecting } = useAccount();
   const { data: deployedContract } = useLocalDeployedContractInfo({ contractName: "Cohort" });
 
