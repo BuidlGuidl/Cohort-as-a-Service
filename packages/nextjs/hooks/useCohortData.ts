@@ -40,6 +40,7 @@ export type CohortData = {
   chainName?: string;
   chainId?: AllowedChainIds;
   admins: string[];
+  requiresApproval: boolean;
 };
 
 export const useCohortData = (cohortAddress: string) => {
@@ -87,32 +88,38 @@ export const useCohortData = (cohortAddress: string) => {
 
   useEffect(() => {
     if (creatorAdded && creatorAdded.length > 0) {
-      if (!creatorAdded[0].args) {
-        creatorsRefetch()
-          .then(() => {})
-          .catch(() => {
-            console.error("Error refreshing creatorAdded events");
-          });
+      for (let i = 0; i < creatorAdded.length; i++) {
+        if (!creatorAdded[i].args) {
+          creatorsRefetch()
+            .then(() => {})
+            .catch(() => {
+              console.error("Error refreshing creatorAdded events");
+            });
+        }
       }
     }
   }, [creatorAdded, creatorsRefetch]);
 
   useEffect(() => {
     if (adminAdded && adminAdded.length > 0) {
-      if (!adminAdded[0].args) {
-        adminsRefetch()
-          .then(() => {})
-          .catch(() => {
-            console.error("Error refreshing adminAdded events");
-          });
+      for (let i = 0; i < adminAdded.length; i++) {
+        if (!adminAdded[i].args) {
+          adminsRefetch()
+            .then(() => {})
+            .catch(() => {
+              console.error("Error refreshing adminAdded events");
+            });
+        }
       }
     }
   }, [adminAdded, adminsRefetch]);
 
   useEffect(() => {
     if (creatorAdded && creatorAdded.length > 0) {
-      if (!creatorAdded[0].args) {
-        return;
+      for (let i = 0; i < creatorAdded.length; i++) {
+        if (!creatorAdded[i].args) {
+          return;
+        }
       }
     }
 
@@ -158,19 +165,20 @@ export const useCohortData = (cohortAddress: string) => {
     };
 
     validateCreators();
-  }, [isLoadingCreators, deployedContract, creatorAdded, cohortAddress]);
+  }, [isLoadingCreators, deployedContract, creatorAdded, creatorsRefetch, cohortAddress]);
 
   useEffect(() => {
     if (adminAdded && adminAdded.length > 0) {
-      if (!adminAdded[0].args) {
-        return;
+      for (let i = 0; i < adminAdded.length; i++) {
+        if (!adminAdded[i].args) {
+          return;
+        }
       }
     }
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const addedAdmins = Array.from(new Set(adminAdded?.map(admin => admin?.args[0])));
-
     const validateAdmin = async (admin: string) => {
       if (!cohortAddress) return false;
 
@@ -324,7 +332,7 @@ export const useCohortData = (cohortAddress: string) => {
           cap: parseFloat(formatEther(flowInfo.cap)),
           last: Number(flowInfo.last),
           availableAmount,
-        });
+        })
       }
 
       // Check if current user is admin
@@ -332,6 +340,14 @@ export const useCohortData = (cohortAddress: string) => {
         address: cohortAddress,
         abi: deployedContract.abi,
         functionName: "isAdmin",
+        args: [address],
+        chainId,
+      });
+
+      const requiresApproval = await readContract(wagmiConfig, {
+        address: cohortAddress,
+        abi: deployedContract.abi,
+        functionName: "requiresApproval",
         args: [address],
         chainId,
       });
@@ -352,9 +368,11 @@ export const useCohortData = (cohortAddress: string) => {
         chainName,
         chainId,
         admins,
+        requiresApproval,
       });
     } catch (e) {
       console.error("Error fetching cohort data:", e);
+
       setError("Failed to fetch cohort data");
       notification.error("Failed to fetch cohort data");
     } finally {

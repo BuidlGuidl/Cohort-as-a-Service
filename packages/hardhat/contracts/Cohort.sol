@@ -29,6 +29,11 @@ error BelowMinimumCap(uint256 provided, uint256 minimum);
 error NotAuthorized();
 error InvalidNewAdminAddress();
 
+error NoWithdrawalRequest();
+error WithdrawalRequestNotApproved();
+error WithdrawalRequestAlreadyCompleted();
+error WithdrawalRequestNotFound();
+
 contract Cohort is AccessControl, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -56,6 +61,21 @@ contract Cohort is AccessControl, ReentrancyGuard {
 
     // Primary admin for remaining balances
     address public primaryAdmin;
+
+    // Withdrawal request structure
+    struct WithdrawalRequest {
+        uint256 amount;
+        string reason;
+        bool approved;
+        bool completed;
+        uint256 requestTime;
+    }
+
+    // Mapping to store withdrawal requests for each creator
+    mapping(address => WithdrawalRequest[]) public withdrawalRequests;
+
+    // Mapping to track whether specific creators require approval
+    mapping(address => bool) public requiresApproval;
 
     // Modifier to check for admin permissions
     modifier onlyAdmin() {
@@ -156,6 +176,13 @@ contract Cohort is AccessControl, ReentrancyGuard {
     event AgreementDrained(uint256 amount);
     event PrimaryAdminTransferred(address indexed newAdmin);
     event ERC20FundsReceived(address indexed token, address indexed from, uint256 amount);
+
+    // Withdrawal request events
+    event WithdrawalRequested(address indexed creator, uint256 requestId, uint256 amount, string reason);
+    event WithdrawalApproved(address indexed creator, uint256 requestId);
+    event WithdrawalRejected(address indexed creator, uint256 requestId);
+    event WithdrawalCompleted(address indexed creator, uint256 requestId, uint256 amount);
+    event ApprovalRequirementChanged(address indexed creator, bool requiresApproval);
 
     // Check if a flow for a creator is active
     modifier isFlowActive(address _creator) {
@@ -285,23 +312,112 @@ contract Cohort is AccessControl, ReentrancyGuard {
         emit UpdateBuilder(_creator, 0);
     }
 
-    function flowWithdraw(
-        uint256 _amount,
-        string memory _reason
-    ) public isFlowActive(msg.sender) nonReentrant stopInEmergency {
-        CreatorFlowInfo storage creatorFlow = flowingCreators[msg.sender];
+    // Set whether a creator requires approval for withdrawals
+    function setCreatorApprovalRequirement(
+        address _creator,
+        bool _requiresApproval
+    ) public onlyAdmin isFlowActive(_creator) {
+        requiresApproval[_creator] = _requiresApproval;
+        emit ApprovalRequirementChanged(_creator, _requiresApproval);
+    }
 
+    // Request a withdrawal - for creators that require approval
+    function _requestWithdrawal(uint256 _amount, string memory _reason) private {
+        // Check if the creator has enough available to withdraw
         uint256 totalAmountCanWithdraw = availableCreatorAmount(msg.sender);
         if (totalAmountCanWithdraw < _amount) {
             revert InsufficientInFlow(_amount, totalAmountCanWithdraw);
         }
 
+        // Create withdrawal request
+        withdrawalRequests[msg.sender].push(
+            WithdrawalRequest({
+                amount: _amount,
+                reason: _reason,
+                approved: false,
+                completed: false,
+                requestTime: block.timestamp
+            })
+        );
+
+        uint256 requestId = withdrawalRequests[msg.sender].length - 1;
+        emit WithdrawalRequested(msg.sender, requestId, _amount, _reason);
+    }
+
+    // Approve a withdrawal request - only admins can call this
+    function approveWithdrawal(address _creator, uint256 _requestId) public onlyAdmin {
+        if (withdrawalRequests[_creator].length <= _requestId) revert WithdrawalRequestNotFound();
+        WithdrawalRequest storage request = withdrawalRequests[_creator][_requestId];
+
+        if (request.completed) revert WithdrawalRequestAlreadyCompleted();
+
+        request.approved = true;
+        emit WithdrawalApproved(_creator, _requestId);
+    }
+
+    // Reject a withdrawal request - only admins can call this
+    function rejectWithdrawal(address _creator, uint256 _requestId) public onlyAdmin {
+        if (withdrawalRequests[_creator].length <= _requestId) revert WithdrawalRequestNotFound();
+        WithdrawalRequest storage request = withdrawalRequests[_creator][_requestId];
+
+        if (request.completed) revert WithdrawalRequestAlreadyCompleted();
+
+        // Delete the request by marking it as completed but not approved
+        request.completed = true;
+        request.approved = false;
+        emit WithdrawalRejected(_creator, _requestId);
+    }
+
+    // Complete a withdrawal that was previously approved
+    function completeWithdrawal(uint256 _requestId) public isFlowActive(msg.sender) nonReentrant stopInEmergency {
+        // Check if request exists
+        if (withdrawalRequests[msg.sender].length <= _requestId) revert WithdrawalRequestNotFound();
+        WithdrawalRequest storage request = withdrawalRequests[msg.sender][_requestId];
+
+        // Check if request is completed
+        if (request.completed) revert WithdrawalRequestAlreadyCompleted();
+
+        // Check if approval is required and given
+        if (requiresApproval[msg.sender] && !request.approved) revert WithdrawalRequestNotApproved();
+
+        _processFlowWithdraw(request.amount);
+
+        // Mark request as completed
+        request.completed = true;
+
+        emit WithdrawalCompleted(msg.sender, _requestId, request.amount);
+        emit Withdraw(msg.sender, request.amount, request.reason);
+    }
+
+    function flowWithdraw(
+        uint256 _amount,
+        string memory _reason
+    ) public isFlowActive(msg.sender) nonReentrant stopInEmergency {
+        if (requiresApproval[msg.sender]) {
+            _requestWithdrawal(_amount, _reason);
+            return;
+        }
+
+        _processFlowWithdraw(_amount);
+
+        emit Withdraw(msg.sender, _amount, _reason);
+    }
+
+    function _processFlowWithdraw(uint256 _amount) private {
+        uint256 totalAmountCanWithdraw = availableCreatorAmount(msg.sender);
+        if (totalAmountCanWithdraw < _amount) {
+            revert InsufficientInFlow(_amount, totalAmountCanWithdraw);
+        }
+
+        // Process the withdrawal similar to flowWithdraw
+        CreatorFlowInfo storage creatorFlow = flowingCreators[msg.sender];
         uint256 creatorflowLast = creatorFlow.last;
         uint256 timestamp = block.timestamp;
         uint256 cappedLast = timestamp - cycle;
         if (creatorflowLast < cappedLast) {
             creatorflowLast = cappedLast;
         }
+
         if (!isERC20) {
             uint256 contractFunds = address(this).balance;
             if (contractFunds < _amount) {
@@ -319,9 +435,8 @@ contract Cohort is AccessControl, ReentrancyGuard {
             IERC20(tokenAddress).safeTransfer(msg.sender, _amount);
         }
 
+        // Update last withdrawal time
         creatorFlow.last = creatorflowLast + (((timestamp - creatorflowLast) * _amount) / totalAmountCanWithdraw);
-
-        emit Withdraw(msg.sender, _amount, _reason);
     }
 
     // Drain the agreement to the primary admin address

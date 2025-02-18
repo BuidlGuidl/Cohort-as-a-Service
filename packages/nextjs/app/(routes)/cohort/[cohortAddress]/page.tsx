@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { FundCohort } from "./_components/FundCohort";
 import { StreamContractInfo } from "./_components/StreamContractInfo";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { useCohortData } from "~~/hooks/useCohortData";
@@ -22,6 +21,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     chainId,
     admins,
     isLoading,
+    requiresApproval,
   } = useCohortData(params.cohortAddress);
 
   const router = useRouter();
@@ -63,14 +63,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
           <QuestionMarkCircleIcon className="h-5 w-5 inline-block ml-2" />
         </span>
       </p>
-      {isAdmin && (
-        <FundCohort
-          cohortAddress={params.cohortAddress}
-          isErc20={isERC20 ?? false}
-          tokenAddress={tokenAddress ?? ""}
-          tokenSymbol={tokenSymbol ?? ""}
-        />
-      )}
+
       <StreamContractInfo
         owner={primaryAdmin || ""}
         isCreator={isCreator || false}
@@ -83,6 +76,8 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         admins={admins ?? []}
         isLoading={isLoading}
         isAdmin={isAdmin ?? false}
+        requiresApproval={requiresApproval ?? false}
+        tokenAddress={tokenAddress ?? ""}
       />
     </div>
   );
