@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Banknote } from "lucide-react";
 import { EtherInput } from "~~/components/scaffold-eth";
 import { useFunding } from "~~/hooks/useFunding";
 
@@ -36,15 +35,7 @@ export const FundCohort = ({ cohortAddress, tokenAddress, isErc20, tokenSymbol }
   };
 
   return (
-    <div className="mb-3">
-      <label
-        htmlFor="fund-cohort-modal"
-        className="btn rounded-md btn-primary btn-sm font-normal space-x-2 normal-case"
-      >
-        Fund cohort
-        <Banknote className="h-4 w-4" />
-      </label>
-
+    <>
       <input type="checkbox" id="fund-cohort-modal" className="modal-toggle" />
       <label htmlFor="fund-cohort-modal" className="modal cursor-pointer">
         <label className="modal-box relative shadow shadow-primary">
@@ -74,6 +65,6 @@ export const FundCohort = ({ cohortAddress, tokenAddress, isErc20, tokenSymbol }
           </div>
         </label>
       </label>
-    </div>
+    </>
   );
 };

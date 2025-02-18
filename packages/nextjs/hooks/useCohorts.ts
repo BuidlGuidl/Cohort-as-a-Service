@@ -24,15 +24,15 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
   const [cohorts, setCohorts] = useState<Cohort[]>([]);
   const [isLoadingState, setIsloading] = useState(true);
 
-  const hardhatEvents = useScaffoldEventHistory({
-    contractName: "CohortFactory",
-    eventName: "CohortCreated",
-    fromBlock: deployBlock,
-    blockData: true,
-    watch: true,
-    receiptData: true,
-    chainId: chains.hardhat.id,
-  });
+  // const hardhatEvents = useScaffoldEventHistory({
+  //   contractName: "CohortFactory",
+  //   eventName: "CohortCreated",
+  //   fromBlock: deployBlock,
+  //   blockData: true,
+  //   watch: true,
+  //   receiptData: true,
+  //   chainId: chains.hardhat.id,
+  // });
 
   const baseSepoliaEvents = useScaffoldEventHistory({
     contractName: "CohortFactory",
@@ -115,7 +115,7 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
   });
 
   const allChainEvents = [
-    { chainId: chains.hardhat.id, chainName: "Hardhat", ...hardhatEvents },
+    // { chainId: chains.hardhat.id, chainName: "Hardhat", ...hardhatEvents },
     { chainId: chains.baseSepolia.id, chainName: "Base Sepolia", ...baseSepoliaEvents },
     { chainId: chains.mainnet.id, chainName: "Ethereum", ...mainnetEvents },
     { chainId: chains.optimism.id, chainName: "Optimism", ...optimismEvents },

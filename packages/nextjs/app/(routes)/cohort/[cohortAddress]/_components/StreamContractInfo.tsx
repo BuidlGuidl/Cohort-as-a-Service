@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { AdminsList } from "./AdminsList";
+import { CohortActions } from "./CohortActions";
 import { TokenBalance } from "./TokenBalance";
 import { TriangleAlert } from "lucide-react";
 import { useAccount } from "wagmi";
@@ -17,6 +19,11 @@ interface StreamContractInfoProps {
   balance: number;
   chainId?: number;
   chainName?: string;
+  admins: string[];
+  isLoading: boolean;
+  isAdmin: boolean;
+  requiresApproval: boolean;
+  tokenAddress: string;
 }
 
 export const StreamContractInfo = ({
@@ -28,6 +35,11 @@ export const StreamContractInfo = ({
   balance,
   chainId: cohortChainId,
   chainName,
+  admins,
+  isLoading,
+  isAdmin,
+  requiresApproval,
+  tokenAddress,
 }: StreamContractInfoProps) => {
   const { address, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
@@ -64,6 +76,14 @@ export const StreamContractInfo = ({
           ) : (
             <Balance address={cohortAddress} className="text-3xl" />
           )}
+          {isAdmin && (
+            <CohortActions
+              cohortAddress={cohortAddress}
+              tokenAddress={tokenAddress}
+              tokenSymbol={tokenSymbol}
+              isErc20={isErc20}
+            />
+          )}
         </div>
         {address && isCreator && (
           <div className="mt-3">
@@ -82,11 +102,14 @@ export const StreamContractInfo = ({
       <label htmlFor="withdraw-modal" className="modal cursor-pointer">
         <label className="modal-box relative shadow shadow-primary">
           <input className="h-0 w-0 absolute top-0 left-0" />
-          <h3 className="font-bold mb-8">Withdraw from your stream</h3>
+          <h3 className="font-bold">{requiresApproval ? "Request a Withdrawal" : "Withdraw from your stream"}</h3>
+          {requiresApproval && (
+            <span className="label-text-alt text-base-content/60">Your withdrawals require approval</span>
+          )}
           <label htmlFor="withdraw-modal" className="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">
             ✕
           </label>
-          <div className="space-y-3">
+          <div className="space-y-3 mt-8">
             <div className="flex flex-col gap-6 items-center">
               <textarea
                 className="textarea textarea-ghost focus:outline-none min-h-[200px] focus:bg-transparent px-4 w-full font-medium placeholder:text-accent/50 border border-base-300 rounded-md text-accent"
@@ -107,7 +130,7 @@ export const StreamContractInfo = ({
                 )}
               </div>
               <button type="button" className="btn btn-secondary btn-sm w-full" onClick={flowWithdraw}>
-                Withdraw
+                {requiresApproval ? "Request Withdrawal" : "Withdraw"}
               </button>
             </div>
           </div>
@@ -118,6 +141,13 @@ export const StreamContractInfo = ({
         <p className="font-bold mb-2 text-secondary">Owner</p>
         <Address address={owner} />
       </div>
+
+      {isAdmin && (
+        <div className="mt-8">
+          <p className="font-bold mb-2 text-secondary">Admins</p>
+          <AdminsList admins={admins} cohortAddress={cohortAddress} adminsLoading={isLoading} />
+        </div>
+      )}
     </>
   );
 };
