@@ -439,8 +439,8 @@ contract Cohort is AccessControl, ReentrancyGuard {
         creatorFlow.last = creatorflowLast + (((timestamp - creatorflowLast) * _amount) / totalAmountCanWithdraw);
     }
 
-    // Drain the agreement to the primary admin address
-    function drainAgreement(address _token) public onlyAdmin nonReentrant {
+    // Drain the contract to the primary admin address
+    function drainContract(address _token) public onlyAdmin nonReentrant {
         uint256 remainingBalance;
 
         // Drain Ether
