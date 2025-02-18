@@ -17,8 +17,6 @@ export const AdminsList = ({ cohortAddress, admins, adminsLoading }: AdminListPr
     </div>
   );
 
-  console.log(admins);
-
   return (
     <div>
       <AddAdmin cohortAddress={cohortAddress} />
