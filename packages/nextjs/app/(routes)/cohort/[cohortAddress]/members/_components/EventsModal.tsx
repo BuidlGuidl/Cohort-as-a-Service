@@ -37,9 +37,9 @@ export const EventsModal: React.FC<EventsModalProps> = ({
   cohortAddress,
   isAdmin,
 }) => {
-  if (!isOpen) return null;
-
   const { address } = useAccount();
+
+  if (!isOpen) return null;
 
   return (
     <>

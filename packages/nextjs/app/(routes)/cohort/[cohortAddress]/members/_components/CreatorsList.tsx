@@ -96,7 +96,7 @@ export const CreatorsList: React.FC<CreatorsListProps> = ({
                     <Address address={creatorFlow.creatorAddress} disableAddressLink={true} />
                   </div>
                   <div className="ml-4 flex items-center">
-                    {isAdmin  && (
+                    {isAdmin && (
                       <Actions
                         cohortAddress={cohortAddress}
                         creatorAddress={creatorFlow.creatorAddress}

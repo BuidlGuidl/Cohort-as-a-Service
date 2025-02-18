@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Banknote } from "lucide-react";
 import { EtherInput } from "~~/components/scaffold-eth";
 import { useFunding } from "~~/hooks/useFunding";
 

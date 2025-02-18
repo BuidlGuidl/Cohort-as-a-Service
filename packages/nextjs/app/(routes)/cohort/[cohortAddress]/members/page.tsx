@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, {useState } from "react";
 import { StreamContractInfo } from "../_components/StreamContractInfo";
-import { Actions } from "./_components/Actions";
-import { AddBatch } from "./_components/AddBatch";
 import { CreatorsList } from "./_components/CreatorsList";
 import { EventsModal } from "./_components/EventsModal";
 import { useAccount } from "wagmi";
