@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useState } from "react";
+import React, { useState } from "react";
 import { StreamContractInfo } from "../_components/StreamContractInfo";
 import { CreatorsList } from "./_components/CreatorsList";
 import { EventsModal } from "./_components/EventsModal";
