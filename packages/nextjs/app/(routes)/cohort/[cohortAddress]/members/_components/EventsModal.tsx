@@ -1,7 +1,7 @@
 import React from "react";
+import { ApproveWithdrawal } from "./ApproveWithdrawal";
 import { CompleteWithdrawal } from "./CompleteWithdrawal";
 import { RejectWithdrawal } from "./RejectWithdrawal";
-import { ApproveWithdrawal } from "./approveWithdrawal";
 import { formatEther } from "viem";
 import { useAccount } from "wagmi";
 import { Address } from "~~/components/scaffold-eth";
