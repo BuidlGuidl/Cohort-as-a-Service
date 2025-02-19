@@ -20,6 +20,7 @@ export const RemoveBuilder = ({ cohortAddress, builderAddress }: RemoveBuilderPr
         modalCheckbox.checked = false;
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSuccess]);
 
   return (
