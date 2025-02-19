@@ -10,13 +10,6 @@ export const baseChainId = 84532;
 
 export const chains: Chain[] = [
   {
-    id: "bnb",
-    name: "BNB Chain",
-    chainId: 56,
-    icon: "/chain/56.svg",
-    isEVM: true,
-  },
-  {
     id: "ethereum",
     name: "Ethereum",
     chainId: 1,
