@@ -352,7 +352,7 @@ export const useCohortData = (cohortAddress: string) => {
           const available = await readContract(wagmiConfig, {
             address: cohortAddress,
             abi: deployedContract.abi,
-            functionName: "availableBuilderAmount",
+            functionName: "unlockedBuilderAmount",
             args: [builder],
             chainId,
           });
