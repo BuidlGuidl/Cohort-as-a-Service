@@ -11,7 +11,7 @@ import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 import { notification } from "~~/utils/scaffold-eth";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
-export type BuilderFlowInfo = {
+export type BuilderStreamInfo = {
   cap: bigint;
   last: bigint;
 };
@@ -26,13 +26,13 @@ export type CohortData = {
   stopped: boolean;
   balance: number;
   activeBuilders: string[];
-  builderFlows: Map<
+  builderStreams: Map<
     string,
     {
       builderAddress: string;
       cap: number;
       last: number;
-      availableAmount: number;
+      unlockedAmount: number;
       requiresApproval: boolean;
     }
   >;
@@ -329,8 +329,8 @@ export const useCohortData = (cohortAddress: string) => {
         balance = parseFloat(formatEther(ethBalance || BigInt(0)));
       }
 
-      // Get builder flow data
-      const builderFlows = new Map();
+      // Get builder stream data
+      const builderStreams = new Map();
 
       // Fetch all builders data in bulk
       const buildersData = await readContract(wagmiConfig, {
@@ -344,9 +344,9 @@ export const useCohortData = (cohortAddress: string) => {
       // Get available amounts for each builder
       for (let i = 0; i < builders.length; i++) {
         const builder = builders[i];
-        const flowInfo = buildersData[i];
+        const streamInfo = buildersData[i];
 
-        let availableAmount = 0;
+        let unlockedAmount = 0;
         let requiresApproval = false;
         try {
           const available = await readContract(wagmiConfig, {
@@ -356,7 +356,7 @@ export const useCohortData = (cohortAddress: string) => {
             args: [builder],
             chainId,
           });
-          availableAmount = parseFloat(formatEther(available));
+          unlockedAmount = parseFloat(formatEther(available));
 
           requiresApproval = await readContract(wagmiConfig, {
             address: cohortAddress,
@@ -369,11 +369,11 @@ export const useCohortData = (cohortAddress: string) => {
           console.error(`Error fetching available amount for ${builder}:`, e);
         }
 
-        builderFlows.set(builder, {
+        builderStreams.set(builder, {
           builderAddress: builder,
-          cap: parseFloat(formatEther(flowInfo.cap)),
-          last: Number(flowInfo.last),
-          availableAmount,
+          cap: parseFloat(formatEther(streamInfo.cap)),
+          last: Number(streamInfo.last),
+          unlockedAmount,
           requiresApproval,
         });
       }
@@ -405,7 +405,7 @@ export const useCohortData = (cohortAddress: string) => {
         stopped,
         balance,
         activeBuilders: builders,
-        builderFlows,
+        builderStreams,
         isAdmin,
         isBuilder: builders.includes(address),
         chainName,

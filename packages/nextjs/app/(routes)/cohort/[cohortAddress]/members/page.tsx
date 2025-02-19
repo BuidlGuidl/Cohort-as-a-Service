@@ -8,17 +8,17 @@ import { useAccount } from "wagmi";
 import { useCohortData } from "~~/hooks/useCohortData";
 import { useWithdrawEvents } from "~~/hooks/useWithdrawEvents";
 
-export interface BuilderFlow {
+export interface BuilderStream {
   builderAddress: string;
   cap: number;
-  availableAmount: number;
+  unlockedAmount: number;
 }
 
 const Page = ({ params }: { params: { cohortAddress: string } }) => {
   const {
     name,
     primaryAdmin,
-    builderFlows,
+    builderStreams,
     isBuilder,
     isAdmin,
     tokenAddress,
@@ -66,7 +66,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
 
           <BuildersList
             cohortAddress={params.cohortAddress}
-            builderFlows={builderFlows}
+            builderStreams={builderStreams}
             isAdmin={isAdmin ?? false}
             isBuilder={isBuilder ?? false}
             userAddress={address}

@@ -2,11 +2,10 @@
 
 -->This repo's README.md is currently being edited<--
 
-This **work-in-progress** project aims to provide a platform to retroactively fund open-source work by providing a monthly 
+This **work-in-progress** project aims to provide a platform to retroactively fund open-source work by providing a monthly
 UBI to handpicked open-source developers, rewarding them for their ongoing contributions.
 
 Developers can submit their contributions (stored in a Smart Contract), automatically claim grant streams, and showcase their work to the public.
-
 
 **Stream mechanism:**
 
@@ -35,7 +34,7 @@ You get a generic template to set your LaunchPod Website. Feel free to add all t
 Here you can view some examples of active Hacker Houses using the project in which LaunchPod was inspired in:
 
 | Hacker House         | Links                                                                                                                                     | Description                                                                                        |
-| -------------------- |-------------------------------------------------------------------------------------------------------------------------------------------| -------------------------------------------------------------------------------------------------- |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | Jessy's Hacker House | [Repo](https://github.com/BuidlGuidl/hacker-houses-streams/tree/jessy-streams-hacker-house) / [Site](https://hackerhouse.buidlguidl.com/) | One-page template with Jessy's Hacker House design touch                                           |
 | Sand Garden          | [Repo](https://github.com/BuidlGuidl/hacker-houses-streams/tree/carlos-sand-garden) / [Site](http://sandgarden.buidlguidl.com/)           | Multi-page template, includes a Projects section with the list of the projects they are working on |
 
@@ -73,7 +72,6 @@ yarn install
 
 - In line 27 of 'LaunchPod/packages/hardhat/deploy/00_deploy_your_contract.ts' set the address that should be the primary admin and the first admin of the smart contract (default setting is deployer). As the primary admin of the contract, such address will receive all the funds in the contract in case the 'drainAgreement()' functioon is called. Also, as the first admin, the primary admin is able to grant/revoke admin role to/from any address via the 'modifyAdminRole(address adminAddress, bool shouldGrant)' function.
 
-
 ### 3. Configure website
 
 - Adapt generic template on front-end.
@@ -98,7 +96,6 @@ This command starts a local network using Hardhat. The network runs on your loca
 
 This command deploys a test smart contract to the local network. The contract is located in `packages/hardhat/contracts` and can be modified to suit your needs. The `yarn deploy` command uses the deploy script located in `packages/hardhat/deploy` to deploy the contract to the network.
 
-
 3. In a third terminal, start your NextJS app:
 
    ```shell
@@ -106,7 +103,6 @@ This command deploys a test smart contract to the local network. The contract is
    ```
 
 Visit your app on: `http://localhost:3000`.
-
 
 ### 5. Deploy to a Live Network
 
@@ -129,8 +125,8 @@ By default, `yarn deploy `will deploy the contract to the local network. To depl
 yarn deploy --network target_network
 ```
 
-Check the `hardhat.config.js` for the networks that are pre-configured. 
-You can also add other networks on  the `hardhat.config.js` file.
+Check the `hardhat.config.js` for the networks that are pre-configured.
+You can also add other networks on the `hardhat.config.js` file.
 
 Example: To deploy the contract to the Sepolia network, run the command below:
 

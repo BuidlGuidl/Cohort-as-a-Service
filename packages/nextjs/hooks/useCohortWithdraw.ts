@@ -37,7 +37,7 @@ export const useCohortWithdraw = ({ cohortAddress, amount, reason }: useCohortWi
           writeContractAsync({
             abi: cohort.abi,
             address: cohortAddress,
-            functionName: "flowWithdraw",
+            functionName: "streamWithdraw",
             args: [parseEther(amount), reason],
           });
 
@@ -53,7 +53,7 @@ export const useCohortWithdraw = ({ cohortAddress, amount, reason }: useCohortWi
   };
 
   return {
-    flowWithdraw: sendContractWriteTx,
+    streamWithdraw: sendContractWriteTx,
     isPending,
   };
 };

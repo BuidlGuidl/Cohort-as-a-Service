@@ -47,7 +47,7 @@ export const StreamContractInfo = ({
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
 
-  const { flowWithdraw } = useCohortWithdraw({ cohortAddress, amount, reason });
+  const { streamWithdraw } = useCohortWithdraw({ cohortAddress, amount, reason });
 
   const onClick = (chainId: number) => {
     switchChain({ chainId: chainId });
@@ -131,7 +131,7 @@ export const StreamContractInfo = ({
                   <EtherInput value={amount} onChange={value => setAmount(value)} />
                 )}
               </div>
-              <button type="button" className="btn btn-secondary btn-sm w-full" onClick={flowWithdraw}>
+              <button type="button" className="btn btn-secondary btn-sm w-full" onClick={streamWithdraw}>
                 {connectedAddressRequiresApproval ? "Request Withdrawal" : "Withdraw"}
               </button>
             </div>

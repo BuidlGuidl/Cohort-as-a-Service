@@ -35,7 +35,7 @@ export const useRemoveBuilder = ({ cohortAddress, builderAddress }: useRemoveBui
           writeContractAsync({
             abi: cohort.abi,
             address: cohortAddress,
-            functionName: "removeBuilderFlow",
+            functionName: "removeBuilderStream",
             args: [builderAddress],
           });
 

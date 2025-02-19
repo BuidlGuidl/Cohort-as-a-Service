@@ -978,9 +978,9 @@ abstract contract ReentrancyGuard {
 
 // Custom errors
 error NoValueSent();
-error InsufficientFundsInContract(uint256 requested, uint256 available);
-error NoActiveFlowForBuilder(address builder);
-error InsufficientInFlow(uint256 requested, uint256 available);
+error InsufficientFundsInContract(uint256 requested, uint256 unlocked);
+error NoActiveStreamForBuilder(address builder);
+error InsufficientInStream(uint256 requested, uint256 unlocked);
 error EtherSendingFailed();
 error LengthsMismatch();
 error InvalidBuilderAddress();
@@ -1009,7 +1009,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
     uint256 constant MINIMUM_CAP = 0.25 ether;
     uint256 constant MINIMUM_ERC20_CAP = 10 * 10 ** 18;
 
-    // Cycle duration for the flow
+    // Cycle duration for the stream
     uint256 public cycle;
 
     // ERC20 support
@@ -1059,7 +1059,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
         if (cLength != _caps.length) revert LengthsMismatch();
         for (uint256 i = 0; i < cLength; ) {
             validateBuilderInput(payable(_builders[i]), _caps[i]);
-            flowingBuilders[_builders[i]] = BuilderFlowInfo(_caps[i], block.timestamp - _cycle);
+            streamingBuilders[_builders[i]] = BuilderStreamInfo(_caps[i], block.timestamp - _cycle);
             activeBuilders.push(_builders[i]);
             builderIndex[_builders[i]] = activeBuilders.length - 1;
             emit AddBuilder(_builders[i], _caps[i]);
@@ -1073,7 +1073,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
     // Function to modify admin roles
     function modifyAdminRole(address adminAddress, bool shouldGrant) public onlyAdmin {
         if (shouldGrant) {
-            if (flowingBuilders[adminAddress].cap != 0) revert InvalidBuilderAddress();
+            if (streamingBuilders[adminAddress].cap != 0) revert InvalidBuilderAddress();
             grantRole(DEFAULT_ADMIN_ROLE, adminAddress);
             isAdmin[adminAddress] = true;
             emit AdminAdded(adminAddress);
@@ -1085,8 +1085,8 @@ contract Cohort is AccessControl, ReentrancyGuard {
         }
     }
 
-    // Struct to store information about builder's flow
-    struct BuilderFlowInfo {
+    // Struct to store information about builder's stream
+    struct BuilderStreamInfo {
         uint256 cap; // Maximum amount of funds that can be withdrawn in a cycle
         uint256 last; // The timestamp of the last withdrawal
     }
@@ -1125,8 +1125,8 @@ contract Cohort is AccessControl, ReentrancyGuard {
         _;
     }
 
-    // Mapping to store the flow info of each builder
-    mapping(address => BuilderFlowInfo) public flowingBuilders;
+    // Mapping to store the stream info of each builder
+    mapping(address => BuilderStreamInfo) public streamingBuilders;
     // Mapping to store the index of each builder in the activeBuilders array
     mapping(address => uint256) public builderIndex;
     // Array to store the addresses of all active builders
@@ -1153,9 +1153,9 @@ contract Cohort is AccessControl, ReentrancyGuard {
     event WithdrawalCompleted(address indexed builder, uint256 requestId, uint256 amount);
     event ApprovalRequirementChanged(address indexed builder, bool requiresApproval);
 
-    // Check if a flow for a builder is active
-    modifier isFlowActive(address _builder) {
-        if (flowingBuilders[_builder].cap == 0) revert NoActiveFlowForBuilder(_builder);
+    // Check if a stream for a builder is active
+    modifier isStreamActive(address _builder) {
+        if (streamingBuilders[_builder].cap == 0) revert NoActiveStreamForBuilder(_builder);
         _;
     }
 
@@ -1185,12 +1185,12 @@ contract Cohort is AccessControl, ReentrancyGuard {
     }
 
     // Get all builders' data.
-    function allBuildersData(address[] calldata _builders) public view returns (BuilderFlowInfo[] memory) {
+    function allBuildersData(address[] calldata _builders) public view returns (BuilderStreamInfo[] memory) {
         uint256 builderLength = _builders.length;
-        BuilderFlowInfo[] memory result = new BuilderFlowInfo[](builderLength);
+        BuilderStreamInfo[] memory result = new BuilderStreamInfo[](builderLength);
         for (uint256 i = 0; i < builderLength; ) {
             address builderAddress = _builders[i];
-            result[i] = flowingBuilders[builderAddress];
+            result[i] = streamingBuilders[builderAddress];
             unchecked {
                 ++i;
             }
@@ -1198,26 +1198,26 @@ contract Cohort is AccessControl, ReentrancyGuard {
         return result;
     }
 
-    // Get the available amount for a builder.
-    function availableBuilderAmount(address _builder) public view isFlowActive(_builder) returns (uint256) {
-        BuilderFlowInfo memory builderFlow = flowingBuilders[_builder];
-        uint256 timePassed = block.timestamp - builderFlow.last;
+    // Get the unlocked amount for a builder.
+    function unlockedBuilderAmount(address _builder) public view isStreamActive(_builder) returns (uint256) {
+        BuilderStreamInfo memory builderStream = streamingBuilders[_builder];
+        uint256 timePassed = block.timestamp - builderStream.last;
 
         if (timePassed < cycle) {
-            uint256 availableAmount = (timePassed * builderFlow.cap) / cycle;
-            return availableAmount;
+            uint256 unlockedAmount = (timePassed * builderStream.cap) / cycle;
+            return unlockedAmount;
         } else {
-            return builderFlow.cap;
+            return builderStream.cap;
         }
     }
 
-    // Add a new builder's flow. No more than 25 builders are allowed.
-    function addBuilderFlow(address payable _builder, uint256 _cap) public onlyAdmin {
+    // Add a new builder's stream. No more than 25 builders are allowed.
+    function addBuilderStream(address payable _builder, uint256 _cap) public onlyAdmin {
         // Check for maximum builders.
         if (activeBuilders.length >= MAXCREATORS) revert MaxBuildersReached();
 
         validateBuilderInput(_builder, _cap);
-        flowingBuilders[_builder] = BuilderFlowInfo(_cap, block.timestamp - cycle);
+        streamingBuilders[_builder] = BuilderStreamInfo(_cap, block.timestamp - cycle);
         activeBuilders.push(_builder);
         builderIndex[_builder] = activeBuilders.length - 1;
         emit AddBuilder(_builder, _cap);
@@ -1229,7 +1229,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
         if (_builders.length >= MAXCREATORS) revert MaxBuildersReached();
         if (cLength != _caps.length) revert LengthsMismatch();
         for (uint256 i = 0; i < cLength; ) {
-            addBuilderFlow(payable(_builders[i]), _caps[i]);
+            addBuilderStream(payable(_builders[i]), _caps[i]);
             unchecked {
                 ++i;
             }
@@ -1243,28 +1243,28 @@ contract Cohort is AccessControl, ReentrancyGuard {
         if (_cap < MINIMUM_ERC20_CAP && isERC20) revert BelowMinimumCap(_cap, MINIMUM_ERC20_CAP);
         if (_builder == address(0)) revert InvalidBuilderAddress();
         if (isAdmin[_builder]) revert InvalidBuilderAddress();
-        if (flowingBuilders[_builder].cap > 0) revert BuilderAlreadyExists();
+        if (streamingBuilders[_builder].cap > 0) revert BuilderAlreadyExists();
     }
 
-    // Update a builder's flow cap
-    function updateBuilderFlowCapCycle(
+    // Update a builder's stream cap
+    function updateBuilderStreamCap(
         address payable _builder,
         uint256 _newCap
-    ) public onlyAdmin isFlowActive(_builder) {
+    ) public onlyAdmin isStreamActive(_builder) {
         if (_newCap < MINIMUM_CAP && !isERC20) revert BelowMinimumCap(_newCap, MINIMUM_CAP);
         if (_newCap < MINIMUM_ERC20_CAP && isERC20) revert BelowMinimumCap(_newCap, MINIMUM_ERC20_CAP);
 
-        BuilderFlowInfo storage builderFlow = flowingBuilders[_builder];
+        BuilderStreamInfo storage builderStream = streamingBuilders[_builder];
 
-        builderFlow.cap = _newCap;
+        builderStream.cap = _newCap;
 
-        builderFlow.last = block.timestamp - (cycle);
+        builderStream.last = block.timestamp - (cycle);
 
         emit UpdateBuilder(_builder, _newCap);
     }
 
-    // Remove a builder's flow
-    function removeBuilderFlow(address _builder) public onlyAdmin isFlowActive(_builder) {
+    // Remove a builder's stream
+    function removeBuilderStream(address _builder) public onlyAdmin isStreamActive(_builder) {
         uint256 builderIndexToRemove = builderIndex[_builder];
         address lastBuilder = activeBuilders[activeBuilders.length - 1];
 
@@ -1275,7 +1275,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
 
         activeBuilders.pop();
 
-        delete flowingBuilders[_builder];
+        delete streamingBuilders[_builder];
         delete builderIndex[_builder];
 
         emit UpdateBuilder(_builder, 0);
@@ -1285,17 +1285,17 @@ contract Cohort is AccessControl, ReentrancyGuard {
     function setBuilderApprovalRequirement(
         address _builder,
         bool _requiresApproval
-    ) public onlyAdmin isFlowActive(_builder) {
+    ) public onlyAdmin isStreamActive(_builder) {
         requiresApproval[_builder] = _requiresApproval;
         emit ApprovalRequirementChanged(_builder, _requiresApproval);
     }
 
     // Request a withdrawal - for builders that require approval
     function _requestWithdrawal(uint256 _amount, string memory _reason) private {
-        // Check if the builder has enough available to withdraw
-        uint256 totalAmountCanWithdraw = availableBuilderAmount(msg.sender);
+        // Check if the builder has enough unlocked to withdraw
+        uint256 totalAmountCanWithdraw = unlockedBuilderAmount(msg.sender);
         if (totalAmountCanWithdraw < _amount) {
-            revert InsufficientInFlow(_amount, totalAmountCanWithdraw);
+            revert InsufficientInStream(_amount, totalAmountCanWithdraw);
         }
 
         // Create withdrawal request
@@ -1338,7 +1338,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
     }
 
     // Complete a withdrawal that was previously approved
-    function completeWithdrawal(uint256 _requestId) public isFlowActive(msg.sender) nonReentrant stopInEmergency {
+    function completeWithdrawal(uint256 _requestId) public isStreamActive(msg.sender) nonReentrant stopInEmergency {
         // Check if request exists
         if (withdrawalRequests[msg.sender].length <= _requestId) revert WithdrawalRequestNotFound();
         WithdrawalRequest storage request = withdrawalRequests[msg.sender][_requestId];
@@ -1349,7 +1349,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
         // Check if approval is required and given
         if (requiresApproval[msg.sender] && !request.approved) revert WithdrawalRequestNotApproved();
 
-        _processFlowWithdraw(request.amount);
+        _processStreamWithdraw(request.amount);
 
         // Mark request as completed
         request.completed = true;
@@ -1358,33 +1358,33 @@ contract Cohort is AccessControl, ReentrancyGuard {
         emit Withdraw(msg.sender, request.amount, request.reason);
     }
 
-    function flowWithdraw(
+    function streamWithdraw(
         uint256 _amount,
         string memory _reason
-    ) public isFlowActive(msg.sender) nonReentrant stopInEmergency {
+    ) public isStreamActive(msg.sender) nonReentrant stopInEmergency {
         if (requiresApproval[msg.sender]) {
             _requestWithdrawal(_amount, _reason);
             return;
         }
 
-        _processFlowWithdraw(_amount);
+        _processStreamWithdraw(_amount);
 
         emit Withdraw(msg.sender, _amount, _reason);
     }
 
-    function _processFlowWithdraw(uint256 _amount) private {
-        uint256 totalAmountCanWithdraw = availableBuilderAmount(msg.sender);
+    function _processStreamWithdraw(uint256 _amount) private {
+        uint256 totalAmountCanWithdraw = unlockedBuilderAmount(msg.sender);
         if (totalAmountCanWithdraw < _amount) {
-            revert InsufficientInFlow(_amount, totalAmountCanWithdraw);
+            revert InsufficientInStream(_amount, totalAmountCanWithdraw);
         }
 
-        // Process the withdrawal similar to flowWithdraw
-        BuilderFlowInfo storage builderFlow = flowingBuilders[msg.sender];
-        uint256 builderflowLast = builderFlow.last;
+        // Process the withdrawal similar to streamWithdraw
+        BuilderStreamInfo storage builderStream = streamingBuilders[msg.sender];
+        uint256 builderstreamLast = builderStream.last;
         uint256 timestamp = block.timestamp;
         uint256 cappedLast = timestamp - cycle;
-        if (builderflowLast < cappedLast) {
-            builderflowLast = cappedLast;
+        if (builderstreamLast < cappedLast) {
+            builderstreamLast = cappedLast;
         }
 
         if (!isERC20) {
@@ -1405,10 +1405,10 @@ contract Cohort is AccessControl, ReentrancyGuard {
         }
 
         // Update last withdrawal time
-        builderFlow.last = builderflowLast + (((timestamp - builderflowLast) * _amount) / totalAmountCanWithdraw);
+        builderStream.last = builderstreamLast + (((timestamp - builderstreamLast) * _amount) / totalAmountCanWithdraw);
     }
 
-    // Drain the agreement to the primary admin address
+    // Drain the contract to the primary admin address
     function drainContract(address _token) public onlyAdmin nonReentrant {
         uint256 remainingBalance;
 

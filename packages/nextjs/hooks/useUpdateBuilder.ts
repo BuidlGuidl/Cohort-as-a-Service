@@ -37,7 +37,7 @@ export const useUpdateBuilder = ({ cohortAddress, cap, builderAddress }: useUpda
           writeContractAsync({
             abi: cohort.abi,
             address: cohortAddress,
-            functionName: "updateBuilderFlowCapCycle",
+            functionName: "updateBuilderStreamCap",
             args: [builderAddress, parseEther(cap)],
           });
 
