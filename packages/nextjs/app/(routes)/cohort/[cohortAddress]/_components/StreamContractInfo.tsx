@@ -12,7 +12,7 @@ import { useCohortWithdraw } from "~~/hooks/useCohortWithdraw";
 
 interface StreamContractInfoProps {
   owner: string;
-  isCreator: boolean;
+  isBuilder: boolean;
   cohortAddress: string;
   isErc20: boolean;
   tokenSymbol: string;
@@ -28,7 +28,7 @@ interface StreamContractInfoProps {
 
 export const StreamContractInfo = ({
   owner,
-  isCreator,
+  isBuilder,
   cohortAddress,
   isErc20,
   tokenSymbol,
@@ -85,7 +85,7 @@ export const StreamContractInfo = ({
             />
           )}
         </div>
-        {address && isCreator && (
+        {address && isBuilder && (
           <div className="mt-3">
             <label
               htmlFor="withdraw-modal"

@@ -36,7 +36,7 @@ const CohortFilter = () => {
         <div tabIndex={0} role="button" className="btn btn-sm m-1 rounded-md bg-base-100">
           Filter
           {currentCohort && (
-            <span className="ml-2 badge badge-sm">{currentFilter === "admin" ? "Admin" : "Creator"}</span>
+            <span className="ml-2 badge badge-sm">{currentFilter === "admin" ? "Admin" : "Builder"}</span>
           )}
         </div>
         <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 border">
@@ -47,8 +47,8 @@ const CohortFilter = () => {
           </li>
           <li>
             <button
-              onClick={() => handleFilterChange("creator")}
-              className={currentFilter === "creator" ? "active" : ""}
+              onClick={() => handleFilterChange("builder")}
+              className={currentFilter === "builder" ? "active" : ""}
             >
               Created Cohorts
             </button>

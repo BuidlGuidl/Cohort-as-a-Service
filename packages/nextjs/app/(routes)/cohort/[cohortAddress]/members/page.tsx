@@ -2,14 +2,14 @@
 
 import React, { useState } from "react";
 import { StreamContractInfo } from "../_components/StreamContractInfo";
-import { CreatorsList } from "./_components/CreatorsList";
+import { BuildersList } from "./_components/BuildersList";
 import { EventsModal } from "./_components/EventsModal";
 import { useAccount } from "wagmi";
 import { useCohortData } from "~~/hooks/useCohortData";
 import { useWithdrawEvents } from "~~/hooks/useWithdrawEvents";
 
-export interface CreatorFlow {
-  creatorAddress: string;
+export interface BuilderFlow {
+  builderAddress: string;
   cap: number;
   availableAmount: number;
 }
@@ -18,8 +18,8 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
   const {
     name,
     primaryAdmin,
-    creatorFlows,
-    isCreator,
+    builderFlows,
+    isBuilder,
     isAdmin,
     tokenAddress,
     isERC20,
@@ -46,10 +46,10 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
     filterEventsByAddress,
   } = useWithdrawEvents(params.cohortAddress, selectedAddress);
 
-  const openEventsModal = (creatorAddress: string, view: "contributions" | "requests") => {
-    setSelectedAddress(creatorAddress);
+  const openEventsModal = (builderAddress: string, view: "contributions" | "requests") => {
+    setSelectedAddress(builderAddress);
     setModalView(view);
-    filterEventsByAddress(creatorAddress);
+    filterEventsByAddress(builderAddress);
     setIsModalOpen(true);
   };
 
@@ -59,20 +59,19 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
         <h1 className="text-4xl font-bold mb-8 text-primary-content bg-primary inline-block p-2">Members</h1>
         <div className="mb-16">
           <p className="mt-0 mb-10">
-            These are the {name} active creators and their streams. You can click on any creator to see their detailed
+            These are the {name} active builders and their streams. You can click on any builder to see their detailed
             contributions.
           </p>
 
-          <CreatorsList
+          <BuildersList
             cohortAddress={params.cohortAddress}
-            creatorFlows={creatorFlows}
+            builderFlows={builderFlows}
             isAdmin={isAdmin ?? false}
-            isCreator={isCreator ?? false}
+            isBuilder={isBuilder ?? false}
             userAddress={address}
             isERC20={isERC20 ?? false}
             tokenSymbol={tokenSymbol ?? ""}
             isLoading={isLoading}
-            requiresApproval={requiresApproval ?? false}
             pendingRequestEvents={pendingRequestEvents}
             approvedRequestEvents={approvedRequestEvents}
             openEventsModal={openEventsModal}
@@ -80,7 +79,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
         </div>
         <StreamContractInfo
           owner={primaryAdmin || ""}
-          isCreator={isCreator || false}
+          isBuilder={isBuilder || false}
           cohortAddress={params.cohortAddress}
           isErc20={isERC20 ?? false}
           tokenSymbol={tokenSymbol ?? ""}

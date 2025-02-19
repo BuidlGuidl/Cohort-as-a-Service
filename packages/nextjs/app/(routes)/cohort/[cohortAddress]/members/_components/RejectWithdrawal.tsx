@@ -4,13 +4,13 @@ import { useRejectWithdrawal } from "~~/hooks/useRejectWithdrawal";
 interface RejectWithdrawalProps {
   requestId: number;
   cohortAddress: string;
-  creatorAddress: string;
+  builderAddress: string;
 }
 
-export const RejectWithdrawal = ({ requestId, cohortAddress, creatorAddress }: RejectWithdrawalProps) => {
+export const RejectWithdrawal = ({ requestId, cohortAddress, builderAddress }: RejectWithdrawalProps) => {
   const { rejectWithdrawal, isPending } = useRejectWithdrawal({
     cohortAddress,
-    creatorAddress,
+    builderAddress,
     requestId,
   });
   return (

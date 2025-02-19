@@ -15,7 +15,7 @@ export const CreateCohortSchema = z.object({
     .number({ invalid_type_error: "Cycle is required" })
     .refine(val => Number.isInteger(val), { message: "Cycle must be an integer" })
     .refine(val => val >= 1, { message: "Cycle must be at least 1 day" }),
-  creatorAddresses: z
+  builderAddresses: z
     .array(
       z
         .string()
@@ -24,7 +24,7 @@ export const CreateCohortSchema = z.object({
     )
     .optional()
     .default([]),
-  creatorCaps: z
+  builderCaps: z
     .array(z.number({ invalid_type_error: "Cap is required" }).positive("Cap must be at least 1"))
     .optional()
     .default([]),

@@ -1,19 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Address } from "~~/components/scaffold-eth";
-import { useUpdateCreator } from "~~/hooks/useUpdateCreator";
+import { useUpdateBuilder } from "~~/hooks/useUpdateBuilder";
 
-interface UpdateCreatorProps {
+interface UpdateBuilderProps {
   cohortAddress: string;
-  creatorAddress: string;
+  builderAddress: string;
 }
 
-export const UpdateCreator = ({ cohortAddress, creatorAddress }: UpdateCreatorProps) => {
-  const modalId = `update-creator-modal-${creatorAddress.slice(-8)}`;
+export const UpdateBuilder = ({ cohortAddress, builderAddress }: UpdateBuilderProps) => {
+  const modalId = `update-builder-modal-${builderAddress.slice(-8)}`;
 
   const [cap, setCap] = useState("");
-  const { updateCreator, isPending } = useUpdateCreator({ cohortAddress, creatorAddress, cap });
+  const { updateBuilder, isPending, isSuccess } = useUpdateBuilder({ cohortAddress, builderAddress, cap });
+
+  useEffect(() => {
+    if (isSuccess) {
+      const modalCheckbox = document.getElementById(modalId) as HTMLInputElement;
+      if (modalCheckbox) {
+        modalCheckbox.checked = false;
+      }
+
+      setCap("");
+    }
+  }, [isSuccess]);
 
   return (
     <>
@@ -23,7 +34,7 @@ export const UpdateCreator = ({ cohortAddress, creatorAddress }: UpdateCreatorPr
           {/* dummy input to capture event onclick on modal box */}
           <input className="h-0 w-0 absolute top-0 left-0" />
           <div className="font-bold mb-8 flex items-center gap-1">
-            Update cap for <Address address={creatorAddress} disableAddressLink={true} />
+            Update cap for <Address address={builderAddress} disableAddressLink={true} />
           </div>
           <label htmlFor={modalId} className="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">
             ✕
@@ -37,7 +48,7 @@ export const UpdateCreator = ({ cohortAddress, creatorAddress }: UpdateCreatorPr
                 disabled={isPending}
                 onChange={e => setCap(e.target.value.toString())}
               />
-              <button className="btn btn-sm btn-primary w-full" onClick={updateCreator}>
+              <button className="btn btn-sm btn-primary w-full" onClick={updateBuilder}>
                 Update cap
               </button>
             </div>

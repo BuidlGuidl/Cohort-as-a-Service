@@ -22,14 +22,14 @@ We provide a contract that includes basic features for your LaunchPod Streams.
 - **Donations to the LaunchPod**. Anyone can show their support to the LaunchPod by sending ETH to the contract.
 - **List of developers and their monthly stream cap**.
 - **Withdrawals**. Each builder can do withdrawals from their available streams when they contribute.
-- **Rechargable streams**. After a withdrawal, the Creator's monthly stream gets recharged during the next 30 days, until reaching their cap (MAX monthly stream).
+- **Rechargable streams**. After a withdrawal, the Builders's monthly stream gets recharged during the next 30 days, until reaching their cap (MAX monthly stream).
 
 ## LaunchPod Website
 
 You get a generic template to set your LaunchPod Website. Feel free to add all the visual and copy changes to adapt it to your LaunchPod. The template it's a one-page with:
 
 - **LaunchPod welcome**
-- **List of creators and their streams** (currently available and monthly cap)
+- **List of builders and their streams** (currently available and monthly cap)
 - **List of contributions** (text submitted by developers for each withdrawal). In that text they can share links to their work (PR, Repo, design..)
 
 Here you can view some examples of active Hacker Houses using the project in which LaunchPod was inspired in:

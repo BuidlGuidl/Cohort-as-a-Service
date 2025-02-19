@@ -8,7 +8,7 @@ import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
 interface useFilteredCohortsProps {
-  filter?: "admin" | "creator";
+  filter?: "admin" | "builder";
   chainId?: AllowedChainIds;
   cohort?: string;
 }
@@ -16,9 +16,9 @@ interface useFilteredCohortsProps {
 export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohortsProps) => {
   const { cohorts, isLoading: isLoadingCohorts } = useCohorts({ chainId, cohort });
   const [adminCohorts, setAdminCohorts] = useState(cohorts);
-  const [creatorCohorts, setCreatorCohorts] = useState(cohorts);
+  const [builderCohorts, setBuilderCohorts] = useState(cohorts);
   const [isLoadingAdmin, setIsLoadingAdmin] = useState(true);
-  const [isLoadingCreator, setIsLoadingCreator] = useState(true);
+  const [isLoadingBuilder, setIsLoadingBuilder] = useState(true);
 
   const { address, isConnecting, isReconnecting } = useAccount();
   const { data: deployedContract } = useLocalDeployedContractInfo({ contractName: "Cohort" });
@@ -61,56 +61,56 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
   }, [deployedContract, cohorts, address]);
 
   useEffect(() => {
-    const fetchCreatorCohorts = async () => {
+    const fetchBuilderCohorts = async () => {
       try {
         const validCohorts = [];
 
         for (const cohort of cohorts) {
           try {
-            const creatorIndex = await readContract(wagmiConfig, {
+            const builderIndex = await readContract(wagmiConfig, {
               address: cohort.cohortAddress as `0x${string}`,
               abi: deployedContract?.abi as Abi,
-              functionName: "creatorIndex",
+              functionName: "builderIndex",
               args: [address],
               chainId: cohort.chainId,
             });
 
-            const creator = creatorIndex
+            const builder = builderIndex
               ? await readContract(wagmiConfig, {
                   address: cohort.cohortAddress as `0x${string}`,
                   abi: deployedContract?.abi as Abi,
-                  functionName: "activeCreators",
-                  args: [creatorIndex],
+                  functionName: "activeBuilders",
+                  args: [builderIndex],
                   chainId: cohort.chainId,
                 })
               : null;
 
-            if (address?.toLowerCase() === (creator as string).toLowerCase()) {
+            if (address?.toLowerCase() === (builder as string).toLowerCase()) {
               validCohorts.push(cohort);
             }
           } catch (error) {
-            console.error(`Error checking creator status for cohort ${cohort.cohortAddress}:`, error);
+            console.error(`Error checking builder status for cohort ${cohort.cohortAddress}:`, error);
             continue;
           }
         }
 
-        setCreatorCohorts(validCohorts);
+        setBuilderCohorts(validCohorts);
       } catch (error) {
-        console.error("Error fetching creator cohorts:", error);
-        setCreatorCohorts([]);
+        console.error("Error fetching builder cohorts:", error);
+        setBuilderCohorts([]);
       }
 
-      setIsLoadingCreator(false);
+      setIsLoadingBuilder(false);
     };
 
-    setIsLoadingCreator(true);
-    fetchCreatorCohorts();
+    setIsLoadingBuilder(true);
+    fetchBuilderCohorts();
   }, [deployedContract, cohorts, address]);
 
   const getFilteredCohorts = () => {
     if (!filter) return cohorts;
     if (filter === "admin") return adminCohorts;
-    if (filter === "creator") return creatorCohorts;
+    if (filter === "builder") return builderCohorts;
     return [];
   };
 
@@ -121,6 +121,6 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
       isConnecting ||
       isReconnecting ||
       !address ||
-      (filter === "admin" ? isLoadingAdmin : filter === "creator" ? isLoadingCreator : false),
+      (filter === "admin" ? isLoadingAdmin : filter === "builder" ? isLoadingBuilder : false),
   };
 };

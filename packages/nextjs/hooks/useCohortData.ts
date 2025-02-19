@@ -11,7 +11,7 @@ import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 import { notification } from "~~/utils/scaffold-eth";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
-export type CreatorFlowInfo = {
+export type BuilderFlowInfo = {
   cap: bigint;
   last: bigint;
 };
@@ -25,18 +25,19 @@ export type CohortData = {
   primaryAdmin: string;
   stopped: boolean;
   balance: number;
-  activeCreators: string[];
-  creatorFlows: Map<
+  activeBuilders: string[];
+  builderFlows: Map<
     string,
     {
-      creatorAddress: string;
+      builderAddress: string;
       cap: number;
       last: number;
       availableAmount: number;
+      requiresApproval: boolean;
     }
   >;
   isAdmin: boolean;
-  isCreator: boolean;
+  isBuilder: boolean;
   chainName?: string;
   chainId?: AllowedChainIds;
   admins: string[];
@@ -49,7 +50,7 @@ export const useCohortData = (cohortAddress: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<CohortData | null>(null);
-  const [creators, setCreators] = useState<string[]>([]);
+  const [builders, setBuilders] = useState<string[]>([]);
   const [admins, setAdmins] = useState<string[]>([]);
 
   const { cohorts, isLoading: isLoadingCohorts } = useCohorts({});
@@ -58,10 +59,42 @@ export const useCohortData = (cohortAddress: string) => {
     contractName: "Cohort",
   });
 
+  const { data: ApprovalRequirementChanged } = useCohortEventHistory({
+    contractName: "Cohort",
+    eventName: "ApprovalRequirementChanged",
+    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
+    watch: true,
+    contractAddress: cohortAddress,
+  });
+
+  const { data: UpdatedBuilderEvents } = useCohortEventHistory({
+    contractName: "Cohort",
+    eventName: "UpdateBuilder",
+    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
+    watch: true,
+    contractAddress: cohortAddress,
+  });
+
+  const { data: withdrawn } = useCohortEventHistory({
+    contractName: "Cohort",
+    eventName: "Withdraw",
+    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
+    watch: true,
+    contractAddress: cohortAddress,
+  });
+
+  const { data: adminRemoved } = useCohortEventHistory({
+    contractName: "Cohort",
+    eventName: "AdminRemoved",
+    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
+    watch: true,
+    contractAddress: cohortAddress,
+  });
+
   const {
-    data: creatorAdded,
-    isLoading: isLoadingCreators,
-    refetch: creatorsRefetch,
+    data: builderAdded,
+    isLoading: isLoadingBuilders,
+    refetch: buildersRefetch,
   } = useCohortEventHistory({
     contractName: "Cohort",
     eventName: "AddBuilder",
@@ -87,18 +120,18 @@ export const useCohortData = (cohortAddress: string) => {
   });
 
   useEffect(() => {
-    if (creatorAdded && creatorAdded.length > 0) {
-      for (let i = 0; i < creatorAdded.length; i++) {
-        if (!creatorAdded[i].args) {
-          creatorsRefetch()
+    if (builderAdded && builderAdded.length > 0) {
+      for (let i = 0; i < builderAdded.length; i++) {
+        if (!builderAdded[i].args) {
+          buildersRefetch()
             .then(() => {})
             .catch(() => {
-              console.error("Error refreshing creatorAdded events");
+              console.error("Error refreshing builderAdded events");
             });
         }
       }
     }
-  }, [creatorAdded, creatorsRefetch]);
+  }, [builderAdded, buildersRefetch]);
 
   useEffect(() => {
     if (adminAdded && adminAdded.length > 0) {
@@ -115,9 +148,9 @@ export const useCohortData = (cohortAddress: string) => {
   }, [adminAdded, adminsRefetch]);
 
   useEffect(() => {
-    if (creatorAdded && creatorAdded.length > 0) {
-      for (let i = 0; i < creatorAdded.length; i++) {
-        if (!creatorAdded[i].args) {
+    if (builderAdded && builderAdded.length > 0) {
+      for (let i = 0; i < builderAdded.length; i++) {
+        if (!builderAdded[i].args) {
           return;
         }
       }
@@ -125,47 +158,47 @@ export const useCohortData = (cohortAddress: string) => {
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const addedCreators = creatorAdded?.map(creator => creator?.args[0]);
+    const addedBuilders = builderAdded?.map(builder => builder?.args[0]);
 
-    const validateCreator = async (creator: string) => {
+    const validateBuilder = async (builder: string) => {
       if (!cohortAddress) return false;
 
       try {
-        const creatorIndex = await readContract(wagmiConfig, {
+        const builderIndex = await readContract(wagmiConfig, {
           address: cohortAddress,
           abi: deployedContract?.abi as Abi,
-          functionName: "creatorIndex",
-          args: [creator],
+          functionName: "builderIndex",
+          args: [builder],
         });
 
-        const fetchedCreator = await readContract(wagmiConfig, {
+        const fetchedBuilder = await readContract(wagmiConfig, {
           address: cohortAddress,
           abi: deployedContract?.abi as Abi,
-          functionName: "activeCreators",
-          args: [creatorIndex],
+          functionName: "activeBuilders",
+          args: [builderIndex],
         });
 
-        return fetchedCreator === creator;
+        return fetchedBuilder === builder;
       } catch {
         return false;
       }
     };
 
-    const validateCreators = async () => {
-      const validCreators: string[] = [];
-      if (addedCreators) {
-        for (let i = addedCreators.length - 1; i >= 0; i--) {
-          const isValid = await validateCreator(addedCreators[i]);
+    const validateBuilders = async () => {
+      const validBuilders: string[] = [];
+      if (addedBuilders) {
+        for (let i = addedBuilders.length - 1; i >= 0; i--) {
+          const isValid = await validateBuilder(addedBuilders[i]);
           if (isValid) {
-            validCreators.push(addedCreators[i]);
+            validBuilders.push(addedBuilders[i]);
           }
         }
       }
-      setCreators(validCreators);
+      setBuilders(validBuilders);
     };
 
-    validateCreators();
-  }, [isLoadingCreators, deployedContract, creatorAdded, creatorsRefetch, cohortAddress]);
+    validateBuilders();
+  }, [isLoadingBuilders, deployedContract, builderAdded, buildersRefetch, cohortAddress]);
 
   useEffect(() => {
     if (adminAdded && adminAdded.length > 0) {
@@ -209,7 +242,7 @@ export const useCohortData = (cohortAddress: string) => {
     };
 
     validateAdmins();
-  }, [isLoadingAdmins, deployedContract, adminAdded, cohortAddress]);
+  }, [isLoadingAdmins, deployedContract, adminAdded, cohortAddress, adminRemoved]);
 
   const fetchCohortData = async () => {
     if (!cohortAddress || !deployedContract?.abi || !address) return;
@@ -296,43 +329,53 @@ export const useCohortData = (cohortAddress: string) => {
         balance = parseFloat(formatEther(ethBalance || BigInt(0)));
       }
 
-      // Get creator flow data
-      const creatorFlows = new Map();
+      // Get builder flow data
+      const builderFlows = new Map();
 
-      // Fetch all creators data in bulk
-      const creatorsData = await readContract(wagmiConfig, {
+      // Fetch all builders data in bulk
+      const buildersData = await readContract(wagmiConfig, {
         address: cohortAddress,
         abi: deployedContract.abi,
-        functionName: "allCreatorsData",
-        args: [creators],
+        functionName: "allBuildersData",
+        args: [builders],
         chainId,
       });
 
-      // Get available amounts for each creator
-      for (let i = 0; i < creators.length; i++) {
-        const creator = creators[i];
-        const flowInfo = creatorsData[i];
+      // Get available amounts for each builder
+      for (let i = 0; i < builders.length; i++) {
+        const builder = builders[i];
+        const flowInfo = buildersData[i];
 
         let availableAmount = 0;
+        let requiresApproval = false;
         try {
           const available = await readContract(wagmiConfig, {
             address: cohortAddress,
             abi: deployedContract.abi,
-            functionName: "availableCreatorAmount",
-            args: [creator],
+            functionName: "availableBuilderAmount",
+            args: [builder],
             chainId,
           });
           availableAmount = parseFloat(formatEther(available));
+
+          requiresApproval = await readContract(wagmiConfig, {
+            address: cohortAddress,
+            abi: deployedContract.abi,
+            functionName: "requiresApproval",
+            args: [builder],
+            chainId,
+          });
         } catch (e) {
-          console.error(`Error fetching available amount for ${creator}:`, e);
+          console.error(`Error fetching available amount for ${builder}:`, e);
         }
 
-        creatorFlows.set(creator, {
-          creatorAddress: creator,
+        builderFlows.set(builder, {
+          builderAddress: builder,
           cap: parseFloat(formatEther(flowInfo.cap)),
           last: Number(flowInfo.last),
           availableAmount,
-        })
+          requiresApproval,
+        });
       }
 
       // Check if current user is admin
@@ -361,10 +404,10 @@ export const useCohortData = (cohortAddress: string) => {
         primaryAdmin,
         stopped,
         balance,
-        activeCreators: creators,
-        creatorFlows,
+        activeBuilders: builders,
+        builderFlows,
         isAdmin,
-        isCreator: creators.includes(address),
+        isBuilder: builders.includes(address),
         chainName,
         chainId,
         admins,
@@ -387,16 +430,19 @@ export const useCohortData = (cohortAddress: string) => {
     cohortAddress,
     address,
     deployedContract,
-    creators,
+    builders,
     isLoadingCohorts,
     admins,
     isLoadingAdmins,
-    isLoadingCreators,
+    isLoadingBuilders,
+    UpdatedBuilderEvents,
+    ApprovalRequirementChanged,
+    withdrawn,
   ]);
 
   return {
     ...data,
-    isLoading: isLoading || isLoadingCreators || isLoadingAdmins || isLoadingCohorts,
+    isLoading: isLoading || isLoadingBuilders || isLoadingAdmins || isLoadingCohorts,
     error,
     // refetch: fetchCohortData,
   };

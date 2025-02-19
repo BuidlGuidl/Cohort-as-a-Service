@@ -33,7 +33,7 @@ const CreateCohortForm = () => {
   const [showCustomCurrencyInput, setShowCustomCurrencyInput] = useState(false);
   const [showCustomCycleInput, setShowCustomCycleInput] = useState(false);
   const [selectedCycle, setSelectedCycle] = useState(PREDEFINED_CYCLES[3].value);
-  const [isCreatorsExpanded, setIsCreatorsExpanded] = useState(false);
+  const [isBuildersExpanded, setIsBuildersExpanded] = useState(false);
 
   const currentChainCurrencies = chainId ? currencies[chainId]?.contracts || [] : [];
 
@@ -51,8 +51,8 @@ const CreateCohortForm = () => {
       adminAddress: address || "",
       currencyAddress: initialCurrency,
       cycle: PREDEFINED_CYCLES[3].value,
-      creatorAddresses: [],
-      creatorCaps: [],
+      builderAddresses: [],
+      builderCaps: [],
     },
     mode: "onChange",
   });
@@ -111,41 +111,41 @@ const CreateCohortForm = () => {
     setShowCustomCurrencyInput(false);
   };
 
-  const handleAddCreator = () => {
-    const currentAddresses = form.getValues("creatorAddresses") || [];
-    const currentCaps = form.getValues("creatorCaps") || [];
+  const handleAddBuilder = () => {
+    const currentAddresses = form.getValues("builderAddresses") || [];
+    const currentCaps = form.getValues("builderCaps") || [];
 
-    form.setValue("creatorAddresses", [...currentAddresses, ""], {
+    form.setValue("builderAddresses", [...currentAddresses, ""], {
       shouldValidate: true,
     });
 
-    form.setValue("creatorCaps", [...currentCaps, 1], {
+    form.setValue("builderCaps", [...currentCaps, 1], {
       shouldValidate: true,
     });
   };
 
-  const handleRemoveCreator = (index: number) => {
-    const currentAddresses = form.getValues("creatorAddresses") || [];
-    const currentCaps = form.getValues("creatorCaps") || [];
+  const handleRemoveBuilder = (index: number) => {
+    const currentAddresses = form.getValues("builderAddresses") || [];
+    const currentCaps = form.getValues("builderCaps") || [];
 
     const newAddresses = currentAddresses.filter((_, i) => i !== index);
     const newCaps = currentCaps.filter((_, i) => i !== index);
 
-    form.setValue("creatorAddresses", newAddresses, {
+    form.setValue("builderAddresses", newAddresses, {
       shouldValidate: true,
     });
 
-    form.setValue("creatorCaps", newCaps, {
+    form.setValue("builderCaps", newCaps, {
       shouldValidate: true,
     });
   };
 
   const onSubmit = async (values: z.infer<typeof CreateCohortSchema>) => {
     try {
-      const filteredAddresses = values.creatorAddresses.filter(addr => addr !== "");
-      const filteredCaps = values.creatorCaps.filter((_, index) => values.creatorAddresses[index] !== "");
+      const filteredAddresses = values.builderAddresses.filter(addr => addr !== "");
+      const filteredCaps = values.builderCaps.filter((_, index) => values.builderAddresses[index] !== "");
 
-      const FormattedCreatorCaps = filteredCaps.map(cap => parseEther(cap.toString() || "0"));
+      const FormattedBuilderCaps = filteredCaps.map(cap => parseEther(cap.toString() || "0"));
 
       const hash = await writeYourContractAsync({
         functionName: "createCohort",
@@ -156,7 +156,7 @@ const CreateCohortForm = () => {
           values.description,
           BigInt(cycleInSeconds(values.cycle)),
           filteredAddresses || [],
-          FormattedCreatorCaps || [],
+          FormattedBuilderCaps || [],
         ],
         value: parseEther(costWithAllowance),
       });
@@ -181,7 +181,7 @@ const CreateCohortForm = () => {
             values.description,
             BigInt(cycleInSeconds(values.cycle)),
             filteredAddresses || [],
-            FormattedCreatorCaps || [],
+            FormattedBuilderCaps || [],
           ],
           contract: {
             abi: localDeployedContract?.abi,
@@ -374,36 +374,36 @@ const CreateCohortForm = () => {
           <div className="form-control w-full">
             <div className="flex justify-between items-center">
               <label className="label">
-                <span className="label-text font-medium">Creators (Optional)</span>
+                <span className="label-text font-medium">Builders (Optional)</span>
               </label>
               <button
                 type="button"
                 className="btn btn-ghost btn-sm"
-                onClick={() => setIsCreatorsExpanded(!isCreatorsExpanded)}
+                onClick={() => setIsBuildersExpanded(!isBuildersExpanded)}
               >
-                {isCreatorsExpanded ? "Hide" : "Add Creators"}
+                {isBuildersExpanded ? "Hide" : "Add Builders"}
               </button>
             </div>
 
-            {isCreatorsExpanded && (
+            {isBuildersExpanded && (
               <div className="">
-                {form.watch("creatorAddresses").map((_, index) => (
+                {form.watch("builderAddresses").map((_, index) => (
                   <div key={index} className="flex gap-2 items-start mt-2 flex-col md:flex-row">
                     <div className="flex-grow md:w-[60%] w-full">
                       <AddressInput
-                        name={`creatorAddresses.${index}`}
-                        value={form.watch(`creatorAddresses.${index}`)}
+                        name={`builderAddresses.${index}`}
+                        value={form.watch(`builderAddresses.${index}`)}
                         onChange={value => {
-                          form.setValue(`creatorAddresses.${index}`, value, {
+                          form.setValue(`builderAddresses.${index}`, value, {
                             shouldValidate: true,
                           });
                         }}
-                        placeholder="Enter creator address"
+                        placeholder="Enter builder address"
                       />
-                      {form.formState.errors.creatorAddresses?.[index] && (
+                      {form.formState.errors.builderAddresses?.[index] && (
                         <label className="label">
                           <span className="label-text-alt text-error">
-                            {form.formState.errors.creatorAddresses[index]?.message}
+                            {form.formState.errors.builderAddresses[index]?.message}
                           </span>
                         </label>
                       )}
@@ -415,20 +415,20 @@ const CreateCohortForm = () => {
                           placeholder="Enter stream cap"
                           type="number"
                           step="any"
-                          {...form.register(`creatorCaps.${index}`, {
+                          {...form.register(`builderCaps.${index}`, {
                             valueAsNumber: true,
                             onChange: e => {
                               const value = e.target.value;
-                              form.setValue(`creatorCaps.${index}`, value, {
+                              form.setValue(`builderCaps.${index}`, value, {
                                 shouldValidate: true,
                               });
                             },
                           })}
                         />
-                        {form.formState.errors.creatorCaps?.[index] && (
+                        {form.formState.errors.builderCaps?.[index] && (
                           <label className="label">
                             <span className="label-text-alt text-error">
-                              {form.formState.errors.creatorCaps[index]?.message}
+                              {form.formState.errors.builderCaps[index]?.message}
                             </span>
                           </label>
                         )}
@@ -436,15 +436,15 @@ const CreateCohortForm = () => {
                       <button
                         type="button"
                         className="btn btn-ghost btn-sm "
-                        onClick={() => handleRemoveCreator(index)}
+                        onClick={() => handleRemoveBuilder(index)}
                       >
                         <Trash className="h-5 w-5" />
                       </button>
                     </div>
                   </div>
                 ))}
-                <button type="button" className="btn btn-primary btn-sm rounded-md mt-4" onClick={handleAddCreator}>
-                  <Plus className="h-4 w-4 mr-5" /> Add Creator
+                <button type="button" className="btn btn-primary btn-sm rounded-md mt-4" onClick={handleAddBuilder}>
+                  <Plus className="h-4 w-4 mr-5" /> Add Builder
                 </button>
               </div>
             )}

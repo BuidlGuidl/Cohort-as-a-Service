@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
 import { Plus } from "lucide-react";
 import { AddressInput } from "~~/components/scaffold-eth";
 import { useAddAdmin } from "~~/hooks/useAddAdmin";
@@ -12,7 +13,19 @@ interface AddAdminProps {
 export const AddAdmin = ({ cohortAddress }: AddAdminProps) => {
   const [adminAddress, setAdminAddress] = useState("");
 
-  const { addAdmin, isPending } = useAddAdmin({ cohortAddress, adminAddress });
+  const { addAdmin, isPending, isSuccess } = useAddAdmin({ cohortAddress, adminAddress });
+
+  useEffect(() => {
+    if (isSuccess) {
+      const modalCheckbox = document.getElementById("add-admin-modal") as HTMLInputElement;
+      if (modalCheckbox) {
+        modalCheckbox.checked = false;
+      }
+
+      setAdminAddress("");
+    }
+  }, [isSuccess]);
+
   return (
     <div>
       <label htmlFor="add-admin-modal" className="btn rounded-md btn-primary btn-sm font-normal space-x-2 normal-case">
@@ -21,7 +34,7 @@ export const AddAdmin = ({ cohortAddress }: AddAdminProps) => {
       </label>
 
       <input type="checkbox" id="add-admin-modal" className="modal-toggle" />
-      <label htmlFor="update-creator-modal" className="modal cursor-pointer">
+      <label htmlFor="update-builder-modal" className="modal cursor-pointer">
         <label className="modal-box relative shadow shadow-primary">
           {/* dummy input to capture event onclick on modal box */}
           <input className="h-0 w-0 absolute top-0 left-0" />

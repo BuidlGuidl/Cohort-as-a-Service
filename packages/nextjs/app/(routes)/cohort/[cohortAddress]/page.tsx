@@ -13,7 +13,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     tokenAddress,
     description,
     primaryAdmin,
-    isCreator,
+    isBuilder,
     tokenSymbol,
     balance,
     name,
@@ -66,7 +66,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
 
       <StreamContractInfo
         owner={primaryAdmin || ""}
-        isCreator={isCreator || false}
+        isBuilder={isBuilder || false}
         cohortAddress={params.cohortAddress}
         isErc20={isERC20 ?? false}
         tokenSymbol={tokenSymbol ?? ""}
