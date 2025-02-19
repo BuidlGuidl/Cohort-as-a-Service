@@ -20,8 +20,8 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     chainName,
     chainId,
     admins,
-    isLoading,
-    requiresApproval,
+    isLoadingAdmins,
+    connectedAddressRequiresApproval,
   } = useCohortData(params.cohortAddress);
 
   const router = useRouter();
@@ -74,9 +74,9 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         chainName={chainName}
         chainId={chainId}
         admins={admins ?? []}
-        isLoading={isLoading}
+        isLoadingAdmins={isLoadingAdmins}
         isAdmin={isAdmin ?? false}
-        requiresApproval={requiresApproval ?? false}
+        connectedAddressRequiresApproval={connectedAddressRequiresApproval ?? false}
         tokenAddress={tokenAddress ?? ""}
       />
     </div>

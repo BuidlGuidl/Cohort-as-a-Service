@@ -41,7 +41,7 @@ export type CohortData = {
   chainName?: string;
   chainId?: AllowedChainIds;
   admins: string[];
-  requiresApproval: boolean;
+  connectedAddressRequiresApproval: boolean;
 };
 
 export const useCohortData = (cohortAddress: string) => {
@@ -387,7 +387,7 @@ export const useCohortData = (cohortAddress: string) => {
         chainId,
       });
 
-      const requiresApproval = await readContract(wagmiConfig, {
+      const connectedAddressRequiresApproval = await readContract(wagmiConfig, {
         address: cohortAddress,
         abi: deployedContract.abi,
         functionName: "requiresApproval",
@@ -411,7 +411,7 @@ export const useCohortData = (cohortAddress: string) => {
         chainName,
         chainId,
         admins,
-        requiresApproval,
+        connectedAddressRequiresApproval,
       });
     } catch (e) {
       console.error("Error fetching cohort data:", e);
@@ -443,6 +443,8 @@ export const useCohortData = (cohortAddress: string) => {
   return {
     ...data,
     isLoading: isLoading || isLoadingBuilders || isLoadingAdmins || isLoadingCohorts,
+    isLoadingAdmins: isLoadingAdmins || isLoadingCohorts,
+    isLoadingBuilders: isLoadingBuilders || isLoadingCohorts,
     error,
     // refetch: fetchCohortData,
   };

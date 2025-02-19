@@ -25,9 +25,10 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
     isERC20,
     tokenSymbol,
     balance,
-    isLoading,
     admins,
-    requiresApproval,
+    connectedAddressRequiresApproval,
+    isLoadingBuilders,
+    isLoadingAdmins,
   } = useCohortData(params.cohortAddress);
 
   const [selectedAddress, setSelectedAddress] = useState("");
@@ -71,7 +72,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
             userAddress={address}
             isERC20={isERC20 ?? false}
             tokenSymbol={tokenSymbol ?? ""}
-            isLoading={isLoading}
+            isLoading={isLoadingBuilders}
             pendingRequestEvents={pendingRequestEvents}
             approvedRequestEvents={approvedRequestEvents}
             openEventsModal={openEventsModal}
@@ -85,9 +86,9 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
           tokenSymbol={tokenSymbol ?? ""}
           balance={balance ?? 0}
           admins={admins ?? []}
-          isLoading={isLoading}
+          isLoadingAdmins={isLoadingAdmins}
           isAdmin={isAdmin ?? false}
-          requiresApproval={requiresApproval ?? false}
+          connectedAddressRequiresApproval={connectedAddressRequiresApproval ?? false}
           tokenAddress={tokenAddress ?? ""}
         />
       </div>
