@@ -26,6 +26,7 @@ export const CheckWithdrawals = ({ cohortAddress, builderAddress, requiresApprov
         modalCheckbox.checked = false;
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSuccess]);
 
   return (

@@ -4,7 +4,6 @@ import { RemoveBuilder } from "./RemoveBuilder";
 import { UpdateBuilder } from "./UpdateBuilder";
 import { EllipsisVertical } from "lucide-react";
 
-
 interface ActionsProps {
   cohortAddress: string;
   builderAddress: string;

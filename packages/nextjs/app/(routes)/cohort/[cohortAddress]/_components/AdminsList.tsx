@@ -1,6 +1,6 @@
 import React from "react";
-import { RemoveAdmin } from "./RemoveAdmin";
 import { AddAdmin } from "./AddAdmin";
+import { RemoveAdmin } from "./RemoveAdmin";
 import { Address } from "~~/components/scaffold-eth";
 
 interface AdminListProps {
