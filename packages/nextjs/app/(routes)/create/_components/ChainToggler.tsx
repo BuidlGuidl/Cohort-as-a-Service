@@ -24,14 +24,14 @@ const ChainToggler = () => {
     <div>
       <div className="space-y-4">
         <h2 className="font-semibold">Select a chain</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
           {evmChains.map(chain => (
             <button
               key={chain.chainId}
               type="button"
               onClick={() => onClick(chain.chainId)}
               className={twMerge(
-                "btn btn-sm rounded-md btn-ghost justify-start gap-2 normal-case bg-base-100",
+                "btn btn-sm rounded-md btn-ghost justify-start gap-1 bg-base-100",
                 selectedChain === chain.chainId && !isPending && "btn-active",
               )}
             >

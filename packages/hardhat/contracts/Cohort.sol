@@ -33,6 +33,7 @@ error NoWithdrawalRequest();
 error WithdrawalRequestNotApproved();
 error WithdrawalRequestAlreadyCompleted();
 error WithdrawalRequestNotFound();
+error PendingWithdrawalRequestExists();
 
 contract Cohort is AccessControl, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -197,6 +198,25 @@ contract Cohort is AccessControl, ReentrancyGuard {
         _;
     }
 
+    // Modifier to check if builder has no pending withdrawal requests
+    modifier noPendingRequests(address _builder) {
+        bool hasPending = false;
+        uint256 requestCount = withdrawalRequests[_builder].length;
+
+        for (uint256 i = 0; i < requestCount; ) {
+            if (!withdrawalRequests[_builder][i].completed) {
+                hasPending = true;
+                break;
+            }
+            unchecked {
+                ++i;
+            }
+        }
+
+        if (hasPending) revert PendingWithdrawalRequestExists();
+        _;
+    }
+
     // Fund contract
     function fundContract(uint256 _amount) public payable {
         if (!isERC20) {
@@ -323,7 +343,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
     }
 
     // Request a withdrawal - for builders that require approval
-    function _requestWithdrawal(uint256 _amount, string memory _reason) private {
+    function _requestWithdrawal(uint256 _amount, string memory _reason) private noPendingRequests(msg.sender) {
         // Check if the builder has enough unlocked to withdraw
         uint256 totalAmountCanWithdraw = unlockedBuilderAmount(msg.sender);
         if (totalAmountCanWithdraw < _amount) {

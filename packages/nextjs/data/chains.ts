@@ -10,13 +10,6 @@ export const baseChainId = 84532;
 
 export const chains: Chain[] = [
   {
-    id: "bnb",
-    name: "BNB Chain",
-    chainId: 56,
-    icon: "/chain/56.svg",
-    isEVM: true,
-  },
-  {
     id: "ethereum",
     name: "Ethereum",
     chainId: 1,
@@ -63,6 +56,20 @@ export const chains: Chain[] = [
     name: "Base Sepolia",
     chainId: 84532,
     icon: "/chain/84532.svg",
+    isEVM: true,
+  },
+  {
+    id: "sepolia",
+    name: "Sepolia",
+    chainId: 11155111,
+    icon: "/chain/11155111.svg",
+    isEVM: true,
+  },
+  {
+    id: "optimism-sepolia",
+    name: "Optimism Sepolia",
+    chainId: 11155420,
+    icon: "/chain/11155420.svg",
     isEVM: true,
   },
 ];

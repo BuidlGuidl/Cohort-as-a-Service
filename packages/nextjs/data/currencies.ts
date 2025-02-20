@@ -131,16 +131,6 @@ export const currencies: CurrenciesType = {
       },
     ],
   },
-  56: {
-    chainId: "56",
-    name: "bsc",
-    contracts: [
-      {
-        name: "Native (BNB)",
-        address: "0x0000000000000000000000000000000000000000",
-      },
-    ],
-  },
   43114: {
     chainId: "43114",
     name: "avalanche",
@@ -164,6 +154,26 @@ export const currencies: CurrenciesType = {
   31337: {
     chainId: "1",
     name: "localhost",
+    contracts: [
+      {
+        name: "Native (ETH)",
+        address: "0x0000000000000000000000000000000000000000",
+      },
+    ],
+  },
+  11155111: {
+    chainId: "11155111",
+    name: "sepolia",
+    contracts: [
+      {
+        name: "Native (ETH)",
+        address: "0x0000000000000000000000000000000000000000",
+      },
+    ],
+  },
+  11155420: {
+    chainId: "11155420",
+    name: "op-sepolia",
     contracts: [
       {
         name: "Native (ETH)",

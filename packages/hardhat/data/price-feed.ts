@@ -6,7 +6,7 @@ export interface ChainInfo {
   priceFeedAddress: Address;
 }
 
-export type SupportedChainId = 1 | 137 | 42161 | 10 | 8453 | 84532 | 56 | 43114;
+export type SupportedChainId = 1 | 137 | 42161 | 10 | 8453 | 84532 | 43114 | 11155111 | 11155420;
 
 export const NETWORK_NAMES = {
   ETHEREUM: "Ethereum",
@@ -15,8 +15,9 @@ export const NETWORK_NAMES = {
   OPTIMISM: "Optimism",
   BASE: "Base",
   BASE_SEPOLIA: "Base Sepolia",
-  BSC: "Binance Smart Chain",
   AVALANCHE: "Avalanche",
+  SEPOLIA: "Sepolia",
+  OPTIMISM_SEPOLIA: "Optimism Sepolia",
 } as const;
 
 export const CHAIN_IDS = {
@@ -26,8 +27,9 @@ export const CHAIN_IDS = {
   OPTIMISM: 10,
   BASE: 8453,
   BASE_SEPOLIA: 84532,
-  BSC: 56,
   AVALANCHE: 43114,
+  SEPOLIA: 11155111,
+  OPTIMISM_SEPOLIA: 11155420,
 } as const;
 
 export const CHAINLINK_PRICE_FEEDS: Record<SupportedChainId, ChainInfo> = {
@@ -61,15 +63,20 @@ export const CHAINLINK_PRICE_FEEDS: Record<SupportedChainId, ChainInfo> = {
     chainName: NETWORK_NAMES.BASE_SEPOLIA,
     priceFeedAddress: "0x4aDC67696bA383F43DD60A9e78F2C97Fbbfc7cb1",
   },
-  [CHAIN_IDS.BSC]: {
-    chainId: CHAIN_IDS.BSC,
-    chainName: NETWORK_NAMES.BSC,
-    priceFeedAddress: "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE",
-  },
   [CHAIN_IDS.AVALANCHE]: {
     chainId: CHAIN_IDS.AVALANCHE,
     chainName: NETWORK_NAMES.AVALANCHE,
     priceFeedAddress: "0x0A77230d17318075983913bC2145DB16C7366156",
+  },
+  [CHAIN_IDS.SEPOLIA]: {
+    chainId: CHAIN_IDS.SEPOLIA,
+    chainName: NETWORK_NAMES.SEPOLIA,
+    priceFeedAddress: "0x694AA1769357215DE4FAC081bf1f309aDC325306",
+  },
+  [CHAIN_IDS.OPTIMISM_SEPOLIA]: {
+    chainId: CHAIN_IDS.OPTIMISM_SEPOLIA,
+    chainName: NETWORK_NAMES.OPTIMISM_SEPOLIA,
+    priceFeedAddress: "0x61Ec26aA57019C486B10502285c5A3D4A4750AD7",
   },
 };
 

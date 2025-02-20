@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AdminsList } from "./AdminsList";
 import { CohortActions } from "./CohortActions";
 import { TokenBalance } from "./TokenBalance";
@@ -47,11 +47,21 @@ export const StreamContractInfo = ({
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
 
-  const { streamWithdraw } = useCohortWithdraw({ cohortAddress, amount, reason });
+  const { streamWithdraw, isPending, isSuccess } = useCohortWithdraw({ cohortAddress, amount, reason });
 
   const onClick = (chainId: number) => {
     switchChain({ chainId: chainId });
   };
+
+  useEffect(() => {
+    if (isSuccess) {
+      const modalCheckbox = document.getElementById("withdraw-modal") as HTMLInputElement;
+      if (modalCheckbox) {
+        modalCheckbox.checked = false;
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuccess]);
 
   return (
     <>
@@ -106,7 +116,9 @@ export const StreamContractInfo = ({
             {connectedAddressRequiresApproval ? "Request a Withdrawal" : "Withdraw from your stream"}
           </h3>
           {connectedAddressRequiresApproval && (
-            <span className="label-text-alt text-base-content/60">Your withdrawals require approval</span>
+            <span className="label-text-alt text-base-content/60">
+              Your withdrawal requires approval. You may submit a new request if you have no incomplete/pending request.
+            </span>
           )}
           <label htmlFor="withdraw-modal" className="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">
             ✕
@@ -131,7 +143,12 @@ export const StreamContractInfo = ({
                   <EtherInput value={amount} onChange={value => setAmount(value)} />
                 )}
               </div>
-              <button type="button" className="btn btn-secondary btn-sm w-full" onClick={streamWithdraw}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm w-full"
+                disabled={isPending}
+                onClick={streamWithdraw}
+              >
                 {connectedAddressRequiresApproval ? "Request Withdrawal" : "Withdraw"}
               </button>
             </div>
