@@ -17,6 +17,30 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
     contractName: "Cohort",
   });
 
+  const { data: requestApproved } = useCohortEventHistory({
+    contractName: "Cohort",
+    eventName: "WithdrawalApproved",
+    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
+    watch: true,
+    contractAddress: cohortAddress,
+  });
+
+  const { data: requestRejected } = useCohortEventHistory({
+    contractName: "Cohort",
+    eventName: "WithdrawalRejected",
+    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
+    watch: true,
+    contractAddress: cohortAddress,
+  });
+
+  const { data: requestCompleted } = useCohortEventHistory({
+    contractName: "Cohort",
+    eventName: "WithdrawalCompleted",
+    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
+    watch: true,
+    contractAddress: cohortAddress,
+  });
+
   const {
     data: withdrawn,
     isLoading: isLoadingWithdrawEvents,
@@ -39,7 +63,7 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
         }
       }
     }
-  }, [withdrawn, refetchWithdrawEvents]);
+  }, [withdrawn, refetchWithdrawEvents, requestCompleted]);
 
   const {
     data: requests,
@@ -63,7 +87,7 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
         }
       }
     }
-  }, [requests, refetchRequestEvents]);
+  }, [requests, refetchRequestEvents, requestCompleted, requestApproved, requestRejected]);
 
   useEffect(() => {
     if (withdrawn && withdrawn.length > 0) {
@@ -81,7 +105,7 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     setFilteredWithdrawnEvents(filtered || []);
-  }, [withdrawn, selectedAddress]);
+  }, [withdrawn, selectedAddress, requestCompleted]);
 
   useEffect(() => {
     if (requests && requests.length > 0) {
@@ -98,7 +122,7 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
           address: cohortAddress,
           abi: deployedContract?.abi as Abi,
           functionName: "withdrawalRequests",
-          args: [event.args.creator, event.args.requestId],
+          args: [event.args.builder, event.args.requestId],
         })) as any[];
 
         return {
@@ -154,12 +178,20 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
       // Filter for selected address
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      const filtered = processedEvents?.filter(event => event.args && event.args.creator === selectedAddress);
+      const filtered = processedEvents?.filter(event => event.args && event.args.builder === selectedAddress);
       setFilteredRequestEvents(filtered || []);
     };
 
     processEvents();
-  }, [requests, selectedAddress, deployedContract?.abi, cohortAddress]);
+  }, [
+    requests,
+    selectedAddress,
+    deployedContract?.abi,
+    cohortAddress,
+    requestCompleted,
+    requestApproved,
+    requestRejected,
+  ]);
 
   const filterEventsByAddress = (address: string) => {
     if (!withdrawn) {
@@ -173,7 +205,7 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
       setFilteredRequestEvents([]);
     } else {
       const filteredRequests = requestEvents.filter(
-        (event: any) => event && event.args && event.args.creator === address,
+        (event: any) => event && event.args && event.args.builder === address,
       );
       setFilteredRequestEvents(filteredRequests);
     }

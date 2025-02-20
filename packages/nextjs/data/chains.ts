@@ -58,4 +58,18 @@ export const chains: Chain[] = [
     icon: "/chain/84532.svg",
     isEVM: true,
   },
+  {
+    id: "sepolia",
+    name: "Sepolia",
+    chainId: 11155111,
+    icon: "/chain/11155111.svg",
+    isEVM: true,
+  },
+  {
+    id: "optimism-sepolia",
+    name: "Optimism Sepolia",
+    chainId: 11155420,
+    icon: "/chain/11155420.svg",
+    isEVM: true,
+  },
 ];

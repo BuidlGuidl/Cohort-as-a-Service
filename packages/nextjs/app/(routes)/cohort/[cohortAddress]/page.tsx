@@ -13,15 +13,15 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     tokenAddress,
     description,
     primaryAdmin,
-    isCreator,
+    isBuilder,
     tokenSymbol,
     balance,
     name,
     chainName,
     chainId,
     admins,
-    isLoading,
-    requiresApproval,
+    isLoadingAdmins,
+    connectedAddressRequiresApproval,
   } = useCohortData(params.cohortAddress);
 
   const router = useRouter();
@@ -66,7 +66,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
 
       <StreamContractInfo
         owner={primaryAdmin || ""}
-        isCreator={isCreator || false}
+        isBuilder={isBuilder || false}
         cohortAddress={params.cohortAddress}
         isErc20={isERC20 ?? false}
         tokenSymbol={tokenSymbol ?? ""}
@@ -74,9 +74,9 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         chainName={chainName}
         chainId={chainId}
         admins={admins ?? []}
-        isLoading={isLoading}
+        isLoadingAdmins={isLoadingAdmins}
         isAdmin={isAdmin ?? false}
-        requiresApproval={requiresApproval ?? false}
+        connectedAddressRequiresApproval={connectedAddressRequiresApproval ?? false}
         tokenAddress={tokenAddress ?? ""}
       />
     </div>

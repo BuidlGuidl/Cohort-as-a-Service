@@ -9,16 +9,16 @@ import { contracts } from "~~/utils/scaffold-eth/contract";
 
 interface useCheckWithdrawalsProps {
   cohortAddress: string;
-  creatorAddress: string;
+  builderAddress: string;
   requiresApproval: boolean;
 }
 
-export const useCheckWithdrawals = ({ cohortAddress, creatorAddress, requiresApproval }: useCheckWithdrawalsProps) => {
+export const useCheckWithdrawals = ({ cohortAddress, builderAddress, requiresApproval }: useCheckWithdrawalsProps) => {
   const { chain, chainId } = useAccount();
   const { targetNetwork } = useTargetNetwork();
   const cohort = contracts?.[baseChainId]["Cohort"];
   const writeTx = useTransactor();
-  const { isPending, writeContractAsync } = useWriteContract();
+  const { isPending, writeContractAsync, isSuccess } = useWriteContract();
 
   const sendContractWriteTx = async () => {
     if (!chain) {
@@ -36,8 +36,8 @@ export const useCheckWithdrawals = ({ cohortAddress, creatorAddress, requiresApp
           writeContractAsync({
             abi: cohort.abi,
             address: cohortAddress,
-            functionName: "setCreatorApprovalRequirement",
-            args: [creatorAddress, !requiresApproval],
+            functionName: "setBuilderApprovalRequirement",
+            args: [builderAddress, !requiresApproval],
           });
 
         await writeTx(makeWriteWithParams);
@@ -54,5 +54,6 @@ export const useCheckWithdrawals = ({ cohortAddress, creatorAddress, requiresApp
   return {
     checkWithdrawal: sendContractWriteTx,
     isPending,
+    isSuccess,
   };
 };

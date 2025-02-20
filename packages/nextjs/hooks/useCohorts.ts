@@ -114,6 +114,26 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
     chainId: chains.base.id,
   });
 
+  const sepoliaEvents = useScaffoldEventHistory({
+    contractName: "CohortFactory",
+    eventName: "CohortCreated",
+    fromBlock: deployBlock,
+    blockData: true,
+    watch: true,
+    receiptData: true,
+    chainId: chains.sepolia.id,
+  });
+
+  const opSepoliaEvents = useScaffoldEventHistory({
+    contractName: "CohortFactory",
+    eventName: "CohortCreated",
+    fromBlock: deployBlock,
+    blockData: true,
+    watch: true,
+    receiptData: true,
+    chainId: chains.optimismSepolia.id,
+  });
+
   const allChainEvents = [
     // { chainId: chains.hardhat.id, chainName: "Hardhat", ...hardhatEvents },
     { chainId: chains.baseSepolia.id, chainName: "Base Sepolia", ...baseSepoliaEvents },
@@ -124,6 +144,8 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
     { chainId: chains.avalanche.id, chainName: "Avalanche", ...avalancheEvents },
     { chainId: chains.bsc.id, chainName: "BSC", ...bscEvents },
     { chainId: chains.base.id, chainName: "Base", ...baseEvents },
+    { chainId: chains.sepolia.id, chainName: "Sepolia", ...sepoliaEvents },
+    { chainId: chains.optimismSepolia.id, chainName: "Optimism Sepolia", ...opSepoliaEvents },
   ];
 
   useEffect(() => {
@@ -182,6 +204,7 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
     if (isMounted && !allChainEvents.some(({ isLoading }) => isLoading)) {
       setIsloading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMounted, chainId, cohort, ...allChainEvents.map(e => e.data)]);
 
   return {

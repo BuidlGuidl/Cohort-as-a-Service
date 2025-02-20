@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Trash } from "lucide-react";
 import { AddressInput } from "~~/components/scaffold-eth";
 import { EtherInput } from "~~/components/scaffold-eth";
-import { useAddCreators } from "~~/hooks/useAddCreators";
+import { useAddBuilders } from "~~/hooks/useAddBuilders";
 
 interface AddbatchProps {
   cohortAddress: string;
@@ -13,8 +13,8 @@ interface AddbatchProps {
 
 export const AddBatch = ({ cohortAddress, isErc20 }: AddbatchProps) => {
   const [caps, setCaps] = useState<string[]>([""]);
-  const [creatorAddresses, setCreatorAddresses] = useState<string[]>([""]);
-  const { addBatch, isPending } = useAddCreators({ cohortAddress, creatorAddresss: creatorAddresses, caps });
+  const [builderAddresses, setBuilderAddresses] = useState<string[]>([""]);
+  const { addBatch, isPending, isSuccess } = useAddBuilders({ cohortAddress, builderAddresss: builderAddresses, caps });
 
   const handleInputChange = (index: number, value: number | string | undefined, setState: any) => {
     setState((prevState: any) => {
@@ -25,14 +25,14 @@ export const AddBatch = ({ cohortAddress, isErc20 }: AddbatchProps) => {
   };
 
   const handleAddInput = () => {
-    setCreatorAddresses((prev: string[] | undefined) => [...(prev ?? []), ""]);
+    setBuilderAddresses((prev: string[] | undefined) => [...(prev ?? []), ""]);
     setCaps((prev: string[] | undefined) => [...(prev ?? []), ""]);
   };
 
   const handleRemoveInput = (index: number) => {
-    setCreatorAddresses(prev => {
-      const newBatchCreators = prev.filter((_, i) => i !== index);
-      return newBatchCreators;
+    setBuilderAddresses(prev => {
+      const newBatchBuilders = prev.filter((_, i) => i !== index);
+      return newBatchBuilders;
     });
     setCaps(prev => {
       const newBatchCaps = prev.filter((_, i) => i !== index);
@@ -40,10 +40,22 @@ export const AddBatch = ({ cohortAddress, isErc20 }: AddbatchProps) => {
     });
   };
 
+  useEffect(() => {
+    if (isSuccess) {
+      const modalCheckbox = document.getElementById("add-batch-modal") as HTMLInputElement;
+      if (modalCheckbox) {
+        modalCheckbox.checked = false;
+      }
+
+      setBuilderAddresses([""]);
+      setCaps([""]);
+    }
+  }, [isSuccess]);
+
   return (
     <div>
       <label htmlFor="add-batch-modal" className="btn rounded-md btn-primary btn-sm font-normal space-x-2 normal-case">
-        Add creators
+        Add builders
         <Plus className="h-4 w-4" />
       </label>
 
@@ -51,26 +63,26 @@ export const AddBatch = ({ cohortAddress, isErc20 }: AddbatchProps) => {
       <label htmlFor="add-batch-modal" className="modal cursor-pointer">
         <label className="modal-box relative shadow shadow-primary">
           <input className="h-0 w-0 absolute top-0 left-0" />
-          <p className="font-bold mb-8 flex items-center gap-1 ">Add new creators</p>
+          <p className="font-bold mb-8 flex items-center gap-1 ">Add new builders</p>
           <label htmlFor="add-batch-modal" className="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">
             ✕
           </label>
           <div className="space-y-3">
             <div className="flex flex-col gap-6 items-center ">
               <div className="w-full">
-                {creatorAddresses &&
-                  creatorAddresses.map((creator, index) => (
+                {builderAddresses &&
+                  builderAddresses.map((builder, index) => (
                     <div key={index}>
-                      <label htmlFor={`creators-${index}`} className="block mt-4 mb-2 ">
-                        Creator Address{index != 0 && " " + (index + 1)}:
+                      <label htmlFor={`builders-${index}`} className="block mt-4 mb-2 ">
+                        Builder Address{index != 0 && " " + (index + 1)}:
                       </label>
                       {index != 0 && (
                         <div className="flex justify-between">
                           <div className="w-[92%]">
                             <AddressInput
-                              name={`batch-creators-${index}`}
-                              value={creator}
-                              onChange={value => handleInputChange(index, value, setCreatorAddresses)}
+                              name={`batch-builders-${index}`}
+                              value={builder}
+                              onChange={value => handleInputChange(index, value, setBuilderAddresses)}
                             />
                           </div>
                           <button
@@ -85,9 +97,9 @@ export const AddBatch = ({ cohortAddress, isErc20 }: AddbatchProps) => {
                       )}
                       {index == 0 && (
                         <AddressInput
-                          name={`batch-creators-${index}`}
-                          value={creator}
-                          onChange={value => handleInputChange(index, value, setCreatorAddresses)}
+                          name={`batch-builders-${index}`}
+                          value={builder}
+                          onChange={value => handleInputChange(index, value, setBuilderAddresses)}
                         />
                       )}
                       <label htmlFor={`batch-caps-${index}`} className="block mt-4 mb-2">

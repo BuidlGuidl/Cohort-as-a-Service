@@ -9,11 +9,11 @@ import { contracts } from "~~/utils/scaffold-eth/contract";
 
 interface useApproveWithdrawalProps {
   cohortAddress: string;
-  creatorAddress: string;
+  builderAddress: string;
   requestId: number;
 }
 
-export const useApproveWithdrawal = ({ cohortAddress, creatorAddress, requestId }: useApproveWithdrawalProps) => {
+export const useApproveWithdrawal = ({ cohortAddress, builderAddress, requestId }: useApproveWithdrawalProps) => {
   const { chain, chainId } = useAccount();
   const { targetNetwork } = useTargetNetwork();
   const cohort = contracts?.[baseChainId]["Cohort"];
@@ -37,7 +37,7 @@ export const useApproveWithdrawal = ({ cohortAddress, creatorAddress, requestId 
             abi: cohort.abi,
             address: cohortAddress,
             functionName: "approveWithdrawal",
-            args: [creatorAddress, requestId],
+            args: [builderAddress, requestId],
           });
 
         await writeTx(makeWriteWithParams);

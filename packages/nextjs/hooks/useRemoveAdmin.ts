@@ -17,7 +17,7 @@ export const useRemoveAdmin = ({ cohortAddress, adminAddress }: useRemoveAdminPr
   const { targetNetwork } = useTargetNetwork();
   const cohort = contracts?.[baseChainId]["Cohort"];
   const writeTx = useTransactor();
-  const { isPending, writeContractAsync } = useWriteContract();
+  const { isPending, writeContractAsync, isSuccess } = useWriteContract();
 
   const sendContractWriteTx = async () => {
     if (!chain) {
@@ -53,5 +53,6 @@ export const useRemoveAdmin = ({ cohortAddress, adminAddress }: useRemoveAdminPr
   return {
     removeAdmin: sendContractWriteTx,
     isPending,
+    isSuccess,
   };
 };

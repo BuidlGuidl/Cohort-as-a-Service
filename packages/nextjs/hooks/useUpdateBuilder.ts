@@ -8,19 +8,18 @@ import { notification } from "~~/utils/scaffold-eth";
 import { getParsedError } from "~~/utils/scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
 
-interface useAddCreatorsProps {
+interface useUpdateBuilderProps {
   cohortAddress: string;
-  creatorAddresss: string[];
-  caps: string[];
+  builderAddress: string;
+  cap: string;
 }
 
-export const useAddCreators = ({ cohortAddress, creatorAddresss, caps }: useAddCreatorsProps) => {
+export const useUpdateBuilder = ({ cohortAddress, cap, builderAddress }: useUpdateBuilderProps) => {
   const { chain, chainId } = useAccount();
   const { targetNetwork } = useTargetNetwork();
-
   const cohort = contracts?.[baseChainId]["Cohort"];
   const writeTx = useTransactor();
-  const { isPending, writeContractAsync } = useWriteContract();
+  const { isPending, writeContractAsync, isSuccess } = useWriteContract();
 
   const sendContractWriteTx = async () => {
     if (!chain) {
@@ -38,8 +37,8 @@ export const useAddCreators = ({ cohortAddress, creatorAddresss, caps }: useAddC
           writeContractAsync({
             abi: cohort.abi,
             address: cohortAddress,
-            functionName: "addBatch",
-            args: [creatorAddresss, caps.map(cap => parseEther(cap))],
+            functionName: "updateBuilderStreamCap",
+            args: [builderAddress, parseEther(cap)],
           });
 
         await writeTx(makeWriteWithParams);
@@ -54,7 +53,8 @@ export const useAddCreators = ({ cohortAddress, creatorAddresss, caps }: useAddC
   };
 
   return {
-    addBatch: sendContractWriteTx,
+    updateBuilder: sendContractWriteTx,
     isPending,
+    isSuccess,
   };
 };

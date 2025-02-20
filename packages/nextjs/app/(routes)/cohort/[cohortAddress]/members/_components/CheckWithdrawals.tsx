@@ -1,18 +1,33 @@
 "use client";
 
+import { useEffect } from "react";
 import { Address } from "~~/components/scaffold-eth";
 import { useCheckWithdrawals } from "~~/hooks/useCheckWithdrawals";
 
 interface CheckWithdrawalsProps {
   cohortAddress: string;
-  creatorAddress: string;
+  builderAddress: string;
   requiresApproval: boolean;
 }
 
-export const CheckWithdrawals = ({ cohortAddress, creatorAddress, requiresApproval }: CheckWithdrawalsProps) => {
-  const modalId = `check-withdrawals-modal-${creatorAddress.slice(-8)}`;
+export const CheckWithdrawals = ({ cohortAddress, builderAddress, requiresApproval }: CheckWithdrawalsProps) => {
+  const modalId = `check-withdrawals-modal-${builderAddress.slice(-8)}`;
 
-  const { checkWithdrawal, isPending } = useCheckWithdrawals({ cohortAddress, creatorAddress, requiresApproval });
+  const { checkWithdrawal, isPending, isSuccess } = useCheckWithdrawals({
+    cohortAddress,
+    builderAddress,
+    requiresApproval,
+  });
+
+  useEffect(() => {
+    if (isSuccess) {
+      const modalCheckbox = document.getElementById(modalId) as HTMLInputElement;
+      if (modalCheckbox) {
+        modalCheckbox.checked = false;
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuccess]);
 
   return (
     <>
@@ -21,7 +36,7 @@ export const CheckWithdrawals = ({ cohortAddress, creatorAddress, requiresApprov
         <label className="modal-box relative shadow shadow-primary">
           <input className="h-0 w-0 absolute top-0 left-0" />
           <div className="font-bold mb-8 flex items-center gap-1 text-error">
-            Update approval requirement for <Address address={creatorAddress} disableAddressLink={true} />
+            Update approval requirement for <Address address={builderAddress} disableAddressLink={true} />
           </div>
           <label htmlFor={modalId} className="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">
             ✕

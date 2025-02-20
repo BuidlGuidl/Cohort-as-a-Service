@@ -4,47 +4,46 @@ import { AddBatch } from "./AddBatch";
 import { NotificationBell } from "./NotificationBell";
 import { Address } from "~~/components/scaffold-eth";
 
-interface CreatorFlow {
-  creatorAddress: string;
+interface BuilderStream {
+  builderAddress: string;
   cap: number;
-  availableAmount: number;
+  unlockedAmount: number;
+  requiresApproval: boolean;
 }
 
-interface CreatorsListProps {
+interface BuildersListProps {
   cohortAddress: string;
-  creatorFlows: Map<string, CreatorFlow> | undefined;
+  builderStreams: Map<string, BuilderStream> | undefined;
   isAdmin: boolean;
-  isCreator: boolean;
+  isBuilder: boolean;
   userAddress: string | undefined;
   isERC20: boolean;
   tokenSymbol: string;
   isLoading: boolean;
-  requiresApproval: boolean;
   pendingRequestEvents: any[];
   approvedRequestEvents: any[];
   openEventsModal: (address: string, view: "contributions" | "requests") => void;
 }
 
-export const CreatorsList: React.FC<CreatorsListProps> = ({
+export const BuildersList: React.FC<BuildersListProps> = ({
   cohortAddress,
-  creatorFlows,
+  builderStreams,
   isAdmin,
-  isCreator,
+  isBuilder,
   userAddress,
   isERC20,
   tokenSymbol,
   isLoading,
-  requiresApproval,
   pendingRequestEvents,
   approvedRequestEvents,
   openEventsModal,
 }) => {
-  const getPendingRequestsCount = (creatorAddress: string) => {
-    return pendingRequestEvents.filter(event => event.args && event.args.creator === creatorAddress).length;
+  const getPendingRequestsCount = (builderAddress: string) => {
+    return pendingRequestEvents.filter(event => event.args && event.args.builder === builderAddress).length;
   };
 
-  const getApprovedRequestsCount = (creatorAddress: string) => {
-    return approvedRequestEvents.filter(event => event.args && event.args.creator === creatorAddress).length;
+  const getApprovedRequestsCount = (builderAddress: string) => {
+    return approvedRequestEvents.filter(event => event.args && event.args.builder === builderAddress).length;
   };
 
   return (
@@ -56,31 +55,31 @@ export const CreatorsList: React.FC<CreatorsListProps> = ({
           <div className="text-4xl animate-bounce mb-2">👾</div>
           <div className="text-lg ">Loading...</div>
         </div>
-      ) : !creatorFlows || Array.from(creatorFlows.values()).length == 0 ? (
-        <div>No creators</div>
+      ) : !builderStreams || Array.from(builderStreams.values()).length == 0 ? (
+        <div>No builders</div>
       ) : (
-        Array.from(creatorFlows.values()).map(creatorFlow => {
-          if (creatorFlow.cap == 0) return null;
-          const cap = creatorFlow.cap;
-          const unlocked = creatorFlow.availableAmount;
+        Array.from(builderStreams.values()).map(builderStream => {
+          if (builderStream.cap == 0) return null;
+          const cap = builderStream.cap;
+          const unlocked = builderStream.unlockedAmount;
           const percentage = Math.floor((unlocked / cap) * 100);
-          const pendingCount = getPendingRequestsCount(creatorFlow.creatorAddress);
-          const approvedCount = getApprovedRequestsCount(creatorFlow.creatorAddress);
+          const pendingCount = getPendingRequestsCount(builderStream.builderAddress);
+          const approvedCount = getApprovedRequestsCount(builderStream.builderAddress);
 
-          // Show notification for admin or if it's the creator's own approved requests
+          // Show notification for admin or if it's the builder's own approved requests
           const showNotification =
             (isAdmin && pendingCount > 0) ||
-            (isCreator && userAddress === creatorFlow.creatorAddress && approvedCount > 0);
+            (isBuilder && userAddress === builderStream.builderAddress && approvedCount > 0);
 
           // Count to display
           const notificationCount = isAdmin
             ? pendingCount
-            : isCreator && userAddress === creatorFlow.creatorAddress
+            : isBuilder && userAddress === builderStream.builderAddress
               ? approvedCount
               : 0;
 
           return (
-            <div className="flex items-center" key={creatorFlow.creatorAddress}>
+            <div className="flex items-center" key={builderStream.builderAddress}>
               <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-6">
                 <div className="flex flex-col md:items-center">
                   <div>
@@ -91,22 +90,22 @@ export const CreatorsList: React.FC<CreatorsListProps> = ({
                 <div className="md:w-1/2 flex items-center">
                   <div
                     className="cursor-pointer"
-                    onClick={() => openEventsModal(creatorFlow.creatorAddress, "contributions")}
+                    onClick={() => openEventsModal(builderStream.builderAddress, "contributions")}
                   >
-                    <Address address={creatorFlow.creatorAddress} disableAddressLink={true} />
+                    <Address address={builderStream.builderAddress} disableAddressLink={true} />
                   </div>
                   <div className="ml-4 flex items-center">
                     {isAdmin && (
                       <Actions
                         cohortAddress={cohortAddress}
-                        creatorAddress={creatorFlow.creatorAddress}
-                        requiresApproval={requiresApproval}
+                        builderAddress={builderStream.builderAddress}
+                        requiresApproval={builderStream.requiresApproval}
                       />
                     )}
                     {showNotification && (
                       <NotificationBell
                         count={notificationCount}
-                        onClick={() => openEventsModal(creatorFlow.creatorAddress, "requests")}
+                        onClick={() => openEventsModal(builderStream.builderAddress, "requests")}
                         variant={isAdmin ? "warning" : "info"}
                       />
                     )}

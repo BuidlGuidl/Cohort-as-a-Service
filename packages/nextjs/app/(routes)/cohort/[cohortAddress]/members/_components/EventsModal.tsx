@@ -139,21 +139,21 @@ export const EventsModal: React.FC<EventsModalProps> = ({
                             {event.status}
                           </span>
                         </div>
-                        {isAdmin && !event.completed && (
+                        {isAdmin && event.status == "Pending" && (
                           <div className="flex gap-2 mt-2">
                             <ApproveWithdrawal
                               cohortAddress={cohortAddress}
-                              creatorAddress={event.args.creator}
+                              builderAddress={event.args.builder}
                               requestId={event.args.requestId}
                             />
                             <RejectWithdrawal
                               cohortAddress={cohortAddress}
-                              creatorAddress={event.args.creator}
+                              builderAddress={event.args.builder}
                               requestId={event.args.requestId}
                             />
                           </div>
                         )}
-                        {address == event.args.creator && !event.completed && (
+                        {address == event.args.builder && event.status === "Approved" && (
                           <div className="flex gap-2 mt-2">
                             <CompleteWithdrawal cohortAddress={cohortAddress} requestId={event.args.requestId} />
                           </div>

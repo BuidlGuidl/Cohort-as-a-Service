@@ -4,13 +4,13 @@ import { useApproveWithdrawal } from "~~/hooks/useApproveWithdrawal";
 interface ApproveWithdrawalProps {
   requestId: number;
   cohortAddress: string;
-  creatorAddress: string;
+  builderAddress: string;
 }
 
-export const ApproveWithdrawal = ({ requestId, cohortAddress, creatorAddress }: ApproveWithdrawalProps) => {
+export const ApproveWithdrawal = ({ requestId, cohortAddress, builderAddress }: ApproveWithdrawalProps) => {
   const { approveWithdrawal, isPending } = useApproveWithdrawal({
     cohortAddress,
-    creatorAddress,
+    builderAddress,
     requestId,
   });
   return (

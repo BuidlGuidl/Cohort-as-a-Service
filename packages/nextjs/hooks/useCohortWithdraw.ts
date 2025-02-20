@@ -19,7 +19,7 @@ export const useCohortWithdraw = ({ cohortAddress, amount, reason }: useCohortWi
   const { targetNetwork } = useTargetNetwork();
   const cohort = contracts?.[baseChainId]["Cohort"];
   const writeTx = useTransactor();
-  const { isPending, writeContractAsync } = useWriteContract();
+  const { isPending, writeContractAsync, isSuccess } = useWriteContract();
 
   const sendContractWriteTx = async () => {
     if (!chain) {
@@ -37,7 +37,7 @@ export const useCohortWithdraw = ({ cohortAddress, amount, reason }: useCohortWi
           writeContractAsync({
             abi: cohort.abi,
             address: cohortAddress,
-            functionName: "flowWithdraw",
+            functionName: "streamWithdraw",
             args: [parseEther(amount), reason],
           });
 
@@ -53,7 +53,8 @@ export const useCohortWithdraw = ({ cohortAddress, amount, reason }: useCohortWi
   };
 
   return {
-    flowWithdraw: sendContractWriteTx,
+    streamWithdraw: sendContractWriteTx,
     isPending,
+    isSuccess,
   };
 };

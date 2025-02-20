@@ -15,7 +15,7 @@ interface SearchPageProps {
 }
 
 const SearchPage = ({ searchParams }: SearchPageProps) => {
-  const [filter, setFilter] = useState<"admin" | "creator">("admin");
+  const [filter, setFilter] = useState<"admin" | "builder">("admin");
   const { cohorts, isLoading } = useFilteredCohorts({ ...searchParams, filter });
 
   return (
@@ -35,7 +35,7 @@ const SearchPage = ({ searchParams }: SearchPageProps) => {
                 <button onClick={() => setFilter("admin")}>Admin</button>
               </li>
               <li>
-                <button onClick={() => setFilter("creator")}>Creator</button>
+                <button onClick={() => setFilter("builder")}>Builder</button>
               </li>
             </ul>
           </div>

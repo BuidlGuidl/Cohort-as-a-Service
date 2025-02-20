@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Trash } from "lucide-react";
 import { Address } from "~~/components/scaffold-eth";
 import { useRemoveAdmin } from "~~/hooks/useRemoveAdmin";
@@ -10,8 +11,18 @@ interface RemoveAdminProps {
 }
 
 export const RemoveAdmin = ({ cohortAddress, adminAddress }: RemoveAdminProps) => {
-  const { removeAdmin, isPending } = useRemoveAdmin({ cohortAddress, adminAddress });
+  const { removeAdmin, isPending, isSuccess } = useRemoveAdmin({ cohortAddress, adminAddress });
   const modalId = `remove-admin-modal-${adminAddress.slice(-8)}`;
+
+  useEffect(() => {
+    if (isSuccess) {
+      const modalCheckbox = document.getElementById(modalId) as HTMLInputElement;
+      if (modalCheckbox) {
+        modalCheckbox.checked = false;
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuccess]);
 
   return (
     <div>

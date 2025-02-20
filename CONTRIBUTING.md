@@ -62,7 +62,7 @@ Some tips to follow when you are creating an issue:
 
 #### Pull Request Process
 
-We follow the ["fork-and-pull" Git workflow](https://github.com/susam/gitpr)
+We follow the ["fork-and-pull" Git workstream](https://github.com/susam/gitpr)
 
 1. Fork the repo
 2. Clone the project

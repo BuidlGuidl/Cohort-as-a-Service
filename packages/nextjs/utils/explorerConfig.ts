@@ -1,5 +1,5 @@
 // types.ts
-// export type SupportedChainId = 1 | 137 | 42161 | 10 | 8453 | 84532 | 56 | 43114;
+// export type SupportedChainId = 1 | 137 | 42161 | 10 | 8453 | 84532 | 43114;
 
 export interface ExplorerConfig {
   apiUrl: string;
@@ -45,17 +45,23 @@ export const BLOCK_EXPLORER_CONFIG: Record<number, ExplorerConfig> = {
     apiKey: process.env.NEXT_PUBLIC_BASESCAN_API_KEY || "ZZZEIPMT1MNJ8526VV2Y744CA7TNZR64G6",
     browserUrl: "https://sepolia.basescan.org",
   },
-  // BSC
-  56: {
-    apiUrl: "https://api.bscscan.com/api",
-    apiKey: process.env.NEXT_PUBLIC_BSCSCAN_API_KEY,
-    browserUrl: "https://bscscan.com",
-  },
   // Avalanche
   43114: {
     apiUrl: "https://api.snowtrace.io/api",
     apiKey: process.env.NEXT_PUBLIC_SNOWTRACE_API_KEY,
     browserUrl: "https://snowtrace.io",
+  },
+  // Sepolia
+  11155111: {
+    apiUrl: "https://api-sepolia.etherscan.io/api",
+    apiKey: process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY || "DNXJA8RX2Q3VZ4URQIWP7Z68CJXQZSC6AW",
+    browserUrl: "https://sepolia.etherscan.io/",
+  },
+  //Optimism Sepolia
+  11155420: {
+    apiUrl: "https://api-sepolia-optimistic.etherscan.io/api",
+    apiKey: process.env.NEXT_PUBLIC_OPTIMISTIC_ETHERSCAN_API_KEY || "RM62RDISS1RH448ZY379NX625ASG1N633R",
+    browserUrl: "https://sepolia-optimism.etherscan.io/o",
   },
 };
 

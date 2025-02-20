@@ -1,6 +1,5 @@
 import { useTargetNetwork } from "./scaffold-eth";
 import { useTransactor } from "./scaffold-eth";
-import { parseEther } from "viem";
 import { useAccount } from "wagmi";
 import { useWriteContract } from "wagmi";
 import { baseChainId } from "~~/data/chains";
@@ -8,18 +7,17 @@ import { notification } from "~~/utils/scaffold-eth";
 import { getParsedError } from "~~/utils/scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
 
-interface useUpdateCreatorProps {
+interface useRemoveBuilderProps {
   cohortAddress: string;
-  creatorAddress: string;
-  cap: string;
+  builderAddress: string;
 }
 
-export const useUpdateCreator = ({ cohortAddress, cap, creatorAddress }: useUpdateCreatorProps) => {
+export const useRemoveBuilder = ({ cohortAddress, builderAddress }: useRemoveBuilderProps) => {
   const { chain, chainId } = useAccount();
   const { targetNetwork } = useTargetNetwork();
   const cohort = contracts?.[baseChainId]["Cohort"];
   const writeTx = useTransactor();
-  const { isPending, writeContractAsync } = useWriteContract();
+  const { isPending, writeContractAsync, isSuccess } = useWriteContract();
 
   const sendContractWriteTx = async () => {
     if (!chain) {
@@ -37,8 +35,8 @@ export const useUpdateCreator = ({ cohortAddress, cap, creatorAddress }: useUpda
           writeContractAsync({
             abi: cohort.abi,
             address: cohortAddress,
-            functionName: "updateCreatorFlowCapCycle",
-            args: [creatorAddress, parseEther(cap)],
+            functionName: "removeBuilderStream",
+            args: [builderAddress],
           });
 
         await writeTx(makeWriteWithParams);
@@ -53,7 +51,8 @@ export const useUpdateCreator = ({ cohortAddress, cap, creatorAddress }: useUpda
   };
 
   return {
-    updateCreator: sendContractWriteTx,
+    removeBuilder: sendContractWriteTx,
     isPending,
+    isSuccess,
   };
 };
