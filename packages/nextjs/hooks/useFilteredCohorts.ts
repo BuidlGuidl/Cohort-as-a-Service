@@ -85,7 +85,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
                 })
               : null;
 
-            if (address?.toLowerCase() === (builder as string).toLowerCase()) {
+            if (address?.toLowerCase() === (builder as string)?.toLowerCase()) {
               validCohorts.push(cohort);
             }
           } catch (error) {

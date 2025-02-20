@@ -22,7 +22,6 @@ const scaffoldConfig = {
     chains.avalanche,
     chains.bsc,
     chains.base,
-    chains.sepolia,
     chains.optimismSepolia,
   ],
 

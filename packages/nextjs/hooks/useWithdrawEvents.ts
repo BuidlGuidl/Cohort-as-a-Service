@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { readContract } from "@wagmi/core";
-import { formatEther } from "viem";
 import { Abi } from "viem";
 import { useCohortEventHistory } from "~~/hooks/useCohortEventHistory";
 import { useLocalDeployedContractInfo } from "~~/hooks/useLocalDeployedContractInfo";
@@ -19,7 +18,7 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
 
   const { data: requestApproved } = useCohortEventHistory({
     contractName: "Cohort",
-    eventName: "WithdrawalApproved",
+    eventName: "WithdrawApproved",
     fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
     watch: true,
     contractAddress: cohortAddress,
@@ -27,7 +26,7 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
 
   const { data: requestRejected } = useCohortEventHistory({
     contractName: "Cohort",
-    eventName: "WithdrawalRejected",
+    eventName: "WithdrawRejected",
     fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
     watch: true,
     contractAddress: cohortAddress,
@@ -35,7 +34,7 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
 
   const { data: requestCompleted } = useCohortEventHistory({
     contractName: "Cohort",
-    eventName: "WithdrawalCompleted",
+    eventName: "WithdrawCompleted",
     fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
     watch: true,
     contractAddress: cohortAddress,
@@ -71,7 +70,7 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
     refetch: refetchRequestEvents,
   } = useCohortEventHistory({
     contractName: "Cohort",
-    eventName: "WithdrawalRequested",
+    eventName: "WithdrawRequested",
     fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
     blockData: true,
     watch: true,
@@ -121,7 +120,7 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
         const WithdrawalRequest = (await readContract(wagmiConfig, {
           address: cohortAddress,
           abi: deployedContract?.abi as Abi,
-          functionName: "withdrawalRequests",
+          functionName: "withdrawRequests",
           args: [event.args.builder, event.args.requestId],
         })) as any[];
 

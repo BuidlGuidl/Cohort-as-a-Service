@@ -17,7 +17,7 @@ export async function verifyContract({
   try {
     console.log(`🔍 Starting contract verification for: ${address} on chain ${chainId}...`);
 
-    const contractBytecode = contract.bytecode;
+    // const contractBytecode = contract.bytecode;
     const apiUrl = getExplorerApiUrl(chainId);
     const apiKey = getExplorerApiKey(chainId);
 

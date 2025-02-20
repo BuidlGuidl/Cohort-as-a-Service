@@ -17,13 +17,6 @@ export const chains: Chain[] = [
     isEVM: true,
   },
   {
-    id: "arbitrum",
-    name: "Arbitrum",
-    chainId: 42161,
-    icon: "/chain/42161.svg",
-    isEVM: true,
-  },
-  {
     id: "polygon",
     name: "Polygon",
     chainId: 137,
@@ -35,6 +28,13 @@ export const chains: Chain[] = [
     name: "AVAX",
     chainId: 43114,
     icon: "/chain/43114.svg",
+    isEVM: true,
+  },
+  {
+    id: "arbitrum",
+    name: "Arbitrum",
+    chainId: 42161,
+    icon: "/chain/42161.svg",
     isEVM: true,
   },
   {
@@ -58,13 +58,7 @@ export const chains: Chain[] = [
     icon: "/chain/84532.svg",
     isEVM: true,
   },
-  {
-    id: "sepolia",
-    name: "Sepolia",
-    chainId: 11155111,
-    icon: "/chain/11155111.svg",
-    isEVM: true,
-  },
+
   {
     id: "optimism-sepolia",
     name: "Optimism Sepolia",

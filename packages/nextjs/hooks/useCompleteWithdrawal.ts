@@ -36,7 +36,7 @@ export const useCompleteWithdrawal = ({ cohortAddress, requestId }: useCompleteW
           writeContractAsync({
             abi: cohort.abi,
             address: cohortAddress,
-            functionName: "completeWithdrawal",
+            functionName: "completeWithdraw",
             args: [requestId],
           });
 

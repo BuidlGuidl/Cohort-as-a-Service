@@ -22,9 +22,8 @@ const deployCohort: DeployFunction = async function (hre: HardhatRuntimeEnvironm
 
   const { deploy, get } = hre.deployments;
 
-  const ERC20Mock1 = await get("ERC20Mock1");
+  // const ERC20Mock1 = await get("ERC20Mock1");
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const ERC20Mock1Address = ERC20Mock1.address;
 
   const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -48,8 +47,8 @@ const deployCohort: DeployFunction = async function (hre: HardhatRuntimeEnvironm
   //   autoMine: true,
   // });
 
-  // // Get the deployed contract
-  // // const cohort = await hre.ethers.getContract("Cohort", deployer);
+  // Get the deployed contract
+  // const cohort = await hre.ethers.getContract("Cohort", deployer);
 };
 
 export default deployCohort;

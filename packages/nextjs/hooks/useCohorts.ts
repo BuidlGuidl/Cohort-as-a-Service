@@ -94,16 +94,6 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
     chainId: chains.avalanche.id,
   });
 
-  const bscEvents = useScaffoldEventHistory({
-    contractName: "CohortFactory",
-    eventName: "CohortCreated",
-    fromBlock: deployBlock,
-    blockData: true,
-    watch: true,
-    receiptData: true,
-    chainId: chains.bsc.id,
-  });
-
   const baseEvents = useScaffoldEventHistory({
     contractName: "CohortFactory",
     eventName: "CohortCreated",
@@ -112,16 +102,6 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
     watch: true,
     receiptData: true,
     chainId: chains.base.id,
-  });
-
-  const sepoliaEvents = useScaffoldEventHistory({
-    contractName: "CohortFactory",
-    eventName: "CohortCreated",
-    fromBlock: deployBlock,
-    blockData: true,
-    watch: true,
-    receiptData: true,
-    chainId: chains.sepolia.id,
   });
 
   const opSepoliaEvents = useScaffoldEventHistory({
@@ -134,19 +114,33 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
     chainId: chains.optimismSepolia.id,
   });
 
-  const allChainEvents = [
-    // { chainId: chains.hardhat.id, chainName: "Hardhat", ...hardhatEvents },
-    { chainId: chains.baseSepolia.id, chainName: "Base Sepolia", ...baseSepoliaEvents },
-    { chainId: chains.mainnet.id, chainName: "Ethereum", ...mainnetEvents },
-    { chainId: chains.optimism.id, chainName: "Optimism", ...optimismEvents },
-    { chainId: chains.arbitrum.id, chainName: "Arbitrum", ...arbitrumEvents },
-    { chainId: chains.polygon.id, chainName: "Polygon", ...polygonEvents },
-    { chainId: chains.avalanche.id, chainName: "Avalanche", ...avalancheEvents },
-    { chainId: chains.bsc.id, chainName: "BSC", ...bscEvents },
-    { chainId: chains.base.id, chainName: "Base", ...baseEvents },
-    { chainId: chains.sepolia.id, chainName: "Sepolia", ...sepoliaEvents },
-    { chainId: chains.optimismSepolia.id, chainName: "Optimism Sepolia", ...opSepoliaEvents },
-  ];
+  const allChainEvents = useMemo(
+    () => [
+      // { chainId: chains.hardhat.id, chainName: "Hardhat", ...hardhatEvents },
+      { chainId: chains.baseSepolia.id, chainName: "Base Sepolia", ...baseSepoliaEvents },
+      { chainId: chains.mainnet.id, chainName: "Ethereum", ...mainnetEvents },
+      { chainId: chains.optimism.id, chainName: "Optimism", ...optimismEvents },
+      { chainId: chains.arbitrum.id, chainName: "Arbitrum", ...arbitrumEvents },
+      { chainId: chains.polygon.id, chainName: "Polygon", ...polygonEvents },
+      { chainId: chains.avalanche.id, chainName: "Avalanche", ...avalancheEvents },
+      { chainId: chains.base.id, chainName: "Base", ...baseEvents },
+      { chainId: chains.optimismSepolia.id, chainName: "Optimism Sepolia", ...opSepoliaEvents },
+    ],
+    [
+      baseSepoliaEvents,
+      mainnetEvents,
+      optimismEvents,
+      arbitrumEvents,
+      polygonEvents,
+      avalancheEvents,
+      baseEvents,
+      opSepoliaEvents,
+    ],
+  );
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     setIsMounted(true);

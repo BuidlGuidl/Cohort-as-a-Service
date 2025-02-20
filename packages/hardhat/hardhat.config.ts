@@ -21,6 +21,7 @@ const deployerPrivateKey =
 const etherscanApiKey = process.env.ETHERSCAN_MAINNET_API_KEY || "DNXJA8RX2Q3VZ4URQIWP7Z68CJXQZSC6AW";
 const etherscanOptimisticApiKey = process.env.ETHERSCAN_OPTIMISTIC_API_KEY || "RM62RDISS1RH448ZY379NX625ASG1N633R";
 const basescanApiKey = process.env.BASESCAN_API_KEY || "ZZZEIPMT1MNJ8526VV2Y744CA7TNZR64G6";
+const arbiscanApiKey = process.env.ARBISCAN_API_KEY || "XNGNDXRIBSUDGCUQY1TJC12GHT1N892SK5";
 
 // If not set, it uses ours Alchemy's default API key.
 // You can get your own at https://dashboard.alchemyapi.io
@@ -68,6 +69,12 @@ const config: HardhatUserConfig = {
     arbitrum: {
       url: `https://arb-mainnet.g.alchemy.com/v2/${providerApiKey}`,
       accounts: [deployerPrivateKey],
+      verify: {
+        etherscan: {
+          apiUrl: "https://api.arbiscan.io",
+          apiKey: arbiscanApiKey,
+        },
+      },
     },
     arbitrumSepolia: {
       url: `https://arb-sepolia.g.alchemy.com/v2/${providerApiKey}`,
