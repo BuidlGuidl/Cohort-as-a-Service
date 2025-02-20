@@ -31,7 +31,7 @@ const CohortsList = ({ items, loading }: CohortsListProps) => {
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {items.map(item => (
           <CohortCard
-            key={item.cohortAddress}
+            key={item?.cohortAddress}
             cohortAddress={item.cohortAddress}
             chainId={item.chainId}
             createdAt={item.createdAt}

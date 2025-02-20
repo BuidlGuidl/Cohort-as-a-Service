@@ -24,7 +24,7 @@ export const BLOCK_EXPLORER_CONFIG: Record<number, ExplorerConfig> = {
   // Arbitrum
   42161: {
     apiUrl: "https://api.arbiscan.io/api",
-    apiKey: process.env.NEXT_PUBLIC_ARBISCAN_API_KEY,
+    apiKey: process.env.NEXT_PUBLIC_ARBISCAN_API_KEY || "XNGNDXRIBSUDGCUQY1TJC12GHT1N892SK5",
     browserUrl: "https://arbiscan.io",
   },
   // Optimism
@@ -50,12 +50,6 @@ export const BLOCK_EXPLORER_CONFIG: Record<number, ExplorerConfig> = {
     apiUrl: "https://api.snowtrace.io/api",
     apiKey: process.env.NEXT_PUBLIC_SNOWTRACE_API_KEY,
     browserUrl: "https://snowtrace.io",
-  },
-  // Sepolia
-  11155111: {
-    apiUrl: "https://api-sepolia.etherscan.io/api",
-    apiKey: process.env.NEXT_PUBLIC_ETHERSCAN_API_KEY || "DNXJA8RX2Q3VZ4URQIWP7Z68CJXQZSC6AW",
-    browserUrl: "https://sepolia.etherscan.io/",
   },
   //Optimism Sepolia
   11155420: {

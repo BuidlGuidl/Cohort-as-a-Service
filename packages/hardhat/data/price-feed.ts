@@ -6,7 +6,7 @@ export interface ChainInfo {
   priceFeedAddress: Address;
 }
 
-export type SupportedChainId = 1 | 137 | 42161 | 10 | 8453 | 84532 | 43114 | 11155111 | 11155420;
+export type SupportedChainId = 1 | 137 | 42161 | 10 | 8453 | 84532 | 43114 | 11155420;
 
 export const NETWORK_NAMES = {
   ETHEREUM: "Ethereum",
@@ -16,7 +16,6 @@ export const NETWORK_NAMES = {
   BASE: "Base",
   BASE_SEPOLIA: "Base Sepolia",
   AVALANCHE: "Avalanche",
-  SEPOLIA: "Sepolia",
   OPTIMISM_SEPOLIA: "Optimism Sepolia",
 } as const;
 
@@ -28,7 +27,6 @@ export const CHAIN_IDS = {
   BASE: 8453,
   BASE_SEPOLIA: 84532,
   AVALANCHE: 43114,
-  SEPOLIA: 11155111,
   OPTIMISM_SEPOLIA: 11155420,
 } as const;
 
@@ -68,11 +66,7 @@ export const CHAINLINK_PRICE_FEEDS: Record<SupportedChainId, ChainInfo> = {
     chainName: NETWORK_NAMES.AVALANCHE,
     priceFeedAddress: "0x0A77230d17318075983913bC2145DB16C7366156",
   },
-  [CHAIN_IDS.SEPOLIA]: {
-    chainId: CHAIN_IDS.SEPOLIA,
-    chainName: NETWORK_NAMES.SEPOLIA,
-    priceFeedAddress: "0x694AA1769357215DE4FAC081bf1f309aDC325306",
-  },
+
   [CHAIN_IDS.OPTIMISM_SEPOLIA]: {
     chainId: CHAIN_IDS.OPTIMISM_SEPOLIA,
     chainName: NETWORK_NAMES.OPTIMISM_SEPOLIA,

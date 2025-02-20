@@ -1074,11 +1074,11 @@ error BelowMinimumCap(uint256 provided, uint256 minimum);
 error NotAuthorized();
 error InvalidNewAdminAddress();
 
-error NoWithdrawalRequest();
-error WithdrawalRequestNotApproved();
-error WithdrawalRequestAlreadyCompleted();
-error WithdrawalRequestNotFound();
-error PendingWithdrawalRequestExists();
+error NoWithdrawRequest();
+error WithdrawRequestNotApproved();
+error WithdrawRequestAlreadyCompleted();
+error WithdrawRequestNotFound();
+error PendingWithdrawRequestExists();
 
 contract Cohort is AccessControl, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -1183,7 +1183,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
     }
 
     // Withdrawal request structure
-    struct WithdrawalRequest {
+    struct WithdrawRequest {
         uint256 amount;
         string reason;
         bool approved;
@@ -1192,7 +1192,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
     }
 
     // Mapping to store withdrawal requests for each builder
-    mapping(address => WithdrawalRequest[]) public withdrawalRequests;
+    mapping(address => WithdrawRequest[]) public withdrawRequests;
 
     // Mapping to track whether specific builders require approval
     mapping(address => bool) public requiresApproval;
@@ -1225,10 +1225,10 @@ contract Cohort is AccessControl, ReentrancyGuard {
     event ERC20FundsReceived(address indexed token, address indexed from, uint256 amount);
 
     // Withdrawal request events
-    event WithdrawalRequested(address indexed builder, uint256 requestId, uint256 amount, string reason);
-    event WithdrawalApproved(address indexed builder, uint256 requestId);
-    event WithdrawalRejected(address indexed builder, uint256 requestId);
-    event WithdrawalCompleted(address indexed builder, uint256 requestId, uint256 amount);
+    event WithdrawRequested(address indexed builder, uint256 requestId, uint256 amount, string reason);
+    event WithdrawApproved(address indexed builder, uint256 requestId);
+    event WithdrawRejected(address indexed builder, uint256 requestId);
+    event WithdrawCompleted(address indexed builder, uint256 requestId, uint256 amount);
     event ApprovalRequirementChanged(address indexed builder, bool requiresApproval);
 
     // Check if a stream for a builder is active
@@ -1246,10 +1246,10 @@ contract Cohort is AccessControl, ReentrancyGuard {
     // Modifier to check if builder has no pending withdrawal requests
     modifier noPendingRequests(address _builder) {
         bool hasPending = false;
-        uint256 requestCount = withdrawalRequests[_builder].length;
+        uint256 requestCount = withdrawRequests[_builder].length;
 
         for (uint256 i = 0; i < requestCount; ) {
-            if (!withdrawalRequests[_builder][i].completed) {
+            if (!withdrawRequests[_builder][i].completed) {
                 hasPending = true;
                 break;
             }
@@ -1258,7 +1258,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
             }
         }
 
-        if (hasPending) revert PendingWithdrawalRequestExists();
+        if (hasPending) revert PendingWithdrawRequestExists();
         _;
     }
 
@@ -1388,7 +1388,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
     }
 
     // Request a withdrawal - for builders that require approval
-    function _requestWithdrawal(uint256 _amount, string memory _reason) private noPendingRequests(msg.sender) {
+    function _requestWithdraw(uint256 _amount, string memory _reason) private noPendingRequests(msg.sender) {
         // Check if the builder has enough unlocked to withdraw
         uint256 totalAmountCanWithdraw = unlockedBuilderAmount(msg.sender);
         if (totalAmountCanWithdraw < _amount) {
@@ -1396,8 +1396,8 @@ contract Cohort is AccessControl, ReentrancyGuard {
         }
 
         // Create withdrawal request
-        withdrawalRequests[msg.sender].push(
-            WithdrawalRequest({
+        withdrawRequests[msg.sender].push(
+            WithdrawRequest({
                 amount: _amount,
                 reason: _reason,
                 approved: false,
@@ -1406,52 +1406,52 @@ contract Cohort is AccessControl, ReentrancyGuard {
             })
         );
 
-        uint256 requestId = withdrawalRequests[msg.sender].length - 1;
-        emit WithdrawalRequested(msg.sender, requestId, _amount, _reason);
+        uint256 requestId = withdrawRequests[msg.sender].length - 1;
+        emit WithdrawRequested(msg.sender, requestId, _amount, _reason);
     }
 
     // Approve a withdrawal request - only admins can call this
-    function approveWithdrawal(address _builder, uint256 _requestId) public onlyAdmin {
-        if (withdrawalRequests[_builder].length <= _requestId) revert WithdrawalRequestNotFound();
-        WithdrawalRequest storage request = withdrawalRequests[_builder][_requestId];
+    function approveWithdraw(address _builder, uint256 _requestId) public onlyAdmin {
+        if (withdrawRequests[_builder].length <= _requestId) revert WithdrawRequestNotFound();
+        WithdrawRequest storage request = withdrawRequests[_builder][_requestId];
 
-        if (request.completed) revert WithdrawalRequestAlreadyCompleted();
+        if (request.completed) revert WithdrawRequestAlreadyCompleted();
 
         request.approved = true;
-        emit WithdrawalApproved(_builder, _requestId);
+        emit WithdrawApproved(_builder, _requestId);
     }
 
     // Reject a withdrawal request - only admins can call this
-    function rejectWithdrawal(address _builder, uint256 _requestId) public onlyAdmin {
-        if (withdrawalRequests[_builder].length <= _requestId) revert WithdrawalRequestNotFound();
-        WithdrawalRequest storage request = withdrawalRequests[_builder][_requestId];
+    function rejectWithdraw(address _builder, uint256 _requestId) public onlyAdmin {
+        if (withdrawRequests[_builder].length <= _requestId) revert WithdrawRequestNotFound();
+        WithdrawRequest storage request = withdrawRequests[_builder][_requestId];
 
-        if (request.completed) revert WithdrawalRequestAlreadyCompleted();
+        if (request.completed) revert WithdrawRequestAlreadyCompleted();
 
         // Delete the request by marking it as completed but not approved
         request.completed = true;
         request.approved = false;
-        emit WithdrawalRejected(_builder, _requestId);
+        emit WithdrawRejected(_builder, _requestId);
     }
 
     // Complete a withdrawal that was previously approved
-    function completeWithdrawal(uint256 _requestId) public isStreamActive(msg.sender) nonReentrant stopInEmergency {
+    function completeWithdraw(uint256 _requestId) public isStreamActive(msg.sender) nonReentrant stopInEmergency {
         // Check if request exists
-        if (withdrawalRequests[msg.sender].length <= _requestId) revert WithdrawalRequestNotFound();
-        WithdrawalRequest storage request = withdrawalRequests[msg.sender][_requestId];
+        if (withdrawRequests[msg.sender].length <= _requestId) revert WithdrawRequestNotFound();
+        WithdrawRequest storage request = withdrawRequests[msg.sender][_requestId];
 
         // Check if request is completed
-        if (request.completed) revert WithdrawalRequestAlreadyCompleted();
+        if (request.completed) revert WithdrawRequestAlreadyCompleted();
 
         // Check if approval is required and given
-        if (requiresApproval[msg.sender] && !request.approved) revert WithdrawalRequestNotApproved();
+        if (requiresApproval[msg.sender] && !request.approved) revert WithdrawRequestNotApproved();
 
         _processStreamWithdraw(request.amount);
 
         // Mark request as completed
         request.completed = true;
 
-        emit WithdrawalCompleted(msg.sender, _requestId, request.amount);
+        emit WithdrawCompleted(msg.sender, _requestId, request.amount);
         emit Withdraw(msg.sender, request.amount, request.reason);
     }
 
@@ -1460,7 +1460,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
         string memory _reason
     ) public isStreamActive(msg.sender) nonReentrant stopInEmergency {
         if (requiresApproval[msg.sender]) {
-            _requestWithdrawal(_amount, _reason);
+            _requestWithdraw(_amount, _reason);
             return;
         }
 
@@ -1595,33 +1595,44 @@ library PriceConverter {
 
 /**
  * @title CohortFactory
- * @dev Factory contract for deploying new Cohort contracts with a creation fee
+ * @dev Factory contract for deploying new Cohort contracts with an updatable creation fee
  */
 contract CohortFactory is Ownable {
     using PriceConverter for uint256;
 
+    struct CohortInfo {
+        address cohortAddress;
+        string name;
+        uint256 creationTimestamp;
+    }
+
     AggregatorV3Interface private priceFeed;
 
-    uint256 public constant CREATION_FEE_USD = 10 * 1e18; // 10 USD
+    uint256 public creationFeeUSD;
 
     mapping(address => bool) public isCohort;
-
-    address[] public cohorts;
+    mapping(uint256 => CohortInfo) public cohortRegistry;
+    uint256 public totalCohorts;
 
     event CohortCreated(address indexed cohortAddress, address indexed primaryAdmin, string name, string description);
+
     event PriceFeedUpdated(address newPriceFeed);
+    event CreationFeeUpdated(uint256 oldFee, uint256 newFee);
 
     error InsufficientPayment(uint256 required, uint256 provided);
     error PriceFeedInvalid();
     error FailedToSendETH();
+    error InvalidFeeAmount();
 
     /**
-     * @dev Constructor sets the price feed address for ETH/USD conversion
+     * @dev Constructor sets the price feed address and initial creation fee
      * @param _priceFeed Chainlink price feed address for ETH/USD
      */
     constructor(address _priceFeed) {
         if (_priceFeed == address(0)) revert PriceFeedInvalid();
+
         priceFeed = AggregatorV3Interface(_priceFeed);
+        creationFeeUSD = 0.1 * 1e18;
     }
 
     /**
@@ -1635,12 +1646,25 @@ contract CohortFactory is Ownable {
     }
 
     /**
-     * @dev Calculates required ETH amount for creation fee
+     * @dev Updates the creation fee amount
+     * @param _newFeeUSD New fee amount in USD (scaled by 1e18)
+     */
+    function updateCreationFee(uint256 _newFeeUSD) external onlyOwner {
+        if (_newFeeUSD == 0) revert InvalidFeeAmount();
+
+        uint256 oldFee = creationFeeUSD;
+        creationFeeUSD = _newFeeUSD;
+
+        emit CreationFeeUpdated(oldFee, _newFeeUSD);
+    }
+
+    /**
+     * @dev Calculates required ETH amount for creation fee based on current ETH price
      * @return Required ETH amount in wei
      */
     function getRequiredEthAmount() public view returns (uint256) {
         uint256 ethPrice = PriceConverter.getPrice(priceFeed);
-        return (CREATION_FEE_USD * 1e18) / ethPrice;
+        return (creationFeeUSD * 1e18) / ethPrice;
     }
 
     /**
@@ -1648,6 +1672,10 @@ contract CohortFactory is Ownable {
      * @param _primaryAdmin Address of the primary admin
      * @param _tokenAddress Address of ERC20 token (zero address for ETH)
      * @param _name Name of the cohort
+     * @param _description Description of the cohort
+     * @param _cycle Cycle duration
+     * @param _builders Array of builder addresses
+     * @param _caps Array of cap values for builders
      * @return Address of the newly created cohort
      */
     function createCohort(
@@ -1661,7 +1689,7 @@ contract CohortFactory is Ownable {
     ) external payable returns (address) {
         uint256 requiredEth = getRequiredEthAmount();
 
-        if (msg.value.getConversionRate(priceFeed) < CREATION_FEE_USD) {
+        if (msg.value.getConversionRate(priceFeed) < creationFeeUSD) {
             revert InsufficientPayment(requiredEth, msg.value);
         }
 
@@ -1669,7 +1697,15 @@ contract CohortFactory is Ownable {
 
         address cohortAddress = address(newCohort);
         isCohort[cohortAddress] = true;
-        cohorts.push(cohortAddress);
+
+        uint256 cohortId = totalCohorts;
+        cohortRegistry[cohortId] = CohortInfo({
+            cohortAddress: cohortAddress,
+            name: _name,
+            creationTimestamp: block.timestamp
+        });
+
+        totalCohorts++;
 
         (bool sent, ) = owner().call{ value: msg.value }("");
         if (!sent) revert FailedToSendETH();
@@ -1679,11 +1715,27 @@ contract CohortFactory is Ownable {
     }
 
     /**
-     * @dev Gets all created cohorts
-     * @return Array of cohort addresses
+     * @dev Gets all created cohorts with their information
+     * @return Array of CohortInfo structs
      */
-    function getAllCohorts() external view returns (address[] memory) {
-        return cohorts;
+    function getAllCohorts() external view returns (CohortInfo[] memory) {
+        CohortInfo[] memory allCohorts = new CohortInfo[](totalCohorts);
+
+        for (uint256 i = 0; i < totalCohorts; i++) {
+            allCohorts[i] = cohortRegistry[i];
+        }
+
+        return allCohorts;
+    }
+
+    /**
+     * @dev Gets cohort information by index
+     * @param _index Index of the cohort in the registry
+     * @return Cohort information
+     */
+    function getCohortByIndex(uint256 _index) external view returns (CohortInfo memory) {
+        require(_index < totalCohorts, "Index out of bounds");
+        return cohortRegistry[_index];
     }
 
     /**
@@ -1691,7 +1743,7 @@ contract CohortFactory is Ownable {
      * @return Number of cohorts
      */
     function getTotalCohorts() external view returns (uint256) {
-        return cohorts.length;
+        return totalCohorts;
     }
 }` as const;
 

@@ -260,6 +260,7 @@ const CreateCohortForm = () => {
             <AddressInput
               name="adminAddress"
               value={form.watch("adminAddress")}
+              disabled={isSubmitting}
               onChange={value => {
                 form.setValue("adminAddress", value, {
                   shouldValidate: true,

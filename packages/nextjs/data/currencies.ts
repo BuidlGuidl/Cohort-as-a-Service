@@ -161,16 +161,6 @@ export const currencies: CurrenciesType = {
       },
     ],
   },
-  11155111: {
-    chainId: "11155111",
-    name: "sepolia",
-    contracts: [
-      {
-        name: "Native (ETH)",
-        address: "0x0000000000000000000000000000000000000000",
-      },
-    ],
-  },
   11155420: {
     chainId: "11155420",
     name: "op-sepolia",

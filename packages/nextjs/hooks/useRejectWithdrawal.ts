@@ -36,7 +36,7 @@ export const useRejectWithdrawal = ({ cohortAddress, builderAddress, requestId }
           writeContractAsync({
             abi: cohort.abi,
             address: cohortAddress,
-            functionName: "rejectWithdrawal",
+            functionName: "rejectWithdraw",
             args: [builderAddress, requestId],
           });
 
