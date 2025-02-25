@@ -89,7 +89,7 @@ export const useFunding = ({ tokenAddress, amount, isTransferLoading, cohortAddr
             abi: cohort.abi,
             address: cohortAddress,
             functionName: "fundContract",
-            args: [BigInt(amount * 1000000000000000000)],
+            args: [BigInt(amount * 1_000_000_000_000_000_000)],
             value: parseEther(isErc20 ? "0" : amount.toString()),
           });
 

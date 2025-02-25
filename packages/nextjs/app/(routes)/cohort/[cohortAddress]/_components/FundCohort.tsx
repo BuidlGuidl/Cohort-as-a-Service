@@ -28,8 +28,10 @@ export const FundCohort = ({ cohortAddress, tokenAddress, isErc20, tokenSymbol }
     if (isErc20 && (allowance as number) < amount) {
       await approve();
     } else {
-      await fund();
-      setAmount(0);
+      try {
+        await fund();
+        setAmount(0);
+      } catch {}
     }
     setIsTransferLoading(false);
   };
