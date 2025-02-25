@@ -24,6 +24,7 @@ interface StreamContractInfoProps {
   isAdmin: boolean;
   connectedAddressRequiresApproval: boolean;
   tokenAddress: string;
+  isLoading: boolean;
 }
 
 export const StreamContractInfo = ({
@@ -40,6 +41,7 @@ export const StreamContractInfo = ({
   isAdmin,
   connectedAddressRequiresApproval,
   tokenAddress,
+  isLoading,
 }: StreamContractInfoProps) => {
   const { address, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
@@ -81,11 +83,12 @@ export const StreamContractInfo = ({
             <span className="text-xs text-[#f01a37]">{chainName}</span>
           </div>{" "}
           /
-          {isErc20 ? (
-            <TokenBalance balance={balance} tokenSymbol={tokenSymbol} className="text-3xl" />
-          ) : (
-            <Balance address={cohortAddress} className="text-3xl" />
-          )}
+          {!isLoading &&
+            (isErc20 ? (
+              <TokenBalance balance={balance} tokenSymbol={tokenSymbol} className="text-3xl" />
+            ) : (
+              <Balance address={cohortAddress} className="text-3xl" />
+            ))}
           {isAdmin && (
             <CohortActions
               cohortAddress={cohortAddress}

@@ -91,6 +91,14 @@ export const useCohortData = (cohortAddress: string) => {
     contractAddress: cohortAddress,
   });
 
+  const { data: erc20Funding } = useCohortEventHistory({
+    contractName: "Cohort",
+    eventName: "ERC20FundsReceived",
+    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
+    watch: true,
+    contractAddress: cohortAddress,
+  });
+
   const {
     data: builderAdded,
     isLoading: isLoadingBuilders,
@@ -438,6 +446,7 @@ export const useCohortData = (cohortAddress: string) => {
     UpdatedBuilderEvents,
     ApprovalRequirementChanged,
     withdrawn,
+    erc20Funding,
   ]);
 
   return {
