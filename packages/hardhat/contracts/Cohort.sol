@@ -39,8 +39,8 @@ contract Cohort is AccessControl, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     uint256 constant MAXCREATORS = 25;
-    uint256 constant MINIMUM_CAP = 0.25 ether;
-    uint256 constant MINIMUM_ERC20_CAP = 10 * 10 ** 18;
+    uint256 constant MINIMUM_CAP = 0.00001 ether;
+    uint256 constant MINIMUM_ERC20_CAP = 1 * 10 ** 18;
 
     // Cycle duration for the stream
     uint256 public cycle;
