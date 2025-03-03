@@ -31,21 +31,21 @@ const deployCohort: DeployFunction = async function (hre: HardhatRuntimeEnvironm
   const description = "Cohort contract";
   const cycle = 30 * 24 * 60 * 60; // 30 days
 
-  // await deploy("Cohort", {
-  //   from: deployer,
-  //   // Contract constructor arguments
+  await deploy("Cohort", {
+    from: deployer,
+    // Contract constructor arguments
 
-  //   // First Argument: Address of primary admin
-  //   // Second Argument: Enter zero address for eth mode or enter address of ERC20 token contract for token mode
-  //   // args: ["0x11E91FB4793047a68dFff29158387229eA313ffE", ZERO_ADDRESS],
+    // First Argument: Address of primary admin
+    // Second Argument: Enter zero address for eth mode or enter address of ERC20 token contract for token mode
+    // args: ["0x11E91FB4793047a68dFff29158387229eA313ffE", ZERO_ADDRESS],
 
-  //   args: ["0xa8DF02c5607100Eb108B5C39dCdD8c2aE44185Df", ZERO_ADDRESS, name, description, cycle, [], []],
+    args: ["0xa8DF02c5607100Eb108B5C39dCdD8c2aE44185Df", ZERO_ADDRESS, name, description, cycle, [], []],
 
-  //   log: true,
-  //   // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
-  //   // automatically mining the contract deployment transaction. There is no effect on live networks.
-  //   autoMine: true,
-  // });
+    log: true,
+    // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
+    // automatically mining the contract deployment transaction. There is no effect on live networks.
+    autoMine: true,
+  });
 
   // Get the deployed contract
   // const cohort = await hre.ethers.getContract("Cohort", deployer);

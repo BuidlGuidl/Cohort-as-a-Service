@@ -23,7 +23,7 @@ export type CohortData = {
   tokenAddress: string | null;
   tokenSymbol: string | null;
   primaryAdmin: string;
-  stopped: boolean;
+  locked: boolean;
   balance: number;
   activeBuilders: string[];
   builderStreams: Map<
@@ -86,6 +86,14 @@ export const useCohortData = (cohortAddress: string) => {
   const { data: adminRemoved } = useCohortEventHistory({
     contractName: "Cohort",
     eventName: "AdminRemoved",
+    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
+    watch: true,
+    contractAddress: cohortAddress,
+  });
+
+  const { data: cohortLocked } = useCohortEventHistory({
+    contractName: "Cohort",
+    eventName: "ContractLocked",
     fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
     watch: true,
     contractAddress: cohortAddress,
@@ -270,7 +278,7 @@ export const useCohortData = (cohortAddress: string) => {
     setError(null);
 
     try {
-      const [name, description, isERC20, tokenAddress, primaryAdmin, stopped] = await Promise.all([
+      const [name, description, isERC20, tokenAddress, primaryAdmin, locked] = await Promise.all([
         readContract(wagmiConfig, {
           address: cohortAddress,
           abi: deployedContract.abi,
@@ -304,7 +312,7 @@ export const useCohortData = (cohortAddress: string) => {
         readContract(wagmiConfig, {
           address: cohortAddress,
           abi: deployedContract.abi,
-          functionName: "stopped",
+          functionName: "locked",
           chainId,
         }),
       ]);
@@ -410,7 +418,7 @@ export const useCohortData = (cohortAddress: string) => {
         tokenAddress,
         tokenSymbol,
         primaryAdmin,
-        stopped,
+        locked,
         balance,
         activeBuilders: builders,
         builderStreams,
@@ -447,6 +455,7 @@ export const useCohortData = (cohortAddress: string) => {
     ApprovalRequirementChanged,
     withdrawn,
     erc20Funding,
+    cohortLocked,
   ]);
 
   return {

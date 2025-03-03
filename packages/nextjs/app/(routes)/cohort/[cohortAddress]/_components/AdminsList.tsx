@@ -1,6 +1,6 @@
 import React from "react";
 import { AddAdmin } from "./AddAdmin";
-import { RemoveAdmin } from "./RemoveAdmin";
+import { AdminActions } from "./AdminActions";
 import { Address } from "~~/components/scaffold-eth";
 
 interface AdminListProps {
@@ -33,7 +33,7 @@ export const AdminsList = ({ cohortAddress, admins, isLoading }: AdminListProps)
           {admins.map((admin, index) => (
             <div className="flex gap-4 mt-2" key={index}>
               <Address address={admin} />
-              <RemoveAdmin cohortAddress={cohortAddress} adminAddress={admin} />
+              <AdminActions cohortAddress={cohortAddress} adminAddress={admin} />
             </div>
           ))}
         </>

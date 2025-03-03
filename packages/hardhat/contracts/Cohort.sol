@@ -17,7 +17,7 @@ error EtherSendingFailed();
 error LengthsMismatch();
 error InvalidBuilderAddress();
 error BuilderAlreadyExists();
-error ContractIsStopped();
+error ContractIsLocked();
 error MaxBuildersReached();
 error AccessDenied();
 error InvalidTokenAddress();
@@ -39,8 +39,8 @@ contract Cohort is AccessControl, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     uint256 constant MAXCREATORS = 25;
-    uint256 constant MINIMUM_CAP = 0.25 ether;
-    uint256 constant MINIMUM_ERC20_CAP = 10 * 10 ** 18;
+    uint256 constant MINIMUM_CAP = 0.00001 ether;
+    uint256 constant MINIMUM_ERC20_CAP = 1 * 10 ** 18;
 
     // Cycle duration for the stream
     uint256 public cycle;
@@ -49,7 +49,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
     bool public isERC20;
 
     // Emergency mode variable
-    bool public stopped;
+    bool public locked;
 
     // Cohort name
     string public name;
@@ -179,6 +179,8 @@ contract Cohort is AccessControl, ReentrancyGuard {
     event PrimaryAdminTransferred(address indexed newAdmin);
     event ERC20FundsReceived(address indexed token, address indexed from, uint256 amount);
 
+    event ContractLocked(bool locked);
+
     // Withdrawal request events
     event WithdrawRequested(address indexed builder, uint256 requestId, uint256 amount, string reason);
     event WithdrawApproved(address indexed builder, uint256 requestId);
@@ -192,9 +194,9 @@ contract Cohort is AccessControl, ReentrancyGuard {
         _;
     }
 
-    // Check if the contract is stopped
-    modifier stopInEmergency() {
-        if (stopped) revert ContractIsStopped();
+    // Check if the contract is locked
+    modifier isCohortLocked() {
+        if (locked) revert ContractIsLocked();
         _;
     }
 
@@ -232,8 +234,9 @@ contract Cohort is AccessControl, ReentrancyGuard {
     }
 
     // Enable or disable emergency mode
-    function emergencyMode(bool _enable) public onlyAdmin {
-        stopped = _enable;
+    function lock(bool _enable) public onlyAdmin {
+        locked = _enable;
+        emit ContractLocked(_enable);
     }
 
     // Get all builders' data.
@@ -390,7 +393,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
     }
 
     // Complete a withdrawal that was previously approved
-    function completeWithdraw(uint256 _requestId) public isStreamActive(msg.sender) nonReentrant stopInEmergency {
+    function completeWithdraw(uint256 _requestId) public isStreamActive(msg.sender) nonReentrant isCohortLocked {
         // Check if request exists
         if (withdrawRequests[msg.sender].length <= _requestId) revert WithdrawRequestNotFound();
         WithdrawRequest storage request = withdrawRequests[msg.sender][_requestId];
@@ -413,7 +416,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
     function streamWithdraw(
         uint256 _amount,
         string memory _reason
-    ) public isStreamActive(msg.sender) nonReentrant stopInEmergency {
+    ) public isStreamActive(msg.sender) nonReentrant isCohortLocked {
         if (requiresApproval[msg.sender]) {
             _requestWithdraw(_amount, _reason);
             return;

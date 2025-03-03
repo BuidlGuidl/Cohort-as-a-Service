@@ -30,6 +30,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
     isLoadingBuilders,
     isLoadingAdmins,
     isLoading,
+    locked,
   } = useCohortData(params.cohortAddress);
 
   const [selectedAddress, setSelectedAddress] = useState("");
@@ -92,6 +93,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
           connectedAddressRequiresApproval={connectedAddressRequiresApproval ?? false}
           tokenAddress={tokenAddress ?? ""}
           isLoading={isLoading}
+          locked={locked ?? false}
         />
       </div>
 
