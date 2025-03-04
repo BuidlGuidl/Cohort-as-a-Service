@@ -25,6 +25,7 @@ interface StreamContractInfoProps {
   connectedAddressRequiresApproval: boolean;
   tokenAddress: string;
   isLoading: boolean;
+  locked: boolean;
 }
 
 export const StreamContractInfo = ({
@@ -42,6 +43,7 @@ export const StreamContractInfo = ({
   connectedAddressRequiresApproval,
   tokenAddress,
   isLoading,
+  locked,
 }: StreamContractInfoProps) => {
   const { address, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
@@ -80,7 +82,15 @@ export const StreamContractInfo = ({
         <div className="flex gap-2 items-baseline">
           <div className="flex flex-col items-center">
             <Address address={cohortAddress} />
-            <span className="text-xs text-[#f01a37]">{chainName}</span>
+            <div className="flex gap-2 items-center mt-1 justify-between w-full">
+              {locked && (
+                <div className="tooltip cursor-pointer" data-tip="stream withdrawals are currently disallowed">
+                  <span className="badge badge-error badge-outline text-xs">Locked</span>
+                </div>
+              )}
+
+              <span className="text-xs text-[#f01a37]">{chainName}</span>
+            </div>
           </div>{" "}
           /
           {!isLoading &&
@@ -95,6 +105,7 @@ export const StreamContractInfo = ({
               tokenAddress={tokenAddress}
               tokenSymbol={tokenSymbol}
               isErc20={isErc20}
+              locked={locked}
             />
           )}
         </div>

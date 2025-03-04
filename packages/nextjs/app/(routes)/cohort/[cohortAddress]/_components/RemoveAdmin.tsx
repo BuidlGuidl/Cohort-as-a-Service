@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { Trash } from "lucide-react";
 import { Address } from "~~/components/scaffold-eth";
 import { useRemoveAdmin } from "~~/hooks/useRemoveAdmin";
 
@@ -26,10 +25,6 @@ export const RemoveAdmin = ({ cohortAddress, adminAddress }: RemoveAdminProps) =
 
   return (
     <div>
-      <label htmlFor={modalId} className="btn btn-ghost btn-sm px-1 rounded-full font-normal space-x-2 normal-case">
-        <Trash className="h-4 w-4" />
-      </label>
-
       <input type="checkbox" id={modalId} className="modal-toggle" />
       <label htmlFor={modalId} className="modal cursor-pointer">
         <label className="modal-box relative shadow shadow-primary">

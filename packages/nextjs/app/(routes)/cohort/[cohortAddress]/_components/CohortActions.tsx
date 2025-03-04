@@ -1,5 +1,7 @@
 import React from "react";
+import { DrainCohort } from "./DrainCohort";
 import { FundCohort } from "./FundCohort";
+import { LockCohort } from "./LockCohort";
 import { EllipsisVertical } from "lucide-react";
 
 interface CohortActionsProps {
@@ -7,9 +9,10 @@ interface CohortActionsProps {
   isErc20: boolean;
   tokenAddress: string;
   tokenSymbol: string;
+  locked: boolean;
 }
 
-export const CohortActions = ({ cohortAddress, isErc20, tokenAddress, tokenSymbol }: CohortActionsProps) => {
+export const CohortActions = ({ cohortAddress, isErc20, tokenAddress, tokenSymbol, locked }: CohortActionsProps) => {
   return (
     <>
       <div className="dropdown dropdown-start">
@@ -25,6 +28,16 @@ export const CohortActions = ({ cohortAddress, isErc20, tokenAddress, tokenSymbo
               Fund cohort
             </label>
           </li>
+          <li>
+            <label htmlFor={`drain-cohort-modal`} className="w-full">
+              Drain cohort
+            </label>
+          </li>
+          <li>
+            <label htmlFor={`lock-cohort-modal`} className="w-full">
+              {locked ? "Unlock " : "Lock "} cohort
+            </label>
+          </li>
         </ul>
       </div>
 
@@ -34,6 +47,8 @@ export const CohortActions = ({ cohortAddress, isErc20, tokenAddress, tokenSymbo
         tokenAddress={tokenAddress}
         tokenSymbol={tokenSymbol}
       />
+      <DrainCohort cohortAddress={cohortAddress} tokenAddress={tokenAddress} />
+      <LockCohort cohortAddress={cohortAddress} locked={locked} />
     </>
   );
 };

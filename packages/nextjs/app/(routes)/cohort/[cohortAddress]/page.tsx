@@ -23,6 +23,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     isLoadingAdmins,
     connectedAddressRequiresApproval,
     isLoading,
+    locked,
   } = useCohortData(params.cohortAddress);
 
   const router = useRouter();
@@ -80,6 +81,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         connectedAddressRequiresApproval={connectedAddressRequiresApproval ?? false}
         tokenAddress={tokenAddress ?? ""}
         isLoading={isLoading}
+        locked={locked ?? false}
       />
     </div>
   );
