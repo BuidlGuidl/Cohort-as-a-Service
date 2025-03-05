@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useLockCohort } from "~~/hooks/useLockCohort";
+import { useToggleLockCohort } from "~~/hooks/useToggleLockCohort";
 
 interface LockCohortProps {
   cohortAddress: string;
@@ -9,14 +9,14 @@ interface LockCohortProps {
 }
 
 export const LockCohort = ({ cohortAddress, locked }: LockCohortProps) => {
-  const { lockCohort, isPending, isSuccess } = useLockCohort({
+  const { toggleLockCohort, isPending, isSuccess } = useToggleLockCohort({
     cohortAddress,
     locked,
   });
 
   const onClick = async () => {
     try {
-      await lockCohort();
+      await toggleLockCohort();
     } catch {}
   };
 
