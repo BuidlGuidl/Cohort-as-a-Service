@@ -1,11 +1,13 @@
 "use client";
 
 import { Share_Tech_Mono } from "next/font/google";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 import { Toaster } from "react-hot-toast";
+import { twMerge } from "tailwind-merge";
 import { WagmiProvider } from "wagmi";
 import { Header } from "~~/components/Header";
 import { BlockieAvatar } from "~~/components/scaffold-eth";
@@ -17,20 +19,22 @@ const shareTechMono = Share_Tech_Mono({ subsets: ["latin"], weight: "400" });
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
   useInitializeNativeCurrencyPrice();
 
+  const pathName = usePathname();
+  const isCohortPage = pathName.includes("/cohort/");
+
   return (
     <>
       <div
         className={`flex flex-col min-h-screen h-screen w-screen bg-base-100 overflow-x-hidden ${shareTechMono.className}`}
       >
-        <div className="h-[60px] md:pl-56 fixed inset-y-0 w-full z-50">
+        <div className={twMerge("h-[60px] fixed inset-y-0 w-full z-50", !isCohortPage && "md:pl-56")}>
           <Header />
         </div>
-        <div className="hidden md:flex h-full w-56 flex-col fixed inset-y-0 z-50">
+        <div className={twMerge("hidden md:flex h-full w-56 flex-col fixed inset-y-0", !isCohortPage && "z-50")}>
           <Sidebar />
         </div>
-
-        <main className="md:pl-56 relative flex flex-col flex-1 pt-[60px] w-full ">
-          <div className="max-w-6xl mx-auto w-full px-3">{children}</div>
+        <main className={twMerge("relative flex flex-col flex-1 pt-[60px] w-full px-2", !isCohortPage && "md:pl-56")}>
+          <div className={twMerge("max-w-6xl w-full px-3", !isCohortPage && "mx-auto")}>{children}</div>
         </main>
         {/* <div className="md:pl-56 border-2  ">
           <Footer />

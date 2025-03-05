@@ -1093,7 +1093,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
     // ERC20 support
     bool public isERC20;
 
-    // Emergency mode variable
+    // Cohort lock control
     bool public locked;
 
     // Cohort name
@@ -1278,8 +1278,8 @@ contract Cohort is AccessControl, ReentrancyGuard {
         }
     }
 
-    // Enable or disable emergency mode
-    function lock(bool _enable) public onlyAdmin {
+    // Lock or unlock the contract
+    function toggleLock(bool _enable) public onlyAdmin {
         locked = _enable;
         emit ContractLocked(_enable);
     }

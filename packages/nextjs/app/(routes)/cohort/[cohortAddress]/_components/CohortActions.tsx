@@ -1,7 +1,7 @@
 import React from "react";
 import { DrainCohort } from "./DrainCohort";
 import { FundCohort } from "./FundCohort";
-import { LockCohort } from "./LockCohort";
+import { LockCohort } from "./ToggleLockCohort";
 import { EllipsisVertical } from "lucide-react";
 
 interface CohortActionsProps {
@@ -15,7 +15,7 @@ interface CohortActionsProps {
 export const CohortActions = ({ cohortAddress, isErc20, tokenAddress, tokenSymbol, locked }: CohortActionsProps) => {
   return (
     <>
-      <div className="dropdown dropdown-start">
+      <div className="dropdown dropdown-end px-0 ">
         <label tabIndex={0} className="btn btn-ghost btn-sm m-1">
           <EllipsisVertical className="w-5 h-5" />
         </label>

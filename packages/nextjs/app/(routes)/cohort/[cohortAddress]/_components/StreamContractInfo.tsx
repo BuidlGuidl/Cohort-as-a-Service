@@ -79,7 +79,7 @@ export const StreamContractInfo = ({
             <p>{`You are on the wrong network! Switch to ${chainName}`}</p>
           </div>
         )}
-        <div className="flex gap-2 items-baseline">
+        <div className="flex gap-1 items-start">
           <div className="flex flex-col items-center">
             <Address address={cohortAddress} />
             <div className="flex gap-2 items-center mt-1 justify-between w-full">
