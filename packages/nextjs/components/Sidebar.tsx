@@ -22,6 +22,12 @@ export const menuLinks = [
 export const Sidebar = () => {
   const pathname = usePathname();
 
+  const isCohortPage = pathname.includes("/cohort/");
+
+  console.log(pathname);
+
+  if (isCohortPage) return null;
+
   return (
     <div className="w-56 h-full bg-base-100 border-base-200 border-r">
       {/* Logo Section */}

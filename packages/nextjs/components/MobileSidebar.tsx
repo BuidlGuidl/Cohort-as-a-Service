@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
@@ -6,11 +7,16 @@ import { useOutsideClick } from "~~/hooks/scaffold-eth";
 export const MobileSidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const pathName = usePathname();
 
   useOutsideClick(
     sidebarRef,
     useCallback(() => setIsOpen(false), []),
   );
+
+  const isCohortPage = pathName.includes("/cohort/");
+
+  if (isCohortPage) return null;
 
   return (
     <div ref={sidebarRef}>

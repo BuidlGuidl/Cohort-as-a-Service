@@ -1,9 +1,11 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { StreamContractInfo } from "./_components/StreamContractInfo";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
+import { ArrowLongLeftIcon } from "@heroicons/react/24/outline";
 import { useCohortData } from "~~/hooks/useCohortData";
 
 const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
@@ -37,8 +39,15 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
   // };
 
   return (
-    <div className="max-w-4xl mx-auto mt-16">
-      <div>
+    <div className="max-w-4xl mt-8">
+      {isAdmin && (
+        <Link href="/cohorts" className="btn btn-ghost btn-sm">
+          <ArrowLongLeftIcon className="w-7 h-4" />
+          My cohorts
+        </Link>
+      )}
+
+      <div className="mt-8">
         <h1 className="text-4xl font-bold mb-8 text-primary-content bg-primary inline-block p-2">Cohort</h1>
         <h2 className="text-2xl font-bold">{name}</h2>
         <p className="mt-0">{description}</p>

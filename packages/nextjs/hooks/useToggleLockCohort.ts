@@ -7,12 +7,12 @@ import { notification } from "~~/utils/scaffold-eth";
 import { getParsedError } from "~~/utils/scaffold-eth";
 import { contracts } from "~~/utils/scaffold-eth/contract";
 
-interface UseLockCohortProps {
+interface UseToggleLockCohortProps {
   cohortAddress: string;
   locked: boolean;
 }
 
-export const useLockCohort = ({ cohortAddress, locked }: UseLockCohortProps) => {
+export const useToggleLockCohort = ({ cohortAddress, locked }: UseToggleLockCohortProps) => {
   const { chain, chainId } = useAccount();
   const { targetNetwork } = useTargetNetwork();
   const cohort = contracts?.[baseChainId]["Cohort"];
@@ -35,7 +35,7 @@ export const useLockCohort = ({ cohortAddress, locked }: UseLockCohortProps) => 
           writeContractAsync({
             abi: cohort.abi,
             address: cohortAddress,
-            functionName: "lock",
+            functionName: "toggleLock",
             args: [!locked],
           });
 
@@ -51,7 +51,7 @@ export const useLockCohort = ({ cohortAddress, locked }: UseLockCohortProps) => 
   };
 
   return {
-    lockCohort: sendContractWriteTx,
+    toggleLockCohort: sendContractWriteTx,
     isPending,
     isSuccess,
   };
