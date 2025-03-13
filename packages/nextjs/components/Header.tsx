@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MobileSidebar } from "./MobileSidebar";
@@ -51,6 +52,27 @@ export const HeaderMenuLinks = () => {
   );
 };
 
+export const HeaderLogo = () => {
+  //const pathname = usePathname();
+
+  return (
+    <>
+      {/* Logo Section */}
+      <div className="p-4">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="relative w-8 h-8">
+            <Image alt="BG logo" className="cursor-pointer" fill priority src="/BG_logo.svg" />
+          </div>
+          <div className="flex flex-col mt-1">
+            <span className="font-bold leading-tight">BuidlGuidl Cohorts</span>
+            <span className="text-xs"></span>
+          </div>
+        </Link>
+      </div>
+    </>
+  );
+};
+
 /**
  * Site header
  */
@@ -64,6 +86,9 @@ export const Header = () => {
           <SearchInput />
         </div>
       )}
+      <div className="navbar-start flex-grow mr-4">
+        <HeaderLogo />
+      </div>
       <div className="md:hidden">
         <MobileSidebar />
       </div>
