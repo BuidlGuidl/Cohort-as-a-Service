@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import SearchInput from "../../../components/search-input";
 import Chains from "./_components/Chains";
 import CohortsList from "./_components/CohortsList";
@@ -39,6 +40,13 @@ const SearchPage = ({ searchParams }: SearchPageProps) => {
               </li>
             </ul>
           </div>
+        </div>
+        <div className="flex justify-center my-6">
+          <Link href="/create" legacyBehavior={false}>
+            <button className="btn btn-sm md:btn-md rounded-xl btn-primary font-bold">
+              <span className="text-base">Create New</span>
+            </button>
+          </Link>
         </div>
         <CohortsList items={cohorts} loading={isLoading} />
       </div>
