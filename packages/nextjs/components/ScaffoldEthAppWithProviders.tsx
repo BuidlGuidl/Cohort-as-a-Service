@@ -37,7 +37,7 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
         <main className={twMerge("relative flex flex-col flex-1 pt-[60px] w-full px-2", !isCohortPage && "md:pl-56")}>
           <div className={twMerge("max-w-6xl w-full px-3", !isCohortPage && "mx-auto")}>{children}</div>
         </main>
-        <div className="md:pl-56 border-2  ">
+        <div>
           <Footer />
         </div>
       </div>
