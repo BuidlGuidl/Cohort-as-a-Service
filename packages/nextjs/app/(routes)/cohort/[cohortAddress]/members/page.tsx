@@ -5,6 +5,7 @@ import { StreamContractInfo } from "../_components/StreamContractInfo";
 import { BuildersList } from "./_components/BuildersList";
 import { EventsModal } from "./_components/EventsModal";
 import { useAccount } from "wagmi";
+import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { useCohortData } from "~~/hooks/useCohortData";
 import { useWithdrawEvents } from "~~/hooks/useWithdrawEvents";
 
@@ -25,6 +26,8 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
     isERC20,
     tokenSymbol,
     balance,
+    chainName,
+    chainId,
     admins,
     connectedAddressRequiresApproval,
     isLoadingBuilders,
@@ -80,6 +83,17 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
             openEventsModal={openEventsModal}
           />
         </div>
+
+        <p className="font-bold mb-2 text-secondary">
+          Stream Contract
+          <span
+            className="tooltip text-white font-normal"
+            data-tip={`All streams and contributions are handled by a contract on ${chainName}.`}
+          >
+            <QuestionMarkCircleIcon className="h-5 w-5 inline-block ml-2" />
+          </span>
+        </p>
+
         <StreamContractInfo
           owner={primaryAdmin || ""}
           isBuilder={isBuilder || false}
@@ -87,6 +101,8 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
           isErc20={isERC20 ?? false}
           tokenSymbol={tokenSymbol ?? ""}
           balance={balance ?? 0}
+          chainName={chainName}
+          chainId={chainId}
           admins={admins ?? []}
           isLoadingAdmins={isLoadingAdmins}
           isAdmin={isAdmin ?? false}
