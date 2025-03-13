@@ -9,6 +9,7 @@ import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 import { Toaster } from "react-hot-toast";
 import { twMerge } from "tailwind-merge";
 import { WagmiProvider } from "wagmi";
+import { Footer } from "~~/components/Footer";
 import { Header } from "~~/components/Header";
 import { BlockieAvatar } from "~~/components/scaffold-eth";
 import { useInitializeNativeCurrencyPrice } from "~~/hooks/scaffold-eth";
@@ -36,9 +37,9 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
         <main className={twMerge("relative flex flex-col flex-1 pt-[60px] w-full px-2", !isCohortPage && "md:pl-56")}>
           <div className={twMerge("max-w-6xl w-full px-3", !isCohortPage && "mx-auto")}>{children}</div>
         </main>
-        {/* <div className="md:pl-56 border-2  ">
+        <div className="md:pl-56 border-2  ">
           <Footer />
-        </div> */}
+        </div>
       </div>
       <Toaster />
     </>
