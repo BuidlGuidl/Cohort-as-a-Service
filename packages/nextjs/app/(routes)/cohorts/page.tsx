@@ -1,6 +1,7 @@
 "use client";
 
 // import { useState } from "react";
+import Link from "next/link";
 import SearchInput from "../../../components/search-input";
 import Chains from "./_components/Chains";
 import CohortsList from "./_components/CohortsList";
@@ -20,10 +21,13 @@ const SearchPage = ({ searchParams }: SearchPageProps) => {
 
   return (
     <>
-      <div className="py-2 space-y-4">
+      <div className="py-3 space-y-4">
         <Chains />
-        <div className="pb-2 md:mb-0 block">
+        <div className="pb-2 md:mb-0 flex md:flex-row flex-col gap-2">
           <SearchInput />
+          <Link href="/create">
+            <button className="btn btn-sm rounded-sm btn-primary">Create new</button>
+          </Link>
         </div>
         {/* <div className="flex justify-start">
           <div className="dropdown dropdown-start">
