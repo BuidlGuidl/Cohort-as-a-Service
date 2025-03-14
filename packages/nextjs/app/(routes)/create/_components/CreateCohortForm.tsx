@@ -7,7 +7,7 @@ import { getBytecode, getTransactionReceipt } from "@wagmi/core";
 import { readContract } from "@wagmi/core";
 import { Plus, Trash } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { Abi, erc20Abi, formatEther, parseEther, parseUnits } from "viem";
+import { erc20Abi, formatEther, parseEther, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 import * as z from "zod";
 import { AddressInput } from "~~/components/scaffold-eth";
@@ -146,7 +146,6 @@ const CreateCohortForm = () => {
       const filteredAddresses = values.builderAddresses.filter(addr => addr !== "");
       const filteredCaps = values.builderCaps.filter((_, index) => values.builderAddresses[index] !== "");
 
-      let decimals = 18;
       const isNotNativeCurrency = currentChainCurrencies[0].address !== values.currencyAddress;
 
       let FormattedBuilderCaps = filteredCaps.map(cap => parseEther(cap.toString() || "0"));
