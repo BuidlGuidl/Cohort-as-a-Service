@@ -1,12 +1,16 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { BuildersList } from "./_components/BuildersList";
 import { StreamContractInfo } from "./_components/StreamContractInfo";
+import { EventsModal } from "./members/_components/EventsModal";
+import { useAccount } from "wagmi";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { ArrowLongLeftIcon } from "@heroicons/react/24/outline";
 import { useCohortData } from "~~/hooks/useCohortData";
+import { useWithdrawEvents } from "~~/hooks/useWithdrawEvents";
 
 const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
   const {
@@ -26,9 +30,33 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     connectedAddressRequiresApproval,
     isLoading,
     locked,
+    builderStreams,
+    isLoadingBuilders,
   } = useCohortData(params.cohortAddress);
 
   const router = useRouter();
+  const { address } = useAccount();
+
+  const [selectedAddress, setSelectedAddress] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalView, setModalView] = useState<"contributions" | "requests">("contributions");
+
+  const {
+    filteredWithdrawnEvents,
+    filteredRequestEvents,
+    pendingRequestEvents,
+    approvedRequestEvents,
+    isLoadingWithdrawEvents,
+    isLoadingRequests,
+    filterEventsByAddress,
+  } = useWithdrawEvents(params.cohortAddress, selectedAddress);
+
+  const openEventsModal = (builderAddress: string, view: "contributions" | "requests") => {
+    setSelectedAddress(builderAddress);
+    setModalView(view);
+    filterEventsByAddress(builderAddress);
+    setIsModalOpen(true);
+  };
 
   const onMemeberClick = () => {
     router.push(`/cohort/${params.cohortAddress}/members`);
@@ -65,6 +93,24 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
           can submit their work and claim grant streams, while showcasing their contributions to the public.
         </p>
       </div>
+
+      <div className="mt-8 mb-8">
+        <h3 className="text-xl font-bold mb-4">Members</h3>
+        <BuildersList
+          cohortAddress={params.cohortAddress}
+          builderStreams={builderStreams}
+          isAdmin={isAdmin ?? false}
+          isBuilder={isBuilder ?? false}
+          userAddress={address}
+          isERC20={isERC20 ?? false}
+          tokenSymbol={tokenSymbol ?? ""}
+          isLoading={isLoadingBuilders}
+          pendingRequestEvents={pendingRequestEvents}
+          approvedRequestEvents={approvedRequestEvents}
+          openEventsModal={openEventsModal}
+        />
+      </div>
+
       <p className="font-bold mb-2 text-secondary">
         Stream Contract
         <span
@@ -91,6 +137,22 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         tokenAddress={tokenAddress ?? ""}
         isLoading={isLoading}
         locked={locked ?? false}
+      />
+
+      <EventsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        selectedAddress={selectedAddress}
+        modalView={modalView}
+        setModalView={setModalView}
+        isERC20={isERC20 ?? false}
+        tokenSymbol={tokenSymbol ?? ""}
+        filteredWithdrawnEvents={filteredWithdrawnEvents}
+        filteredRequestEvents={filteredRequestEvents}
+        isLoadingWithdrawEvents={isLoadingWithdrawEvents}
+        isLoadingRequests={isLoadingRequests}
+        isAdmin={isAdmin ?? false}
+        cohortAddress={params.cohortAddress}
       />
     </div>
   );

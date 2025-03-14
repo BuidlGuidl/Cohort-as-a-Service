@@ -1,7 +1,7 @@
 import React from "react";
-import { Actions } from "./Actions";
-import { AddBatch } from "./AddBatch";
-import { NotificationBell } from "./NotificationBell";
+import { Actions } from "../members/_components/Actions";
+import { AddBatch } from "../members/_components/AddBatch";
+import { NotificationBell } from "../members/_components/NotificationBell";
 import { Address } from "~~/components/scaffold-eth";
 
 interface BuilderStream {

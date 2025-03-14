@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { BuildersList } from "../_components/BuildersList";
 import { StreamContractInfo } from "../_components/StreamContractInfo";
-import { BuildersList } from "./_components/BuildersList";
 import { EventsModal } from "./_components/EventsModal";
 import { useAccount } from "wagmi";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
