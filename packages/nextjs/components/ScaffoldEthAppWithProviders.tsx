@@ -1,8 +1,6 @@
 "use client";
 
 import { Share_Tech_Mono } from "next/font/google";
-import { usePathname } from "next/navigation";
-import { Sidebar } from "./Sidebar";
 import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
@@ -20,24 +18,18 @@ const shareTechMono = Share_Tech_Mono({ subsets: ["latin"], weight: "400" });
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
   useInitializeNativeCurrencyPrice();
 
-  const pathName = usePathname();
-  const isCohortPage = pathName.includes("/cohort/");
-
   return (
     <>
       <div
         className={`flex flex-col min-h-screen h-screen w-screen bg-base-100 overflow-x-hidden ${shareTechMono.className}`}
       >
-        <div className={twMerge("h-[60px] fixed inset-y-0 w-full z-50", !isCohortPage && "md:pl-56")}>
+        <div className={twMerge("h-[60px] fixed inset-y-0 w-full z-50 ")}>
           <Header />
         </div>
-        <div className={twMerge("hidden md:flex h-full w-56 flex-col fixed inset-y-0", !isCohortPage && "z-50")}>
-          <Sidebar />
-        </div>
-        <main className={twMerge("relative flex flex-col flex-1 pt-[60px] w-full px-2", !isCohortPage && "md:pl-56")}>
-          <div className={twMerge("max-w-6xl w-full px-3", !isCohortPage && "mx-auto")}>{children}</div>
+        <main className="relative flex flex-col flex-1 pt-[60px] w-full px-2">
+          <div>{children}</div>
         </main>
-        <div>
+        <div className="w-full">
           <Footer />
         </div>
       </div>

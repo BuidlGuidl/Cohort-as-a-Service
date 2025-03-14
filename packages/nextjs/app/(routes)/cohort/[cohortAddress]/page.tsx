@@ -69,7 +69,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
   return (
     <div className="max-w-4xl mt-8">
       {isAdmin && (
-        <Link href="/cohorts" className="btn btn-ghost btn-sm">
+        <Link href="/cohorts" className="btn btn-ghost btn-sm rounded-sm">
           <ArrowLongLeftIcon className="w-7 h-4" />
           My cohorts
         </Link>

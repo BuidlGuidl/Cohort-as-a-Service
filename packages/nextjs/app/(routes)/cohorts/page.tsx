@@ -20,11 +20,12 @@ const SearchPage = ({ searchParams }: SearchPageProps) => {
   const { isLoading, combinedCohorts: allMyCohorts } = useFilteredCohorts({ ...searchParams });
 
   return (
-    <>
+    <div className="max-w-6xl mx-auto">
       <div className="py-3 space-y-4">
         <Chains />
         <div className="pb-2 md:mb-0 flex md:flex-row flex-col gap-2">
           <SearchInput />
+
           <Link href="/create">
             <button className="btn btn-sm rounded-sm btn-primary">Create new</button>
           </Link>
@@ -46,7 +47,7 @@ const SearchPage = ({ searchParams }: SearchPageProps) => {
         </div> */}
         <CohortsList items={allMyCohorts} loading={isLoading} />
       </div>
-    </>
+    </div>
   );
 };
 
