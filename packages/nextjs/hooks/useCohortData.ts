@@ -3,7 +3,7 @@ import { useCohortEventHistory } from "./useCohortEventHistory";
 import { useCohorts } from "./useCohorts";
 import { useLocalDeployedContractInfo } from "./useLocalDeployedContractInfo";
 import { readContract } from "@wagmi/core";
-import { Abi, formatEther } from "viem";
+import { Abi, formatEther, formatUnits } from "viem";
 import { erc20Abi } from "viem";
 import { useAccount } from "wagmi";
 import { usePublicClient } from "wagmi";
@@ -22,6 +22,7 @@ export type CohortData = {
   isERC20: boolean;
   tokenAddress: string | null;
   tokenSymbol: string | null;
+  tokenDecimals: number;
   primaryAdmin: string;
   locked: boolean;
   balance: number;
@@ -329,6 +330,7 @@ export const useCohortData = (cohortAddress: string) => {
 
       // Get balance (ETH or ERC20)
       let balance = 0;
+      let tokenDecimals = 0;
       if (isERC20 && tokenAddress) {
         const tokenBalance = await readContract(wagmiConfig, {
           address: tokenAddress,
@@ -337,7 +339,16 @@ export const useCohortData = (cohortAddress: string) => {
           args: [cohortAddress],
           chainId,
         });
-        balance = parseFloat(formatEther(tokenBalance));
+
+        const decimals = await readContract(wagmiConfig, {
+          address: tokenAddress,
+          abi: erc20Abi,
+          functionName: "decimals",
+        });
+
+        tokenDecimals = decimals || 18;
+
+        balance = parseFloat(formatUnits(tokenBalance, decimals));
       } else {
         const ethBalance = await publicClient?.getBalance({
           address: cohortAddress,
@@ -372,7 +383,7 @@ export const useCohortData = (cohortAddress: string) => {
             args: [builder],
             chainId,
           });
-          unlockedAmount = parseFloat(formatEther(available));
+          unlockedAmount = parseFloat(isERC20 ? formatUnits(available, tokenDecimals) : formatEther(available));
 
           requiresApproval = await readContract(wagmiConfig, {
             address: cohortAddress,
@@ -387,7 +398,7 @@ export const useCohortData = (cohortAddress: string) => {
 
         builderStreams.set(builder, {
           builderAddress: builder,
-          cap: parseFloat(formatEther(streamInfo.cap)),
+          cap: parseFloat(isERC20 ? formatUnits(streamInfo.cap, tokenDecimals) : formatEther(streamInfo.cap)),
           last: Number(streamInfo.last),
           unlockedAmount,
           requiresApproval,
@@ -417,6 +428,7 @@ export const useCohortData = (cohortAddress: string) => {
         isERC20,
         tokenAddress,
         tokenSymbol,
+        tokenDecimals,
         primaryAdmin,
         locked,
         balance,

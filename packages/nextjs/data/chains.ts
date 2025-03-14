@@ -24,10 +24,10 @@ export const chains: Chain[] = [
     isEVM: true,
   },
   {
-    id: "avax",
-    name: "AVAX",
-    chainId: 43114,
-    icon: "/chain/43114.svg",
+    id: "scroll",
+    name: "Scroll",
+    chainId: 534352,
+    icon: "/chain/534352.svg",
     isEVM: true,
   },
   {

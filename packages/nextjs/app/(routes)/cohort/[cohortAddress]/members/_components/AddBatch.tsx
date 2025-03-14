@@ -9,12 +9,19 @@ import { useAddBuilders } from "~~/hooks/useAddBuilders";
 interface AddbatchProps {
   cohortAddress: string;
   isErc20: boolean;
+  tokenDecimals?: number;
 }
 
-export const AddBatch = ({ cohortAddress, isErc20 }: AddbatchProps) => {
+export const AddBatch = ({ cohortAddress, isErc20, tokenDecimals }: AddbatchProps) => {
   const [caps, setCaps] = useState<string[]>([""]);
   const [builderAddresses, setBuilderAddresses] = useState<string[]>([""]);
-  const { addBatch, isPending, isSuccess } = useAddBuilders({ cohortAddress, builderAddresss: builderAddresses, caps });
+  const { addBatch, isPending, isSuccess } = useAddBuilders({
+    cohortAddress,
+    builderAddresss: builderAddresses,
+    caps,
+    isErc20,
+    tokenDecimals,
+  });
 
   const handleInputChange = (index: number, value: number | string | undefined, setState: any) => {
     setState((prevState: any) => {

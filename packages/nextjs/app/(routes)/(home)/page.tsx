@@ -16,9 +16,15 @@ const Home: NextPage = () => {
             users manage their builders
           </p>
         </div>
-        <Link href="/create">
-          <button className="btn btn-sm rounded-sm btn-primary">Create now</button>
-        </Link>
+        <div className="flex gap-3">
+          {" "}
+          <Link href="/create">
+            <button className="btn btn-sm rounded-sm btn-primary">Create now</button>
+          </Link>
+          <Link href="/cohorts" className="btn btn-ghost btn-sm rounded-sm">
+            My cohorts
+          </Link>
+        </div>
       </div>
     </>
   );

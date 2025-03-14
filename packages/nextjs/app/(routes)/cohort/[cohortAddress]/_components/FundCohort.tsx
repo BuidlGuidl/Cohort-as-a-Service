@@ -9,9 +9,10 @@ interface FundCohortProps {
   isErc20: boolean;
   tokenAddress: string;
   tokenSymbol: string;
+  tokenDecimals?: number;
 }
 
-export const FundCohort = ({ cohortAddress, tokenAddress, isErc20, tokenSymbol }: FundCohortProps) => {
+export const FundCohort = ({ cohortAddress, tokenAddress, isErc20, tokenSymbol, tokenDecimals }: FundCohortProps) => {
   const [amount, setAmount] = useState<number>(0);
   const [isTransferLoading, setIsTransferLoading] = useState(false);
 
@@ -21,6 +22,7 @@ export const FundCohort = ({ cohortAddress, tokenAddress, isErc20, tokenSymbol }
     tokenAddress,
     isErc20,
     isTransferLoading,
+    tokenDecimals,
   });
 
   const onClick = async () => {
@@ -30,7 +32,6 @@ export const FundCohort = ({ cohortAddress, tokenAddress, isErc20, tokenSymbol }
     } else {
       try {
         await fund();
-        setAmount(0);
       } catch {}
     }
     setIsTransferLoading(false);

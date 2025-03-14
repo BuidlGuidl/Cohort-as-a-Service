@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { readContract, simulateContract, writeContract } from "@wagmi/core";
-import { formatEther, parseEther } from "viem";
+import { formatEther, parseEther, parseUnits } from "viem";
 import { erc20Abi } from "viem";
 import { useAccount } from "wagmi";
 import { useWriteContract } from "wagmi";
@@ -18,9 +18,17 @@ interface useFundingProps {
   amount: number;
   isTransferLoading?: boolean;
   isErc20?: boolean;
+  tokenDecimals?: number;
 }
 
-export const useFunding = ({ tokenAddress, amount, isTransferLoading, cohortAddress, isErc20 }: useFundingProps) => {
+export const useFunding = ({
+  tokenAddress,
+  amount,
+  isTransferLoading,
+  cohortAddress,
+  isErc20,
+  tokenDecimals,
+}: useFundingProps) => {
   const { address, chain, chainId } = useAccount();
   const writeTx = useTransactor();
   const [isMining, setIsMining] = useState(false);
@@ -38,6 +46,19 @@ export const useFunding = ({ tokenAddress, amount, isTransferLoading, cohortAddr
 
   const cohort = contracts?.[baseChainId]["Cohort"];
 
+  const formatAmount = (value: number, functionName: string) => {
+    if (!tokenDecimals && tokenDecimals !== 0) return BigInt(0);
+
+    const adjustedAmount = value * (functionName === "approve" ? 1.000001 : 1);
+
+    try {
+      return parseUnits(adjustedAmount.toString(), tokenDecimals);
+    } catch (e) {
+      console.error("Error formatting amount:", e);
+      return BigInt(0);
+    }
+  };
+
   const approve = async () => {
     if (!chain) {
       notification.error("Please connect your wallet");
@@ -49,11 +70,14 @@ export const useFunding = ({ tokenAddress, amount, isTransferLoading, cohortAddr
     }
 
     if (isErc20 && tokenAddress) {
+      // Format amount according to token decimals
+      const approvalAmount = formatAmount(amount, "approve");
+
       const { request } = await simulateContract(wagmiConfig, {
         address: tokenAddress,
         abi: erc20Abi,
         functionName: "approve",
-        args: [cohortAddress, BigInt(amount * 1.000001 * 1_000_000_000_000_000_000)],
+        args: [cohortAddress, approvalAmount],
       });
 
       try {
@@ -84,13 +108,18 @@ export const useFunding = ({ tokenAddress, amount, isTransferLoading, cohortAddr
 
     if (cohort && cohortAddress) {
       try {
+        // Format amount according to token decimals for ERC20 tokens
+        const fundAmount = isErc20 ? formatAmount(amount, "fund") : BigInt(0);
+
+        console.log(fundAmount);
+
         const makeWriteWithParams = () =>
           writeContractAsync({
             abi: cohort.abi,
             address: cohortAddress,
             functionName: "fundContract",
-            args: [BigInt(amount * 1_000_000_000_000_000_000)],
-            value: parseEther(isErc20 ? "0" : amount.toString()),
+            args: [fundAmount],
+            value: isErc20 ? BigInt(0) : parseEther(amount.toString()),
           });
 
         await writeTx(makeWriteWithParams);
@@ -116,7 +145,12 @@ export const useFunding = ({ tokenAddress, amount, isTransferLoading, cohortAddr
             functionName: "allowance",
             args: [address, cohortAddress],
           });
-          setAllowance(parseFloat(formatEther(data)));
+
+          // Format based on token decimals
+          const decimals = tokenDecimals || 18;
+          const divisor = 10n ** BigInt(decimals);
+          const formatted = Number(data) / Number(divisor);
+          setAllowance(formatted);
         } catch {
           setAllowance(undefined);
         }
@@ -124,7 +158,7 @@ export const useFunding = ({ tokenAddress, amount, isTransferLoading, cohortAddr
       if (updateAllowance) setUpdateAllowance(false);
       setIsLoading(false);
     })();
-  }, [tokenAddress, address, isMining, updateAllowance, isTransferLoading, cohortAddress, isErc20]);
+  }, [tokenAddress, address, isMining, updateAllowance, isTransferLoading, cohortAddress, isErc20, tokenDecimals]);
 
   useEffect(() => {
     (async () => {
@@ -138,14 +172,19 @@ export const useFunding = ({ tokenAddress, amount, isTransferLoading, cohortAddr
             functionName: "balanceOf",
             args: [address],
           });
-          setBalance(parseFloat(formatEther(data)));
+
+          // Format based on token decimals
+          const decimals = tokenDecimals || 18;
+          const divisor = 10n ** BigInt(decimals);
+          const formatted = Number(data) / Number(divisor);
+          setBalance(formatted);
         } catch {
           setBalance(undefined);
         }
       }
+      setIsLoading(false);
     })();
-    setIsLoading(false);
-  }, [tokenAddress, address, isMining, isTransferLoading]);
+  }, [tokenAddress, address, isMining, isTransferLoading, tokenDecimals]);
 
   useEffect(() => {
     (async () => {
@@ -154,18 +193,23 @@ export const useFunding = ({ tokenAddress, amount, isTransferLoading, cohortAddr
         setTokenName("");
         setIsLoading(true);
         try {
-          const symbol = await readContract(wagmiConfig, {
+          // Fetch token metadata
+          const symbolPromise = readContract(wagmiConfig, {
             address: tokenAddress,
             abi: erc20Abi,
             functionName: "symbol",
           });
-          setTokenSymbol(symbol);
 
-          const name = await readContract(wagmiConfig, {
+          const namePromise = readContract(wagmiConfig, {
             address: tokenAddress,
             abi: erc20Abi,
             functionName: "name",
           });
+
+          // Resolve promises in parallel
+          const [symbol, name] = await Promise.all([symbolPromise, namePromise]);
+
+          setTokenSymbol(symbol);
           setTokenName(name);
         } catch {
           setTokenSymbol("");
@@ -174,7 +218,7 @@ export const useFunding = ({ tokenAddress, amount, isTransferLoading, cohortAddr
       }
       setIsLoading(false);
     })();
-  }, [tokenAddress, address, isMining, isTransferLoading]);
+  }, [tokenAddress, address]);
 
   return {
     isMining,
@@ -184,6 +228,7 @@ export const useFunding = ({ tokenAddress, amount, isTransferLoading, cohortAddr
     balance: balance,
     tokenSymbol: tokenSymbol,
     tokenName: tokenName,
+    tokenDecimals: tokenDecimals,
     isLoading: isLoading || isPending,
   };
 };

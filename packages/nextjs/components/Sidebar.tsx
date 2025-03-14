@@ -24,8 +24,6 @@ export const Sidebar = () => {
 
   const isCohortPage = pathname.includes("/cohort/");
 
-  console.log(pathname);
-
   if (isCohortPage) return null;
 
   return (

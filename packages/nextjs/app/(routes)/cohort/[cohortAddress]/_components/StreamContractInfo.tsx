@@ -24,6 +24,7 @@ interface StreamContractInfoProps {
   isAdmin: boolean;
   connectedAddressRequiresApproval: boolean;
   tokenAddress: string;
+  tokenDecimals?: number;
   isLoading: boolean;
   locked: boolean;
 }
@@ -44,6 +45,7 @@ export const StreamContractInfo = ({
   tokenAddress,
   isLoading,
   locked,
+  tokenDecimals,
 }: StreamContractInfoProps) => {
   const { address, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
@@ -51,7 +53,13 @@ export const StreamContractInfo = ({
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
 
-  const { streamWithdraw, isPending, isSuccess } = useCohortWithdraw({ cohortAddress, amount, reason });
+  const { streamWithdraw, isPending, isSuccess } = useCohortWithdraw({
+    cohortAddress,
+    amount,
+    reason,
+    isErc20,
+    tokenDecimals,
+  });
 
   const onClick = (chainId: number) => {
     switchChain({ chainId: chainId });
@@ -106,6 +114,7 @@ export const StreamContractInfo = ({
               tokenSymbol={tokenSymbol}
               isErc20={isErc20}
               locked={locked}
+              tokenDecimals={tokenDecimals}
             />
           )}
         </div>

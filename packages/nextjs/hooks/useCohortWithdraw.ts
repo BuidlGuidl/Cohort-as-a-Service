@@ -1,6 +1,6 @@
 import { useTargetNetwork } from "./scaffold-eth";
 import { useTransactor } from "./scaffold-eth";
-import { parseEther } from "viem";
+import { parseEther, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 import { useWriteContract } from "wagmi";
 import { baseChainId } from "~~/data/chains";
@@ -12,9 +12,17 @@ interface useCohortWithdrawProps {
   cohortAddress: string;
   reason: string;
   amount: string;
+  isErc20?: boolean;
+  tokenDecimals?: number;
 }
 
-export const useCohortWithdraw = ({ cohortAddress, amount, reason }: useCohortWithdrawProps) => {
+export const useCohortWithdraw = ({
+  cohortAddress,
+  amount,
+  reason,
+  isErc20,
+  tokenDecimals,
+}: useCohortWithdrawProps) => {
   const { chain, chainId } = useAccount();
   const { targetNetwork } = useTargetNetwork();
   const cohort = contracts?.[baseChainId]["Cohort"];
@@ -38,7 +46,7 @@ export const useCohortWithdraw = ({ cohortAddress, amount, reason }: useCohortWi
             abi: cohort.abi,
             address: cohortAddress,
             functionName: "streamWithdraw",
-            args: [parseEther(amount), reason],
+            args: [isErc20 ? parseUnits(amount, tokenDecimals || 18) : parseEther(amount), reason],
           });
 
         await writeTx(makeWriteWithParams);

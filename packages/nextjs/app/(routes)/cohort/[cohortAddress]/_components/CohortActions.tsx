@@ -10,9 +10,17 @@ interface CohortActionsProps {
   tokenAddress: string;
   tokenSymbol: string;
   locked: boolean;
+  tokenDecimals?: number;
 }
 
-export const CohortActions = ({ cohortAddress, isErc20, tokenAddress, tokenSymbol, locked }: CohortActionsProps) => {
+export const CohortActions = ({
+  cohortAddress,
+  isErc20,
+  tokenAddress,
+  tokenSymbol,
+  locked,
+  tokenDecimals,
+}: CohortActionsProps) => {
   return (
     <>
       <div className="dropdown dropdown-end px-0 ">
@@ -46,6 +54,7 @@ export const CohortActions = ({ cohortAddress, isErc20, tokenAddress, tokenSymbo
         isErc20={isErc20}
         tokenAddress={tokenAddress}
         tokenSymbol={tokenSymbol}
+        tokenDecimals={tokenDecimals}
       />
       <DrainCohort cohortAddress={cohortAddress} tokenAddress={tokenAddress} />
       <LockCohort cohortAddress={cohortAddress} locked={locked} />

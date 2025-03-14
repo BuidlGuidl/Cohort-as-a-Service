@@ -9,6 +9,7 @@ type Cohort = {
   name?: string;
   createdAt: any;
   chainName?: string;
+  role?: "ADMIN" | "BUILDER";
 };
 
 interface CohortsListProps {
@@ -38,6 +39,7 @@ const CohortsList = ({ items, loading }: CohortsListProps) => {
             owner={item.owner}
             name={item.name}
             chainName={item.chainName}
+            role={item.role}
           />
         ))}
       </div>

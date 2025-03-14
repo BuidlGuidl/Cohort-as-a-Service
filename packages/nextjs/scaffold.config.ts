@@ -19,7 +19,7 @@ const scaffoldConfig = {
     chains.optimism,
     chains.arbitrum,
     chains.polygon,
-    chains.avalanche,
+    chains.scroll,
     chains.bsc,
     chains.base,
     chains.optimismSepolia,
