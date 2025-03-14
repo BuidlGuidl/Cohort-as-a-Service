@@ -7,13 +7,21 @@ import { useUpdateBuilder } from "~~/hooks/useUpdateBuilder";
 interface UpdateBuilderProps {
   cohortAddress: string;
   builderAddress: string;
+  isErc20: boolean;
+  tokenDecimals?: number;
 }
 
-export const UpdateBuilder = ({ cohortAddress, builderAddress }: UpdateBuilderProps) => {
+export const UpdateBuilder = ({ cohortAddress, builderAddress, isErc20, tokenDecimals }: UpdateBuilderProps) => {
   const modalId = `update-builder-modal-${builderAddress.slice(-8)}`;
 
   const [cap, setCap] = useState("");
-  const { updateBuilder, isPending, isSuccess } = useUpdateBuilder({ cohortAddress, builderAddress, cap });
+  const { updateBuilder, isPending, isSuccess } = useUpdateBuilder({
+    cohortAddress,
+    builderAddress,
+    cap,
+    isErc20,
+    tokenDecimals,
+  });
 
   useEffect(() => {
     if (isSuccess) {

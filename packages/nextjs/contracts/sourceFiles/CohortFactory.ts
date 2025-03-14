@@ -1085,7 +1085,7 @@ contract Cohort is AccessControl, ReentrancyGuard {
 
     uint256 constant MAXCREATORS = 25;
     uint256 constant MINIMUM_CAP = 0.00001 ether;
-    uint256 constant MINIMUM_ERC20_CAP = 1 * 10 ** 18;
+    uint256 constant MINIMUM_ERC20_CAP = 1 * 10 ** 6;
 
     // Cycle duration for the stream
     uint256 public cycle;

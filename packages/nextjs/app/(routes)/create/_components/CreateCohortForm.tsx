@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getBytecode, getTransactionReceipt } from "@wagmi/core";
+import { readContract } from "@wagmi/core";
 import { Plus, Trash } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { formatEther, parseEther } from "viem";
+import { Abi, erc20Abi, formatEther, parseEther, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 import * as z from "zod";
 import { AddressInput } from "~~/components/scaffold-eth";
@@ -145,7 +146,20 @@ const CreateCohortForm = () => {
       const filteredAddresses = values.builderAddresses.filter(addr => addr !== "");
       const filteredCaps = values.builderCaps.filter((_, index) => values.builderAddresses[index] !== "");
 
-      const FormattedBuilderCaps = filteredCaps.map(cap => parseEther(cap.toString() || "0"));
+      let decimals = 18;
+      const isNotNativeCurrency = currentChainCurrencies[0].address !== values.currencyAddress;
+
+      let FormattedBuilderCaps = filteredCaps.map(cap => parseEther(cap.toString() || "0"));
+
+      if (isNotNativeCurrency) {
+        const decimals = await readContract(wagmiConfig, {
+          address: values.currencyAddress,
+          abi: erc20Abi,
+          functionName: "decimals",
+        });
+
+        FormattedBuilderCaps = filteredCaps.map(cap => parseUnits(cap.toString() || "0", decimals || 18));
+      }
 
       const hash = await writeYourContractAsync({
         functionName: "createCohort",

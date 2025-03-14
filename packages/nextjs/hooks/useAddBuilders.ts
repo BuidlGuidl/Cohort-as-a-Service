@@ -1,6 +1,6 @@
 import { useTargetNetwork } from "./scaffold-eth";
 import { useTransactor } from "./scaffold-eth";
-import { parseEther } from "viem";
+import { parseEther, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 import { useWriteContract } from "wagmi";
 import { baseChainId } from "~~/data/chains";
@@ -12,9 +12,17 @@ interface useAddBuildersProps {
   cohortAddress: string;
   builderAddresss: string[];
   caps: string[];
+  isErc20: boolean;
+  tokenDecimals?: number;
 }
 
-export const useAddBuilders = ({ cohortAddress, builderAddresss, caps }: useAddBuildersProps) => {
+export const useAddBuilders = ({
+  cohortAddress,
+  builderAddresss,
+  caps,
+  isErc20,
+  tokenDecimals,
+}: useAddBuildersProps) => {
   const { chain, chainId } = useAccount();
   const { targetNetwork } = useTargetNetwork();
 
@@ -34,12 +42,14 @@ export const useAddBuilders = ({ cohortAddress, builderAddresss, caps }: useAddB
 
     if (cohort && cohortAddress) {
       try {
+        const formattedCaps = caps.map(cap => (isErc20 ? parseUnits(cap, tokenDecimals || 18) : parseEther(cap)));
+
         const makeWriteWithParams = () =>
           writeContractAsync({
             abi: cohort.abi,
             address: cohortAddress,
             functionName: "addBatch",
-            args: [builderAddresss, caps.map(cap => parseEther(cap))],
+            args: [builderAddresss, formattedCaps],
           });
 
         await writeTx(makeWriteWithParams);

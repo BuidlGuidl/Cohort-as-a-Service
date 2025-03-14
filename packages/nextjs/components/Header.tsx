@@ -55,13 +55,13 @@ export const HeaderMenuLinks = () => {
 export const Header = () => {
   return (
     <div className="sticky lg:static top-0 navbar bg-base-100 min-h-0 h-[60px] flex-shrink-0 justify-between z-20 shadow-md shadow-secondary px-0 sm:px-2">
-      <div className="p-4">
-        <Link href="/" className="flex items-center gap-2">
+      <div className="p-2">
+        <Link href="/" className="flex items-center gap-1">
           <div className="relative w-10 h-10">
-            <Image alt="SE2 logo" className="cursor-pointer" fill src="/BG_Logo.svg" />
+            <Image alt="BG logo" className="cursor-pointer" fill src="/BG_Logo.svg" />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold leading-tight">Cohorts Services</span>
+            <span className="font-bold leading-tight text-xs md:text-lg">Cohorts Services</span>
             <span className="text-xs"></span>
           </div>
         </Link>

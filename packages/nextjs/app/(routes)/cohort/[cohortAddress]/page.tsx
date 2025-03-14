@@ -21,6 +21,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     primaryAdmin,
     isBuilder,
     tokenSymbol,
+    tokenDecimals,
     balance,
     name,
     chainName,
@@ -108,6 +109,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
           pendingRequestEvents={pendingRequestEvents}
           approvedRequestEvents={approvedRequestEvents}
           openEventsModal={openEventsModal}
+          tokenDecimals={tokenDecimals}
         />
       </div>
 
@@ -137,6 +139,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         tokenAddress={tokenAddress ?? ""}
         isLoading={isLoading}
         locked={locked ?? false}
+        tokenDecimals={tokenDecimals}
       />
 
       <EventsModal

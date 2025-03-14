@@ -124,18 +124,14 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
     fetchBuilderCohorts();
   }, [deployedContract, cohorts, address]);
 
-  // Effect to combine and sort cohorts
   useEffect(() => {
-    // Create a map to deduplicate cohorts (a user might be both admin and builder)
     const cohortMap = new Map<string, Cohort>();
 
-    // Add admin cohorts to the map
     adminCohorts.forEach(cohort => {
       const key = `${cohort.chainId}-${cohort.cohortAddress}`;
       cohortMap.set(key, { ...cohort, role: "ADMIN" });
     });
 
-    // Add builder cohorts to the map (admin role takes precedence if already exists)
     builderCohorts.forEach(cohort => {
       const key = `${cohort.chainId}-${cohort.cohortAddress}`;
       if (!cohortMap.has(key)) {
@@ -143,11 +139,8 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
       }
     });
 
-    // Convert map to array and sort by createdAt
     const combined = Array.from(cohortMap.values()).sort((a, b) => {
-      // Assuming createdAt is a timestamp or can be compared directly
-      // If createdAt might be in different formats, you may need additional conversion logic
-      return a.createdAt > b.createdAt ? -1 : 1; // Sort descending (newest first)
+      return a.createdAt > b.createdAt ? -1 : 1;
     });
 
     setCombinedCohorts(combined);

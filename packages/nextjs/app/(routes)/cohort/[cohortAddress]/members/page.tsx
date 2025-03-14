@@ -25,6 +25,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
     tokenAddress,
     isERC20,
     tokenSymbol,
+    tokenDecimals,
     balance,
     chainName,
     chainId,
@@ -81,6 +82,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
             pendingRequestEvents={pendingRequestEvents}
             approvedRequestEvents={approvedRequestEvents}
             openEventsModal={openEventsModal}
+            tokenDecimals={tokenDecimals}
           />
         </div>
 

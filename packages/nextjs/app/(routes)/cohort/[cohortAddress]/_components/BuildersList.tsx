@@ -19,6 +19,7 @@ interface BuildersListProps {
   userAddress: string | undefined;
   isERC20: boolean;
   tokenSymbol: string;
+  tokenDecimals?: number;
   isLoading: boolean;
   pendingRequestEvents: any[];
   approvedRequestEvents: any[];
@@ -33,6 +34,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
   userAddress,
   isERC20,
   tokenSymbol,
+  tokenDecimals,
   isLoading,
   pendingRequestEvents,
   approvedRequestEvents,
@@ -48,7 +50,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
 
   return (
     <div className="flex flex-col gap-6">
-      {isAdmin && <AddBatch cohortAddress={cohortAddress} isErc20={isERC20} />}
+      {isAdmin && <AddBatch cohortAddress={cohortAddress} isErc20={isERC20} tokenDecimals={tokenDecimals} />}
 
       {isLoading ? (
         <div>
@@ -100,6 +102,8 @@ export const BuildersList: React.FC<BuildersListProps> = ({
                         cohortAddress={cohortAddress}
                         builderAddress={builderStream.builderAddress}
                         requiresApproval={builderStream.requiresApproval}
+                        isErc20={isERC20}
+                        tokenDecimals={tokenDecimals}
                       />
                     )}
                     {showNotification && (
