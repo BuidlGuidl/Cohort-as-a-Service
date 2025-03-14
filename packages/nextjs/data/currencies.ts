@@ -131,12 +131,12 @@ export const currencies: CurrenciesType = {
       },
     ],
   },
-  43114: {
-    chainId: "43114",
-    name: "avalanche",
+  534352: {
+    chainId: "534352",
+    name: "scroll",
     contracts: [
       {
-        name: "Native (AVAX)",
+        name: "Native (ETH)",
         address: "0x0000000000000000000000000000000000000000",
       },
     ],
