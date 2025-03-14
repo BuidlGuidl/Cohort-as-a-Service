@@ -10,14 +10,18 @@ interface CohortCardProps {
   createdAt: any;
   owner?: string;
   chainName?: string;
+  role?: "ADMIN" | "BUILDER";
 }
 
-export const CohortCard = ({ cohortAddress, chainName, owner, name }: CohortCardProps) => {
+export const CohortCard = ({ cohortAddress, chainName, owner, name, role }: CohortCardProps) => {
   return (
     <div>
       <Link href={`/cohort/${cohortAddress}`}>
         <div className="group hover:shadow-sm transition overflow-hidden border rounded-lg p-2 h-full relative">
-          <span className="text-xs top-1 right-1 absolute text-error px-2 py-1">{chainName}</span>
+          <div className="justify-between flex text-xs">
+            <span>{role}</span>
+            <span className="text-error">{chainName}</span>
+          </div>
           <div className="flex flex-col pt-4 ">
             <div className="text-2xl font-medium group-hover:text-sky-700 transition line-clamp-2 ">{name}</div>
             <Address address={cohortAddress} disableAddressLink={true} />
