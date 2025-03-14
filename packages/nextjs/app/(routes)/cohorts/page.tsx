@@ -27,7 +27,7 @@ const SearchPage = ({ searchParams }: SearchPageProps) => {
           <SearchInput />
 
           <Link href="/create">
-            <button className="btn btn-sm rounded-sm btn-primary">Create new</button>
+            <button className="btn btn-sm rounded-md btn-primary">Create new</button>
           </Link>
         </div>
         {/* <div className="flex justify-start">

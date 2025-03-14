@@ -7,7 +7,7 @@ import { BuidlGuidlLogo } from "~~/components/assets/BuidlGuidlLogo";
  */
 export const Footer = () => {
   return (
-    <div className=" flex justify-between items-center w-full z-10 p-4 left-0 pointer-events-none bg-base-100">
+    <div className=" flex justify-between items-center w-full z-10 p-4 left-0 bg-base-100">
       <div className="flex justify-center items-center gap-2 w-full">
         <p className="m-0 text-center">Powered by</p>
         <a

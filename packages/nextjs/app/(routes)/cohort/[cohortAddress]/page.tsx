@@ -42,6 +42,8 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalView, setModalView] = useState<"contributions" | "requests">("contributions");
 
+  const buildersData = builderStreams ? Array.from(builderStreams.values()) : [];
+
   const {
     filteredWithdrawnEvents,
     filteredRequestEvents,
@@ -95,23 +97,25 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         </p>
       </div>
 
-      <div className="mt-8 mb-8">
-        <h3 className="text-xl font-bold mb-4">Members</h3>
-        <BuildersList
-          cohortAddress={params.cohortAddress}
-          builderStreams={builderStreams}
-          isAdmin={isAdmin ?? false}
-          isBuilder={isBuilder ?? false}
-          userAddress={address}
-          isERC20={isERC20 ?? false}
-          tokenSymbol={tokenSymbol ?? ""}
-          isLoading={isLoadingBuilders}
-          pendingRequestEvents={pendingRequestEvents}
-          approvedRequestEvents={approvedRequestEvents}
-          openEventsModal={openEventsModal}
-          tokenDecimals={tokenDecimals}
-        />
-      </div>
+      {buildersData.length <= 8 && (
+        <div className="mt-8 mb-8">
+          <h3 className="text-xl font-bold mb-4">Members</h3>
+          <BuildersList
+            cohortAddress={params.cohortAddress}
+            builderStreams={builderStreams}
+            isAdmin={isAdmin ?? false}
+            isBuilder={isBuilder ?? false}
+            userAddress={address}
+            isERC20={isERC20 ?? false}
+            tokenSymbol={tokenSymbol ?? ""}
+            isLoading={isLoadingBuilders}
+            pendingRequestEvents={pendingRequestEvents}
+            approvedRequestEvents={approvedRequestEvents}
+            openEventsModal={openEventsModal}
+            tokenDecimals={tokenDecimals}
+          />
+        </div>
+      )}
 
       <p className="font-bold mb-2 text-secondary">
         Stream Contract
