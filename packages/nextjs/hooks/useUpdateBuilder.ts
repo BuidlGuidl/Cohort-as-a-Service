@@ -1,6 +1,6 @@
 import { useTargetNetwork } from "./scaffold-eth";
 import { useTransactor } from "./scaffold-eth";
-import { parseEther } from "viem";
+import { parseEther, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 import { useWriteContract } from "wagmi";
 import { baseChainId } from "~~/data/chains";
@@ -12,9 +12,17 @@ interface useUpdateBuilderProps {
   cohortAddress: string;
   builderAddress: string;
   cap: string;
+  isErc20: boolean;
+  tokenDecimals?: number;
 }
 
-export const useUpdateBuilder = ({ cohortAddress, cap, builderAddress }: useUpdateBuilderProps) => {
+export const useUpdateBuilder = ({
+  cohortAddress,
+  cap,
+  builderAddress,
+  isErc20,
+  tokenDecimals,
+}: useUpdateBuilderProps) => {
   const { chain, chainId } = useAccount();
   const { targetNetwork } = useTargetNetwork();
   const cohort = contracts?.[baseChainId]["Cohort"];
@@ -38,7 +46,7 @@ export const useUpdateBuilder = ({ cohortAddress, cap, builderAddress }: useUpda
             abi: cohort.abi,
             address: cohortAddress,
             functionName: "updateBuilderStreamCap",
-            args: [builderAddress, parseEther(cap)],
+            args: [builderAddress, isErc20 ? parseUnits(cap, tokenDecimals || 18) : parseEther(cap)],
           });
 
         await writeTx(makeWriteWithParams);

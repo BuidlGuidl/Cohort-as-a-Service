@@ -7,6 +7,16 @@ import { useAccount } from "wagmi";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
+type Cohort = {
+  chainId: AllowedChainIds;
+  chainName: string;
+  cohortAddress: string | undefined;
+  owner: string | undefined;
+  name: string | undefined;
+  createdAt: any;
+  role?: "ADMIN" | "BUILDER";
+};
+
 interface useFilteredCohortsProps {
   filter?: "admin" | "builder";
   chainId?: AllowedChainIds;
@@ -15,8 +25,9 @@ interface useFilteredCohortsProps {
 
 export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohortsProps) => {
   const { cohorts, isLoading: isLoadingCohorts } = useCohorts({ chainId, cohort });
-  const [adminCohorts, setAdminCohorts] = useState(cohorts);
-  const [builderCohorts, setBuilderCohorts] = useState(cohorts);
+  const [adminCohorts, setAdminCohorts] = useState<Cohort[]>([]);
+  const [builderCohorts, setBuilderCohorts] = useState<Cohort[]>([]);
+  const [combinedCohorts, setCombinedCohorts] = useState<Cohort[]>([]);
   const [isLoadingAdmin, setIsLoadingAdmin] = useState(true);
   const [isLoadingBuilder, setIsLoadingBuilder] = useState(true);
 
@@ -26,7 +37,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
   useEffect(() => {
     const fetchAdminCohorts = async () => {
       try {
-        const validCohorts = [];
+        const validCohorts: Cohort[] = [];
 
         for (const cohort of cohorts) {
           try {
@@ -39,7 +50,10 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
             });
 
             if (isAdmin) {
-              validCohorts.push(cohort);
+              validCohorts.push({
+                ...cohort,
+                role: "ADMIN",
+              });
             }
           } catch (error) {
             console.error(`Error checking admin status for cohort ${cohort.cohortAddress}:`, error);
@@ -63,7 +77,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
   useEffect(() => {
     const fetchBuilderCohorts = async () => {
       try {
-        const validCohorts = [];
+        const validCohorts: Cohort[] = [];
 
         for (const cohort of cohorts) {
           try {
@@ -86,7 +100,10 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
               : null;
 
             if (address?.toLowerCase() === (builder as string)?.toLowerCase()) {
-              validCohorts.push(cohort);
+              validCohorts.push({
+                ...cohort,
+                role: "BUILDER",
+              });
             }
           } catch (error) {
             console.error(`Error checking builder status for cohort ${cohort.cohortAddress}:`, error);
@@ -107,8 +124,30 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
     fetchBuilderCohorts();
   }, [deployedContract, cohorts, address]);
 
+  useEffect(() => {
+    const cohortMap = new Map<string, Cohort>();
+
+    adminCohorts.forEach(cohort => {
+      const key = `${cohort.chainId}-${cohort.cohortAddress}`;
+      cohortMap.set(key, { ...cohort, role: "ADMIN" });
+    });
+
+    builderCohorts.forEach(cohort => {
+      const key = `${cohort.chainId}-${cohort.cohortAddress}`;
+      if (!cohortMap.has(key)) {
+        cohortMap.set(key, { ...cohort, role: "BUILDER" });
+      }
+    });
+
+    const combined = Array.from(cohortMap.values()).sort((a, b) => {
+      return a.createdAt > b.createdAt ? -1 : 1;
+    });
+
+    setCombinedCohorts(combined);
+  }, [adminCohorts, builderCohorts]);
+
   const getFilteredCohorts = () => {
-    if (!filter) return cohorts;
+    if (!filter) return combinedCohorts;
     if (filter === "admin") return adminCohorts;
     if (filter === "builder") return builderCohorts;
     return [];
@@ -116,6 +155,9 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
 
   return {
     cohorts: getFilteredCohorts(),
+    adminCohorts,
+    builderCohorts,
+    combinedCohorts,
     isLoading:
       isLoadingCohorts ||
       isConnecting ||

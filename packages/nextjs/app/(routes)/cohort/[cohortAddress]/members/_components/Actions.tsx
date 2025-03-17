@@ -8,9 +8,11 @@ interface ActionsProps {
   cohortAddress: string;
   builderAddress: string;
   requiresApproval: boolean;
+  isErc20: boolean;
+  tokenDecimals?: number;
 }
 
-export const Actions = ({ cohortAddress, builderAddress, requiresApproval }: ActionsProps) => {
+export const Actions = ({ cohortAddress, builderAddress, requiresApproval, isErc20, tokenDecimals }: ActionsProps) => {
   return (
     <>
       <div className="dropdown dropdown-start">
@@ -39,7 +41,12 @@ export const Actions = ({ cohortAddress, builderAddress, requiresApproval }: Act
         </ul>
       </div>
 
-      <UpdateBuilder cohortAddress={cohortAddress} builderAddress={builderAddress} />
+      <UpdateBuilder
+        cohortAddress={cohortAddress}
+        builderAddress={builderAddress}
+        isErc20={isErc20}
+        tokenDecimals={tokenDecimals}
+      />
       <RemoveBuilder cohortAddress={cohortAddress} builderAddress={builderAddress} />
       <CheckWithdrawals
         cohortAddress={cohortAddress}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+// import { useState } from "react";
+import Link from "next/link";
 import SearchInput from "../../../components/search-input";
 import Chains from "./_components/Chains";
 import CohortsList from "./_components/CohortsList";
@@ -15,17 +16,21 @@ interface SearchPageProps {
 }
 
 const SearchPage = ({ searchParams }: SearchPageProps) => {
-  const [filter, setFilter] = useState<"admin" | "builder">("admin");
-  const { cohorts, isLoading } = useFilteredCohorts({ ...searchParams, filter });
+  // const [filter, setFilter] = useState<"admin" | "builder">("admin");
+  const { isLoading, combinedCohorts: allMyCohorts } = useFilteredCohorts({ ...searchParams });
 
   return (
-    <>
-      <div className="px-6 pt-6 md:hidden md:mb-0 block">
-        <SearchInput />
-      </div>
-      <div className="p-6 space-y-4">
+    <div className="max-w-6xl mx-auto">
+      <div className="py-3 space-y-4">
         <Chains />
-        <div className="flex justify-start">
+        <div className="pb-2 md:mb-0 flex md:flex-row flex-col gap-2">
+          <SearchInput />
+
+          <Link href="/create">
+            <button className="btn btn-sm rounded-md btn-primary">Create new</button>
+          </Link>
+        </div>
+        {/* <div className="flex justify-start">
           <div className="dropdown dropdown-start">
             <button tabIndex={0} className="btn btn-sm btn-outline rounded-md">
               {filter.charAt(0).toUpperCase() + filter.slice(1)}
@@ -39,10 +44,10 @@ const SearchPage = ({ searchParams }: SearchPageProps) => {
               </li>
             </ul>
           </div>
-        </div>
-        <CohortsList items={cohorts} loading={isLoading} />
+        </div> */}
+        <CohortsList items={allMyCohorts} loading={isLoading} />
       </div>
-    </>
+    </div>
   );
 };
 

@@ -84,14 +84,14 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
     chainId: chains.polygon.id,
   });
 
-  const avalancheEvents = useScaffoldEventHistory({
+  const scrollEvents = useScaffoldEventHistory({
     contractName: "CohortFactory",
     eventName: "CohortCreated",
     fromBlock: deployBlock,
     blockData: true,
     watch: true,
     receiptData: true,
-    chainId: chains.avalanche.id,
+    chainId: chains.scroll.id,
   });
 
   const baseEvents = useScaffoldEventHistory({
@@ -122,7 +122,7 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
       { chainId: chains.optimism.id, chainName: "Optimism", ...optimismEvents },
       { chainId: chains.arbitrum.id, chainName: "Arbitrum", ...arbitrumEvents },
       { chainId: chains.polygon.id, chainName: "Polygon", ...polygonEvents },
-      { chainId: chains.avalanche.id, chainName: "Avalanche", ...avalancheEvents },
+      { chainId: chains.scroll.id, chainName: "Scroll", ...scrollEvents },
       { chainId: chains.base.id, chainName: "Base", ...baseEvents },
       { chainId: chains.optimismSepolia.id, chainName: "Optimism Sepolia", ...opSepoliaEvents },
     ],
@@ -132,7 +132,7 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
       optimismEvents,
       arbitrumEvents,
       polygonEvents,
-      avalancheEvents,
+      scrollEvents,
       baseEvents,
       opSepoliaEvents,
     ],
