@@ -68,7 +68,7 @@ export const AddBatch = ({ cohortAddress, isErc20, tokenDecimals }: AddbatchProp
 
       <input type="checkbox" id="add-batch-modal" className="modal-toggle" />
       <label htmlFor="add-batch-modal" className="modal cursor-pointer">
-        <label className="modal-box relative shadow shadow-primary">
+        <label className="modal-box relative border border-primary">
           <input className="h-0 w-0 absolute top-0 left-0" />
           <p className="font-bold mb-8 flex items-center gap-1 ">Add new builders</p>
           <label htmlFor="add-batch-modal" className="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">
