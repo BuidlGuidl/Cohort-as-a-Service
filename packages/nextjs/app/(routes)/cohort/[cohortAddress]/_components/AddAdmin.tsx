@@ -35,7 +35,7 @@ export const AddAdmin = ({ cohortAddress }: AddAdminProps) => {
 
       <input type="checkbox" id="add-admin-modal" className="modal-toggle" />
       <label htmlFor="add-admin-modal" className="modal cursor-pointer">
-        <label className="modal-box relative shadow shadow-primary">
+        <label className="modal-box relative border border-primary">
           {/* dummy input to capture event onclick on modal box */}
           <input className="h-0 w-0 absolute top-0 left-0" />
           <div className="font-bold mb-8 flex items-center gap-1">Add a new admin</div>
