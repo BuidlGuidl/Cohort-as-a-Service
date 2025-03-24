@@ -98,7 +98,8 @@ contract CohortFactory is Ownable {
         string memory _description,
         uint256 _cycle,
         address[] memory _builders,
-        uint256[] memory _caps
+        uint256[] memory _caps,
+        bool _requiresApproval
     ) external payable returns (address) {
         uint256 requiredEth = getRequiredEthAmount();
 
@@ -106,7 +107,16 @@ contract CohortFactory is Ownable {
             revert InsufficientPayment(requiredEth, msg.value);
         }
 
-        Cohort newCohort = new Cohort(_primaryAdmin, _tokenAddress, _name, _description, _cycle, _builders, _caps);
+        Cohort newCohort = new Cohort(
+            _primaryAdmin,
+            _tokenAddress,
+            _name,
+            _description,
+            _cycle,
+            _builders,
+            _caps,
+            _requiresApproval
+        );
 
         address cohortAddress = address(newCohort);
         isCohort[cohortAddress] = true;

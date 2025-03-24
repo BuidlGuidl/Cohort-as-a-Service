@@ -996,6 +996,7 @@ error ERC20FundsTransferFailed(address token, address to, uint256 amount);
 error BelowMinimumCap(uint256 provided, uint256 minimum);
 error NotAuthorized();
 error InvalidNewAdminAddress();
+error MaxNameLength(uint256 providedLength, uint256 maxLength);
 
 error NoWithdrawRequest();
 error WithdrawRequestNotApproved();
@@ -1003,12 +1004,15 @@ error WithdrawRequestAlreadyCompleted();
 error WithdrawRequestNotFound();
 error PendingWithdrawRequestExists();
 
+error AlreadyWithdrawnOneTime();
+
 contract Cohort is AccessControl, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     uint256 constant MAXCREATORS = 25;
     uint256 constant MINIMUM_CAP = 0.00001 ether;
     uint256 constant MINIMUM_ERC20_CAP = 1 * 10 ** 6;
+    uint256 constant MAX_NAME_LENGTH = 40;
 
     // Cycle duration for the stream
     uint256 public cycle;
@@ -1016,8 +1020,14 @@ contract Cohort is AccessControl, ReentrancyGuard {
     // ERC20 support
     bool public isERC20;
 
+    // One time withdraw stream
+    bool public isONETIME;
+
     // Cohort lock control
     bool public locked;
+
+    // Cohort approval requirement
+    bool public requireApprovalForWithdrawals;
 
     // Cohort name
     string public name;
@@ -1039,18 +1049,26 @@ contract Cohort is AccessControl, ReentrancyGuard {
         string memory _description,
         uint256 _cycle,
         address[] memory _builders,
-        uint256[] memory _caps
+        uint256[] memory _caps,
+        bool _requiresApproval
     ) {
+        if (bytes(_name).length > MAX_NAME_LENGTH) revert MaxNameLength(bytes(_name).length, MAX_NAME_LENGTH);
+
         _grantRole(DEFAULT_ADMIN_ROLE, _primaryAdmin);
         isAdmin[_primaryAdmin] = true;
         primaryAdmin = _primaryAdmin;
         name = _name;
         description = _description;
         cycle = _cycle;
+        requireApprovalForWithdrawals = _requiresApproval;
 
         if (_tokenAddress != address(0)) {
             isERC20 = true;
             tokenAddress = _tokenAddress;
+        }
+
+        if (_cycle == 0) {
+            isONETIME = true;
         }
 
         if (_builders.length == 0) return;
@@ -1060,10 +1078,21 @@ contract Cohort is AccessControl, ReentrancyGuard {
         if (cLength != _caps.length) revert LengthsMismatch();
         for (uint256 i = 0; i < cLength; ) {
             validateBuilderInput(payable(_builders[i]), _caps[i]);
-            streamingBuilders[_builders[i]] = BuilderStreamInfo(_caps[i], block.timestamp - _cycle);
+
+            if (cycle == 0) {
+                streamingBuilders[_builders[i]] = BuilderStreamInfo(_caps[i], type(uint256).max);
+            } else {
+                streamingBuilders[_builders[i]] = BuilderStreamInfo(_caps[i], block.timestamp - _cycle);
+            }
+
             activeBuilders.push(_builders[i]);
             builderIndex[_builders[i]] = activeBuilders.length - 1;
             emit AddBuilder(_builders[i], _caps[i]);
+
+            if (_requiresApproval) {
+                requiresApproval[_builders[i]] = true;
+                emit ApprovalRequirementChanged(_builders[i], true);
+            }
 
             unchecked {
                 ++i;
@@ -1224,6 +1253,15 @@ contract Cohort is AccessControl, ReentrancyGuard {
     // Get the unlocked amount for a builder.
     function unlockedBuilderAmount(address _builder) public view isStreamActive(_builder) returns (uint256) {
         BuilderStreamInfo memory builderStream = streamingBuilders[_builder];
+
+        if (isONETIME) {
+            if (builderStream.last == type(uint256).max) {
+                return builderStream.cap;
+            } else {
+                return 0;
+            }
+        }
+
         uint256 timePassed = block.timestamp - builderStream.last;
 
         if (timePassed < cycle) {
@@ -1240,9 +1278,20 @@ contract Cohort is AccessControl, ReentrancyGuard {
         if (activeBuilders.length >= MAXCREATORS) revert MaxBuildersReached();
 
         validateBuilderInput(_builder, _cap);
-        streamingBuilders[_builder] = BuilderStreamInfo(_cap, block.timestamp - cycle);
+
+        if (isONETIME) {
+            streamingBuilders[_builder] = BuilderStreamInfo(_cap, type(uint256).max);
+        } else {
+            streamingBuilders[_builder] = BuilderStreamInfo(_cap, block.timestamp - cycle);
+        }
+
         activeBuilders.push(_builder);
         builderIndex[_builder] = activeBuilders.length - 1;
+
+        if (requireApprovalForWithdrawals) {
+            requiresApproval[_builder] = true;
+            emit ApprovalRequirementChanged(_builder, true);
+        }
         emit AddBuilder(_builder, _cap);
     }
 
@@ -1313,6 +1362,12 @@ contract Cohort is AccessControl, ReentrancyGuard {
         emit ApprovalRequirementChanged(_builder, _requiresApproval);
     }
 
+    // Set whether this contracts requires approval for withdrawals
+    function toggleContractApprovalRequirement(bool _enable) public onlyAdmin {
+        requireApprovalForWithdrawals = _enable;
+        emit ApprovalRequirementChanged(address(this), _enable);
+    }
+
     // Request a withdrawal - for builders that require approval
     function _requestWithdraw(uint256 _amount, string memory _reason) private noPendingRequests(msg.sender) {
         // Check if the builder has enough unlocked to withdraw
@@ -1372,7 +1427,11 @@ contract Cohort is AccessControl, ReentrancyGuard {
         // Check if approval is required and given
         if (requiresApproval[msg.sender] && !request.approved) revert WithdrawRequestNotApproved();
 
-        _processStreamWithdraw(request.amount);
+        if (isONETIME) {
+            _processOneTimeWithdraw();
+        } else {
+            _processStreamWithdraw(request.amount);
+        }
 
         // Mark request as completed
         request.completed = true;
@@ -1390,7 +1449,11 @@ contract Cohort is AccessControl, ReentrancyGuard {
             return;
         }
 
-        _processStreamWithdraw(_amount);
+        if (isONETIME) {
+            _processOneTimeWithdraw();
+        } else {
+            _processStreamWithdraw(_amount);
+        }
 
         emit Withdraw(msg.sender, _amount, _reason);
     }
@@ -1429,6 +1492,36 @@ contract Cohort is AccessControl, ReentrancyGuard {
 
         // Update last withdrawal time
         builderStream.last = builderstreamLast + (((timestamp - builderstreamLast) * _amount) / totalAmountCanWithdraw);
+    }
+
+    function _processOneTimeWithdraw() private {
+        BuilderStreamInfo storage builderStream = streamingBuilders[msg.sender];
+
+        // Check if the builder has already withdrawn
+        if (builderStream.last != type(uint256).max) {
+            revert AlreadyWithdrawnOneTime();
+        }
+
+        uint256 _amount = builderStream.cap;
+
+        if (!isERC20) {
+            uint256 contractFunds = address(this).balance;
+            if (contractFunds < _amount) {
+                revert InsufficientFundsInContract(_amount, contractFunds);
+            }
+
+            (bool sent, ) = msg.sender.call{ value: _amount }("");
+            if (!sent) revert EtherSendingFailed();
+        } else {
+            uint256 contractFunds = IERC20(tokenAddress).balanceOf(address(this));
+            if (contractFunds < _amount) {
+                revert InsufficientFundsInContract(_amount, contractFunds);
+            }
+
+            IERC20(tokenAddress).safeTransfer(msg.sender, _amount);
+        }
+
+        builderStream.last = block.timestamp;
     }
 
     // Drain the contract to the primary admin address

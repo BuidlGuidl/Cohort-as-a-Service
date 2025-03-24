@@ -41,7 +41,7 @@ export const FundCohort = ({ cohortAddress, tokenAddress, isErc20, tokenSymbol, 
     <>
       <input type="checkbox" id="fund-cohort-modal" className="modal-toggle" />
       <label htmlFor="fund-cohort-modal" className="modal cursor-pointer">
-        <label className="modal-box relative shadow shadow-primary">
+        <label className="modal-box relative border border-primary">
           <input className="h-0 w-0 absolute top-0 left-0" />
           <div className="font-bold mb-8 flex items-center gap-1 text-error">Fund Cohort</div>
           <label htmlFor="fund-cohort-modal" className="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">

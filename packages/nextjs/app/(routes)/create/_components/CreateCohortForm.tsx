@@ -24,7 +24,8 @@ const PREDEFINED_CYCLES = [
   { label: "7 Days", value: 7 },
   { label: "14 Days", value: 14 },
   { label: "30 Days", value: 30 },
-  { label: "Custom", value: 0 },
+  { label: "One Time Stream", value: 0 },
+  { label: "Custom", value: 1 },
 ];
 
 const CreateCohortForm = () => {
@@ -54,6 +55,7 @@ const CreateCohortForm = () => {
       cycle: PREDEFINED_CYCLES[3].value,
       builderAddresses: [],
       builderCaps: [],
+      requiresApproval: false,
     },
     mode: "onChange",
   });
@@ -88,7 +90,7 @@ const CreateCohortForm = () => {
 
   const cycleInSeconds = (cycle: number) => cycle * 24 * 60 * 60;
 
-  const handleCycleSelect = (cycle: number) => {
+  const handleCycleSelect = (cycle: number, label: string) => {
     setSelectedCycle(cycle);
 
     form.setValue("cycle", cycle, {
@@ -96,7 +98,7 @@ const CreateCohortForm = () => {
       shouldDirty: true,
     });
 
-    if (cycle !== 0) {
+    if (label != "Custom") {
       setShowCustomCycleInput(false);
     } else {
       setShowCustomCycleInput(true);
@@ -170,6 +172,7 @@ const CreateCohortForm = () => {
           BigInt(cycleInSeconds(values.cycle)),
           filteredAddresses || [],
           FormattedBuilderCaps || [],
+          values.requiresApproval,
         ],
         value: parseEther(costWithAllowance),
       });
@@ -195,6 +198,7 @@ const CreateCohortForm = () => {
             BigInt(cycleInSeconds(values.cycle)),
             filteredAddresses || [],
             FormattedBuilderCaps || [],
+            values.requiresApproval,
           ],
           contract: {
             abi: localDeployedContract?.abi,
@@ -233,6 +237,7 @@ const CreateCohortForm = () => {
 
             <label className="label">
               <span className="label-text-alt text-base-content/60">Cohort name cannot be changed afterwards</span>
+              <span className="label-text-alt">{form.watch("name")?.length || 0}/40</span>
             </label>
 
             {errors.name && (
@@ -291,6 +296,28 @@ const CreateCohortForm = () => {
                 <span className="label-text-alt text-error -mt-3">{errors.adminAddress.message}</span>
               </label>
             )}
+          </div>
+
+          <div className="form-control">
+            <label className="label cursor-pointer">
+              <span className="label-text font-medium">Require approval for builder withdrawals</span>
+              <input
+                type="checkbox"
+                className="toggle toggle-primary"
+                checked={form.watch("requiresApproval")}
+                onChange={e => {
+                  form.setValue("requiresApproval", e.target.checked, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                }}
+              />
+            </label>
+            <label className="label">
+              <span className="label-text-alt text-base-content/60">
+                When enabled, builders will need admin approval before they can withdraw funds
+              </span>
+            </label>
           </div>
 
           <div className="form-control w-full">
@@ -352,7 +379,7 @@ const CreateCohortForm = () => {
                   key={cycle.value}
                   type="button"
                   className={`btn btn-sm rounded-md ${selectedCycle === cycle.value ? "btn-primary" : "btn-outline"}`}
-                  onClick={() => handleCycleSelect(cycle.value)}
+                  onClick={() => handleCycleSelect(cycle.value, cycle.label)}
                 >
                   {cycle.label}
                 </button>
@@ -363,9 +390,10 @@ const CreateCohortForm = () => {
               <div className="form-control">
                 <input
                   type="number"
+                  min={1}
                   value={form.watch("cycle")}
                   className={`input input-sm rounded-md input-bordered border border-base-300 w-full ${errors.cycle ? "input-error" : ""}`}
-                  placeholder="Enter custom cycle days"
+                  placeholder="Enter cycle days"
                   {...form.register("cycle", {
                     onChange: e => {
                       const value = e.target.value;
@@ -373,6 +401,7 @@ const CreateCohortForm = () => {
                         shouldValidate: true,
                         shouldDirty: true,
                       });
+                      setSelectedCycle(parseFloat(value));
                     },
                   })}
                 />
@@ -382,6 +411,14 @@ const CreateCohortForm = () => {
                   </label>
                 )}
               </div>
+            )}
+
+            {form.watch("cycle") == 0 && (
+              <label className="label">
+                <span className="label-text-alt text-base-content/60">
+                  One time withdraw cohorts only allow a single withdrawal which doesn&apos;t reset
+                </span>
+              </label>
             )}
           </div>
 
