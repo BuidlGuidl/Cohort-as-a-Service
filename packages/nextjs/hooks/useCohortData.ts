@@ -27,6 +27,7 @@ export type CohortData = {
   tokenDecimals: number;
   primaryAdmin: string;
   locked: boolean;
+  requiresApproval: boolean;
   balance: number;
   activeBuilders: string[];
   builderStreams: Map<
@@ -282,56 +283,63 @@ export const useCohortData = (cohortAddress: string) => {
     setError(null);
 
     try {
-      const [name, description, isERC20, isONETIME, cycle, tokenAddress, primaryAdmin, locked] = await Promise.all([
-        readContract(wagmiConfig, {
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "name",
-          chainId,
-        }),
-        readContract(wagmiConfig, {
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "description",
-          chainId,
-        }),
-        readContract(wagmiConfig, {
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "isERC20",
-          chainId,
-        }),
-        readContract(wagmiConfig, {
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "isONETIME",
-          chainId,
-        }),
-        readContract(wagmiConfig, {
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "cycle",
-          chainId,
-        }),
-        readContract(wagmiConfig, {
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "tokenAddress",
-          chainId,
-        }),
-        readContract(wagmiConfig, {
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "primaryAdmin",
-          chainId,
-        }),
-        readContract(wagmiConfig, {
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "locked",
-          chainId,
-        }),
-      ]);
+      const [name, description, isERC20, isONETIME, cycle, tokenAddress, primaryAdmin, locked, requiresApproval] =
+        await Promise.all([
+          readContract(wagmiConfig, {
+            address: cohortAddress,
+            abi: deployedContract.abi,
+            functionName: "name",
+            chainId,
+          }),
+          readContract(wagmiConfig, {
+            address: cohortAddress,
+            abi: deployedContract.abi,
+            functionName: "description",
+            chainId,
+          }),
+          readContract(wagmiConfig, {
+            address: cohortAddress,
+            abi: deployedContract.abi,
+            functionName: "isERC20",
+            chainId,
+          }),
+          readContract(wagmiConfig, {
+            address: cohortAddress,
+            abi: deployedContract.abi,
+            functionName: "isONETIME",
+            chainId,
+          }),
+          readContract(wagmiConfig, {
+            address: cohortAddress,
+            abi: deployedContract.abi,
+            functionName: "cycle",
+            chainId,
+          }),
+          readContract(wagmiConfig, {
+            address: cohortAddress,
+            abi: deployedContract.abi,
+            functionName: "tokenAddress",
+            chainId,
+          }),
+          readContract(wagmiConfig, {
+            address: cohortAddress,
+            abi: deployedContract.abi,
+            functionName: "primaryAdmin",
+            chainId,
+          }),
+          readContract(wagmiConfig, {
+            address: cohortAddress,
+            abi: deployedContract.abi,
+            functionName: "locked",
+            chainId,
+          }),
+          readContract(wagmiConfig, {
+            address: cohortAddress,
+            abi: deployedContract.abi,
+            functionName: "requireApprovalForWithdrawals",
+            chainId,
+          }),
+        ]);
 
       let tokenSymbol = null;
       if (isERC20 && tokenAddress) {
@@ -460,6 +468,7 @@ export const useCohortData = (cohortAddress: string) => {
         tokenDecimals,
         primaryAdmin,
         locked,
+        requiresApproval,
         balance,
         activeBuilders: builders,
         builderStreams,

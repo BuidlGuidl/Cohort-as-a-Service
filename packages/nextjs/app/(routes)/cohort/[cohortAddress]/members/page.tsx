@@ -35,6 +35,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
     isLoadingAdmins,
     isLoading,
     locked,
+    requiresApproval,
     cycle,
   } = useCohortData(params.cohortAddress);
 
@@ -113,6 +114,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
           tokenAddress={tokenAddress ?? ""}
           isLoading={isLoading}
           locked={locked ?? false}
+          requiresApproval={requiresApproval ?? false}
           cycle={cycle ?? 0}
         />
       </div>

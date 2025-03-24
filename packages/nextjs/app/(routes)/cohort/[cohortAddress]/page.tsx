@@ -32,6 +32,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     connectedAddressRequiresApproval,
     isLoading,
     locked,
+    requiresApproval,
     builderStreams,
     isLoadingBuilders,
     cycle,
@@ -148,6 +149,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         locked={locked ?? false}
         tokenDecimals={tokenDecimals}
         cycle={cycle ?? 0}
+        requiresApproval={requiresApproval ?? false}
       />
 
       <EventsModal
