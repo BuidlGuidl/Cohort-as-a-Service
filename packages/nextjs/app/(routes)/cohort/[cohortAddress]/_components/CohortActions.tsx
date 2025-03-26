@@ -1,6 +1,7 @@
 import React from "react";
 import { DrainCohort } from "./DrainCohort";
 import { FundCohort } from "./FundCohort";
+import { ToggleCohortApprovalRequirement } from "./ToggleCohortApprovalRequirement";
 import { LockCohort } from "./ToggleLockCohort";
 import { EllipsisVertical } from "lucide-react";
 
@@ -11,6 +12,7 @@ interface CohortActionsProps {
   tokenSymbol: string;
   locked: boolean;
   tokenDecimals?: number;
+  requiresApproval: boolean;
 }
 
 export const CohortActions = ({
@@ -20,6 +22,7 @@ export const CohortActions = ({
   tokenSymbol,
   locked,
   tokenDecimals,
+  requiresApproval,
 }: CohortActionsProps) => {
   return (
     <>
@@ -46,6 +49,11 @@ export const CohortActions = ({
               {locked ? "Unlock " : "Lock "} cohort
             </label>
           </li>
+          <li>
+            <label htmlFor={`toggle-cohort-approval-requirement-modal`} className="w-full">
+              {requiresApproval ? "Allow Withdrawals" : "Require Approval"}
+            </label>
+          </li>
         </ul>
       </div>
 
@@ -58,6 +66,7 @@ export const CohortActions = ({
       />
       <DrainCohort cohortAddress={cohortAddress} tokenAddress={tokenAddress} />
       <LockCohort cohortAddress={cohortAddress} locked={locked} />
+      <ToggleCohortApprovalRequirement cohortAddress={cohortAddress} requiresApproval={requiresApproval} />
     </>
   );
 };

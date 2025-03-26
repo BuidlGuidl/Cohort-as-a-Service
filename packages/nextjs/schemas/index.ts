@@ -1,7 +1,7 @@
 import * as z from "zod";
 
 export const CreateCohortSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, "Name is required").max(40, "Name cannot exceed 40 characters"),
   description: z.string().min(1, "Description is required"),
   adminAddress: z
     .string()
@@ -14,7 +14,7 @@ export const CreateCohortSchema = z.object({
   cycle: z
     .number({ invalid_type_error: "Cycle is required" })
     .refine(val => Number.isInteger(val), { message: "Cycle must be an integer" })
-    .refine(val => val >= 1, { message: "Cycle must be at least 1 day" }),
+    .refine(val => val >= 0, { message: "Cycle must be a positive number" }),
   builderAddresses: z
     .array(
       z
@@ -28,4 +28,5 @@ export const CreateCohortSchema = z.object({
     .array(z.number({ invalid_type_error: "Cap is required" }).positive("Cap must be at least 1"))
     .optional()
     .default([]),
+  requiresApproval: z.boolean().default(false),
 });

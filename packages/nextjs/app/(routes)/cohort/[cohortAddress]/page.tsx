@@ -20,6 +20,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     description,
     primaryAdmin,
     isBuilder,
+    oneTimeAlreadyWithdrawn,
     tokenSymbol,
     tokenDecimals,
     balance,
@@ -31,8 +32,10 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     connectedAddressRequiresApproval,
     isLoading,
     locked,
+    requiresApproval,
     builderStreams,
     isLoadingBuilders,
+    cycle,
   } = useCohortData(params.cohortAddress);
 
   const router = useRouter();
@@ -130,6 +133,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
       <StreamContractInfo
         owner={primaryAdmin || ""}
         isBuilder={isBuilder || false}
+        oneTimeAlreadyWithdrawn={oneTimeAlreadyWithdrawn ?? false}
         cohortAddress={params.cohortAddress}
         isErc20={isERC20 ?? false}
         tokenSymbol={tokenSymbol ?? ""}
@@ -144,6 +148,8 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         isLoading={isLoading}
         locked={locked ?? false}
         tokenDecimals={tokenDecimals}
+        cycle={cycle ?? 0}
+        requiresApproval={requiresApproval ?? false}
       />
 
       <EventsModal

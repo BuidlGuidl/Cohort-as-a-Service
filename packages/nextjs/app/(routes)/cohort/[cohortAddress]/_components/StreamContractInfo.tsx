@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { AdminsList } from "./AdminsList";
 import { CohortActions } from "./CohortActions";
 import { TokenBalance } from "./TokenBalance";
-import { TriangleAlert } from "lucide-react";
+import { TriangleAlert, TriangleAlertIcon } from "lucide-react";
 import { useAccount } from "wagmi";
 import { useSwitchChain } from "wagmi";
 import { BanknotesIcon } from "@heroicons/react/24/outline";
@@ -13,6 +13,7 @@ import { useCohortWithdraw } from "~~/hooks/useCohortWithdraw";
 interface StreamContractInfoProps {
   owner: string;
   isBuilder: boolean;
+  oneTimeAlreadyWithdrawn?: boolean;
   cohortAddress: string;
   isErc20: boolean;
   tokenSymbol: string;
@@ -27,11 +28,14 @@ interface StreamContractInfoProps {
   tokenDecimals?: number;
   isLoading: boolean;
   locked: boolean;
+  cycle: number;
+  requiresApproval: boolean;
 }
 
 export const StreamContractInfo = ({
   owner,
   isBuilder,
+  oneTimeAlreadyWithdrawn,
   cohortAddress,
   isErc20,
   tokenSymbol,
@@ -46,6 +50,8 @@ export const StreamContractInfo = ({
   isLoading,
   locked,
   tokenDecimals,
+  cycle,
+  requiresApproval,
 }: StreamContractInfoProps) => {
   const { address, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
@@ -99,6 +105,9 @@ export const StreamContractInfo = ({
 
               <span className="text-xs text-[#f01a37]">{chainName}</span>
             </div>
+            <div className="w-full">
+              <span className="text-xs text-accent/70">{cycle > 0 ? `Cycle: ${cycle} days` : "One Time Cohort"}</span>
+            </div>
           </div>{" "}
           /
           {!isLoading &&
@@ -115,10 +124,11 @@ export const StreamContractInfo = ({
               isErc20={isErc20}
               locked={locked}
               tokenDecimals={tokenDecimals}
+              requiresApproval={requiresApproval}
             />
           )}
         </div>
-        {address && isBuilder && (
+        {address && isBuilder && !oneTimeAlreadyWithdrawn && (
           <div className="mt-3">
             <label
               htmlFor="withdraw-modal"
@@ -129,11 +139,19 @@ export const StreamContractInfo = ({
             </label>
           </div>
         )}
+        {oneTimeAlreadyWithdrawn && isBuilder && (
+          <div className="mt-3">
+            <label className="bg-primary flex rounded-md items-center gap-4 p-2 w-fit">
+              <TriangleAlertIcon className="h-4 w-4" />
+              <span>Stream Withdrawn</span>
+            </label>
+          </div>
+        )}
       </div>
 
       <input type="checkbox" id="withdraw-modal" className="modal-toggle" />
       <label htmlFor="withdraw-modal" className="modal cursor-pointer">
-        <label className="modal-box relative shadow shadow-primary">
+        <label className="modal-box relative border border-primary">
           <input className="h-0 w-0 absolute top-0 left-0" />
           <h3 className="font-bold">
             {connectedAddressRequiresApproval ? "Request a Withdrawal" : "Withdraw from your stream"}
@@ -154,18 +172,20 @@ export const StreamContractInfo = ({
                 value={reason}
                 onChange={event => setReason(event.target.value)}
               />
-              <div className="w-full">
-                {isErc20 ? (
-                  <input
-                    className="input input-sm rounded-md input-bordered border border-base-300 w-full"
-                    placeholder={`Amount of ${tokenSymbol}`}
-                    type="number"
-                    onChange={e => setAmount(e.target.value.toString())}
-                  />
-                ) : (
-                  <EtherInput value={amount} onChange={value => setAmount(value)} />
-                )}
-              </div>
+              {cycle > 0 && (
+                <div className="w-full">
+                  {isErc20 ? (
+                    <input
+                      className="input input-sm rounded-md input-bordered border border-base-300 w-full"
+                      placeholder={`Amount of ${tokenSymbol}`}
+                      type="number"
+                      onChange={e => setAmount(e.target.value.toString())}
+                    />
+                  ) : (
+                    <EtherInput value={amount} onChange={value => setAmount(value)} />
+                  )}
+                </div>
+              )}
               <button
                 type="button"
                 className="btn btn-secondary btn-sm w-full"

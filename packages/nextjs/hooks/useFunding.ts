@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { readContract, simulateContract, writeContract } from "@wagmi/core";
-import { formatEther, parseEther, parseUnits } from "viem";
+import { parseEther, parseUnits } from "viem";
 import { erc20Abi } from "viem";
 import { useAccount } from "wagmi";
 import { useWriteContract } from "wagmi";
@@ -218,7 +218,7 @@ export const useFunding = ({
       }
       setIsLoading(false);
     })();
-  }, [tokenAddress, address]);
+  }, [tokenAddress, address, isTransferLoading]);
 
   return {
     isMining,
