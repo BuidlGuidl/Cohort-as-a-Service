@@ -1088,7 +1088,6 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
     mapping(address => BuilderStreamInfo) public streamingBuilders;
     mapping(address => uint256) public builderIndex;
     address[] public activeBuilders;
-    mapping(address => bool) public isAdmin;
 
     // Withdrawal request data
     mapping(address => WithdrawRequest[]) public withdrawRequests;
@@ -1110,7 +1109,6 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
         if (bytes(_name).length > MAX_NAME_LENGTH) revert MaxNameLength(bytes(_name).length, MAX_NAME_LENGTH);
 
         _grantRole(DEFAULT_ADMIN_ROLE, _primaryAdmin);
-        isAdmin[_primaryAdmin] = true;
         primaryAdmin = _primaryAdmin;
         name = _name;
         description = _description;
@@ -1196,7 +1194,7 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
         if (_cap < MINIMUM_CAP && !isERC20) revert BelowMinimumCap(_cap, MINIMUM_CAP);
         if (_cap < MINIMUM_ERC20_CAP && isERC20) revert BelowMinimumCap(_cap, MINIMUM_ERC20_CAP);
         if (_builder == address(0)) revert InvalidBuilderAddress();
-        if (isAdmin[_builder]) revert InvalidBuilderAddress();
+        if (hasRole(DEFAULT_ADMIN_ROLE, _builder)) revert InvalidBuilderAddress();
         if (streamingBuilders[_builder].cap > 0) revert BuilderAlreadyExists();
     }
 
@@ -1225,12 +1223,10 @@ abstract contract CohortAdmin is CohortBase {
         if (shouldGrant) {
             if (streamingBuilders[adminAddress].cap != 0) revert InvalidBuilderAddress();
             grantRole(DEFAULT_ADMIN_ROLE, adminAddress);
-            isAdmin[adminAddress] = true;
             emit AdminAdded(adminAddress);
         } else {
             if (adminAddress == primaryAdmin) revert AccessDenied();
             revokeRole(DEFAULT_ADMIN_ROLE, adminAddress);
-            isAdmin[adminAddress] = false;
             emit AdminRemoved(adminAddress);
         }
     }
@@ -1338,6 +1334,14 @@ abstract contract CohortAdmin is CohortBase {
             IERC20(_token).safeTransfer(primaryAdmin, remainingBalance);
             emit ContractDrained(remainingBalance);
         }
+    }
+
+    /**
+     * @dev Function to check if an address is an admin
+     */
+
+    function isAdmin(address _address) public view returns (bool) {
+        return hasRole(DEFAULT_ADMIN_ROLE, _address);
     }
 }
 
@@ -1564,8 +1568,7 @@ abstract contract CohortWithdrawal is CohortBuilderManager {
         // Process the withdrawal
         BuilderStreamInfo storage builderStream = streamingBuilders[msg.sender];
         uint256 builderstreamLast = builderStream.last;
-        uint256 timestamp = block.timestamp;
-        uint256 cappedLast = timestamp - cycle;
+        uint256 cappedLast = block.timestamp - cycle;
         if (builderstreamLast < cappedLast) {
             builderstreamLast = cappedLast;
         }
@@ -1588,7 +1591,9 @@ abstract contract CohortWithdrawal is CohortBuilderManager {
         }
 
         // Update last withdrawal time
-        builderStream.last = builderstreamLast + (((timestamp - builderstreamLast) * _amount) / totalAmountCanWithdraw);
+        builderStream.last =
+            builderstreamLast +
+            (((block.timestamp - builderstreamLast) * _amount) / totalAmountCanWithdraw);
     }
 
     /**

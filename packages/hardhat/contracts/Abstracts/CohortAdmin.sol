@@ -19,12 +19,10 @@ abstract contract CohortAdmin is CohortBase {
         if (shouldGrant) {
             if (streamingBuilders[adminAddress].cap != 0) revert InvalidBuilderAddress();
             grantRole(DEFAULT_ADMIN_ROLE, adminAddress);
-            isAdmin[adminAddress] = true;
             emit AdminAdded(adminAddress);
         } else {
             if (adminAddress == primaryAdmin) revert AccessDenied();
             revokeRole(DEFAULT_ADMIN_ROLE, adminAddress);
-            isAdmin[adminAddress] = false;
             emit AdminRemoved(adminAddress);
         }
     }
@@ -132,5 +130,13 @@ abstract contract CohortAdmin is CohortBase {
             IERC20(_token).safeTransfer(primaryAdmin, remainingBalance);
             emit ContractDrained(remainingBalance);
         }
+    }
+
+    /**
+     * @dev Function to check if an address is an admin
+     */
+
+    function isAdmin(address _address) public view returns (bool) {
+        return hasRole(DEFAULT_ADMIN_ROLE, _address);
     }
 }

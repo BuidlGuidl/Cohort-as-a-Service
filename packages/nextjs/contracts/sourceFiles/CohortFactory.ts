@@ -1165,7 +1165,6 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
     mapping(address => BuilderStreamInfo) public streamingBuilders;
     mapping(address => uint256) public builderIndex;
     address[] public activeBuilders;
-    mapping(address => bool) public isAdmin;
 
     // Withdrawal request data
     mapping(address => WithdrawRequest[]) public withdrawRequests;
@@ -1187,7 +1186,6 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
         if (bytes(_name).length > MAX_NAME_LENGTH) revert MaxNameLength(bytes(_name).length, MAX_NAME_LENGTH);
 
         _grantRole(DEFAULT_ADMIN_ROLE, _primaryAdmin);
-        isAdmin[_primaryAdmin] = true;
         primaryAdmin = _primaryAdmin;
         name = _name;
         description = _description;
@@ -1273,7 +1271,7 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
         if (_cap < MINIMUM_CAP && !isERC20) revert BelowMinimumCap(_cap, MINIMUM_CAP);
         if (_cap < MINIMUM_ERC20_CAP && isERC20) revert BelowMinimumCap(_cap, MINIMUM_ERC20_CAP);
         if (_builder == address(0)) revert InvalidBuilderAddress();
-        if (isAdmin[_builder]) revert InvalidBuilderAddress();
+        if (hasRole(DEFAULT_ADMIN_ROLE, _builder)) revert InvalidBuilderAddress();
         if (streamingBuilders[_builder].cap > 0) revert BuilderAlreadyExists();
     }
 
@@ -1302,12 +1300,10 @@ abstract contract CohortAdmin is CohortBase {
         if (shouldGrant) {
             if (streamingBuilders[adminAddress].cap != 0) revert InvalidBuilderAddress();
             grantRole(DEFAULT_ADMIN_ROLE, adminAddress);
-            isAdmin[adminAddress] = true;
             emit AdminAdded(adminAddress);
         } else {
             if (adminAddress == primaryAdmin) revert AccessDenied();
             revokeRole(DEFAULT_ADMIN_ROLE, adminAddress);
-            isAdmin[adminAddress] = false;
             emit AdminRemoved(adminAddress);
         }
     }
@@ -1415,6 +1411,14 @@ abstract contract CohortAdmin is CohortBase {
             IERC20(_token).safeTransfer(primaryAdmin, remainingBalance);
             emit ContractDrained(remainingBalance);
         }
+    }
+
+    /**
+     * @dev Function to check if an address is an admin
+     */
+
+    function isAdmin(address _address) public view returns (bool) {
+        return hasRole(DEFAULT_ADMIN_ROLE, _address);
     }
 }
 
@@ -1641,8 +1645,7 @@ abstract contract CohortWithdrawal is CohortBuilderManager {
         // Process the withdrawal
         BuilderStreamInfo storage builderStream = streamingBuilders[msg.sender];
         uint256 builderstreamLast = builderStream.last;
-        uint256 timestamp = block.timestamp;
-        uint256 cappedLast = timestamp - cycle;
+        uint256 cappedLast = block.timestamp - cycle;
         if (builderstreamLast < cappedLast) {
             builderstreamLast = cappedLast;
         }
@@ -1665,7 +1668,9 @@ abstract contract CohortWithdrawal is CohortBuilderManager {
         }
 
         // Update last withdrawal time
-        builderStream.last = builderstreamLast + (((timestamp - builderstreamLast) * _amount) / totalAmountCanWithdraw);
+        builderStream.last =
+            builderstreamLast +
+            (((block.timestamp - builderstreamLast) * _amount) / totalAmountCanWithdraw);
     }
 
     /**
@@ -1817,26 +1822,45 @@ interface AggregatorV3Interface {
 
 // Original license: SPDX_License_Identifier: MIT
 
-
 library PriceConverter {
+    error StalePrice();
+
     /**
-     * @dev Gets the latest ETH/USD price from Chainlink
+     * @dev Gets the latest ETH/USD price from Chainlink with staleness check
+     * @param priceFeed Chainlink price feed interface
+     * @param maxStalePeriod Maximum acceptable age of the price data in seconds
      * @return price Latest ETH/USD price with 18 decimals
      */
-    function getPrice(AggregatorV3Interface priceFeed) internal view returns (uint256) {
-        (
-            ,
-            /* uint80 roundID */ int256 price /* uint256 startedAt */ /* uint256 timeStamp */ /* uint80 answeredInRound */,
-            ,
-            ,
+    function getPrice(AggregatorV3Interface priceFeed, uint256 maxStalePeriod) internal view returns (uint256) {
+        (uint80 roundID, int256 price, , uint256 updatedAt, uint80 answeredInRound) = priceFeed.latestRoundData();
 
-        ) = priceFeed.latestRoundData();
-        return uint256(price * 1e10);
-        // ETH in terms of USD
+        // Check for stale data
+        if (
+            roundID == 0 ||
+            price <= 0 ||
+            updatedAt == 0 ||
+            answeredInRound < roundID ||
+            block.timestamp - updatedAt > maxStalePeriod
+        ) {
+            revert StalePrice();
+        }
+
+        return uint256(price * 1e10); // Convert to 18 decimals
     }
 
-    function getConversionRate(uint256 ethAmount, AggregatorV3Interface priceFeed) internal view returns (uint256) {
-        uint256 ethPrice = getPrice(priceFeed);
+    /**
+     * @dev Converts ETH amount to USD using Chainlink price feed
+     * @param ethAmount Amount of ETH to convert
+     * @param priceFeed Chainlink price feed interface
+     * @param maxStalePeriod Maximum acceptable age of the price data in seconds
+     * @return ethAmountInUsd Equivalent USD value with 18 decimals
+     */
+    function getConversionRate(
+        uint256 ethAmount,
+        AggregatorV3Interface priceFeed,
+        uint256 maxStalePeriod
+    ) internal view returns (uint256) {
+        uint256 ethPrice = getPrice(priceFeed, maxStalePeriod);
         uint256 ethAmountInUsd = (ethPrice * ethAmount) / 1e18;
         return ethAmountInUsd;
     }
@@ -1919,8 +1943,11 @@ contract CohortFactory is Ownable {
      * @dev Calculates required ETH amount for creation fee based on current ETH price
      * @return Required ETH amount in wei
      */
+
     function getRequiredEthAmount() public view returns (uint256) {
-        uint256 ethPrice = PriceConverter.getPrice(priceFeed);
+        // Using 1 hour as the maxStalePeriod
+        uint256 maxStalePeriod = 1 * 60 * 60;
+        uint256 ethPrice = PriceConverter.getPrice(priceFeed, maxStalePeriod);
         return (creationFeeUSD * 1e18) / ethPrice;
     }
 
@@ -1947,7 +1974,8 @@ contract CohortFactory is Ownable {
     ) external payable returns (address) {
         uint256 requiredEth = getRequiredEthAmount();
 
-        if (msg.value.getConversionRate(priceFeed) < creationFeeUSD) {
+        uint256 maxStalePeriod = 1 * 60 * 60;
+        if (msg.value.getConversionRate(priceFeed, maxStalePeriod) < creationFeeUSD) {
             revert InsufficientPayment(requiredEth, msg.value);
         }
 
