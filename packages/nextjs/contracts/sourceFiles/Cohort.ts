@@ -967,81 +967,136 @@ abstract contract ReentrancyGuard {
 }
 
 
-// File contracts/Cohort.sol
+// File contracts/Abstracts/CohortEvents.sol
+
+// Original license: SPDX_License_Identifier: MIT
+
+/**
+ * @title CohortEvents
+ * @dev Abstract contract containing all events emitted by Cohort contracts
+ */
+abstract contract CohortEvents {
+    // Core events
+    event FundsReceived(address indexed from, uint256 amount);
+    event Withdraw(address indexed to, uint256 amount, string reason);
+    event AddBuilder(address indexed to, uint256 amount);
+    event UpdateBuilder(address indexed to, uint256 amount);
+    event AdminAdded(address indexed to);
+    event AdminRemoved(address indexed to);
+    event ContractDrained(uint256 amount);
+    event PrimaryAdminTransferred(address indexed newAdmin);
+    event ERC20FundsReceived(address indexed token, address indexed from, uint256 amount);
+    event ContractLocked(bool locked);
+
+    // Withdrawal request events
+    event WithdrawRequested(address indexed builder, uint256 requestId, uint256 amount, string reason);
+    event WithdrawApproved(address indexed builder, uint256 requestId);
+    event WithdrawRejected(address indexed builder, uint256 requestId);
+    event WithdrawCompleted(address indexed builder, uint256 requestId, uint256 amount);
+    event ApprovalRequirementChanged(address indexed builder, bool requiresApproval);
+}
+
+
+// File contracts/Abstracts/ICohortStructs.sol
+
+// Original license: SPDX_License_Identifier: MIT
+
+/**
+ * @title ICohortStructs
+ * @dev Interface defining common structures and errors used across cohort contracts
+ */
+interface ICohortStructs {
+    // Builder stream information
+    struct BuilderStreamInfo {
+        uint256 cap; // Maximum amount of funds that can be withdrawn in a cycle
+        uint256 last; // The timestamp of the last withdrawal
+    }
+
+    // Withdrawal request structure
+    struct WithdrawRequest {
+        uint256 amount;
+        string reason;
+        bool approved;
+        bool completed;
+        uint256 requestTime;
+    }
+
+    // Custom errors
+    error NoValueSent();
+    error InsufficientFundsInContract(uint256 requested, uint256 unlocked);
+    error NoActiveStreamForBuilder(address builder);
+    error InsufficientInStream(uint256 requested, uint256 unlocked);
+    error EtherSendingFailed();
+    error LengthsMismatch();
+    error InvalidBuilderAddress();
+    error BuilderAlreadyExists();
+    error ContractIsLocked();
+    error MaxBuildersReached();
+    error AccessDenied();
+    error InvalidTokenAddress();
+    error NoFundsInContract();
+    error ERC20TransferFailed();
+    error ERC20SendingFailed(address token, address recipient);
+    error ERC20FundsTransferFailed(address token, address to, uint256 amount);
+    error BelowMinimumCap(uint256 provided, uint256 minimum);
+    error NotAuthorized();
+    error InvalidNewAdminAddress();
+    error MaxNameLength(uint256 providedLength, uint256 maxLength);
+    error NoWithdrawRequest();
+    error WithdrawRequestNotApproved();
+    error WithdrawRequestAlreadyCompleted();
+    error WithdrawRequestNotFound();
+    error PendingWithdrawRequestExists();
+    error AlreadyWithdrawnOneTime();
+}
+
+
+// File contracts/Abstracts/CohortBase.sol
 
 // Original license: SPDX_License_Identifier: MIT
 
 
 
 
-//A smart contract for streaming Eth or ERC20 tokens to builders
 
-// Custom errors
-error NoValueSent();
-error InsufficientFundsInContract(uint256 requested, uint256 unlocked);
-error NoActiveStreamForBuilder(address builder);
-error InsufficientInStream(uint256 requested, uint256 unlocked);
-error EtherSendingFailed();
-error LengthsMismatch();
-error InvalidBuilderAddress();
-error BuilderAlreadyExists();
-error ContractIsLocked();
-error MaxBuildersReached();
-error AccessDenied();
-error InvalidTokenAddress();
-error NoFundsInContract();
-error ERC20TransferFailed();
-error ERC20SendingFailed(address token, address recipient);
-error ERC20FundsTransferFailed(address token, address to, uint256 amount);
-error BelowMinimumCap(uint256 provided, uint256 minimum);
-error NotAuthorized();
-error InvalidNewAdminAddress();
-error MaxNameLength(uint256 providedLength, uint256 maxLength);
 
-error NoWithdrawRequest();
-error WithdrawRequestNotApproved();
-error WithdrawRequestAlreadyCompleted();
-error WithdrawRequestNotFound();
-error PendingWithdrawRequestExists();
-
-error AlreadyWithdrawnOneTime();
-
-contract Cohort is AccessControl, ReentrancyGuard {
+/**
+ * @title CohortBase
+ * @dev Base contract containing core functionality and variables for Cohort contracts
+ */
+abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, CohortEvents {
     using SafeERC20 for IERC20;
 
+    // Constants
     uint256 constant MAXCREATORS = 25;
     uint256 constant MINIMUM_CAP = 0.00001 ether;
     uint256 constant MINIMUM_ERC20_CAP = 1 * 10 ** 6;
     uint256 constant MAX_NAME_LENGTH = 40;
 
-    // Cycle duration for the stream
+    // Cohort configuration
     uint256 public cycle;
-
-    // ERC20 support
     bool public isERC20;
-
-    // One time withdraw stream
     bool public isONETIME;
-
-    // Cohort lock control
     bool public locked;
-
-    // Cohort approval requirement
     bool public requireApprovalForWithdrawals;
-
-    // Cohort name
     string public name;
-
-    // Cohort description
     string public description;
-
-    // Token address for ERC20 support
     address public tokenAddress;
-
-    // Primary admin for remaining balances
     address public primaryAdmin;
 
-    // Constructor to setup admin role and initial builders
+    // Builder data
+    mapping(address => BuilderStreamInfo) public streamingBuilders;
+    mapping(address => uint256) public builderIndex;
+    address[] public activeBuilders;
+    mapping(address => bool) public isAdmin;
+
+    // Withdrawal request data
+    mapping(address => WithdrawRequest[]) public withdrawRequests;
+    mapping(address => bool) public requiresApproval;
+
+    /**
+     * @dev Constructor to setup admin role and initial builders
+     */
     constructor(
         address _primaryAdmin,
         address _tokenAddress,
@@ -1100,104 +1155,22 @@ contract Cohort is AccessControl, ReentrancyGuard {
         }
     }
 
-    // Function to modify admin roles
-    function modifyAdminRole(address adminAddress, bool shouldGrant) public onlyAdmin {
-        if (shouldGrant) {
-            if (streamingBuilders[adminAddress].cap != 0) revert InvalidBuilderAddress();
-            grantRole(DEFAULT_ADMIN_ROLE, adminAddress);
-            isAdmin[adminAddress] = true;
-            emit AdminAdded(adminAddress);
-        } else {
-            if (adminAddress == primaryAdmin) revert AccessDenied();
-            revokeRole(DEFAULT_ADMIN_ROLE, adminAddress);
-            isAdmin[adminAddress] = false;
-            emit AdminRemoved(adminAddress);
-        }
-    }
-
-    // Struct to store information about builder's stream
-    struct BuilderStreamInfo {
-        uint256 cap; // Maximum amount of funds that can be withdrawn in a cycle
-        uint256 last; // The timestamp of the last withdrawal
-    }
-
-    // Function to transfer primary admin role
-    function transferPrimaryAdmin(address newPrimaryAdmin) public {
-        if (msg.sender != primaryAdmin) revert NotAuthorized();
-        if (newPrimaryAdmin == address(0)) revert InvalidNewAdminAddress();
-
-        primaryAdmin = newPrimaryAdmin;
-
-        _revokeRole(DEFAULT_ADMIN_ROLE, primaryAdmin);
-        _grantRole(DEFAULT_ADMIN_ROLE, newPrimaryAdmin);
-
-        emit PrimaryAdminTransferred(newPrimaryAdmin);
-    }
-
-    // Withdrawal request structure
-    struct WithdrawRequest {
-        uint256 amount;
-        string reason;
-        bool approved;
-        bool completed;
-        uint256 requestTime;
-    }
-
-    // Mapping to store withdrawal requests for each builder
-    mapping(address => WithdrawRequest[]) public withdrawRequests;
-
-    // Mapping to track whether specific builders require approval
-    mapping(address => bool) public requiresApproval;
-
-    // Modifier to check for admin permissions
+    // Modifiers
     modifier onlyAdmin() {
         if (!hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) revert AccessDenied();
         _;
     }
 
-    // Mapping to store the stream info of each builder
-    mapping(address => BuilderStreamInfo) public streamingBuilders;
-    // Mapping to store the index of each builder in the activeBuilders array
-    mapping(address => uint256) public builderIndex;
-    // Array to store the addresses of all active builders
-    address[] public activeBuilders;
-    // Mapping to see if an address is admin
-    mapping(address => bool) public isAdmin;
-
-    // Declare events to log various activities
-    event FundsReceived(address indexed from, uint256 amount);
-    event Withdraw(address indexed to, uint256 amount, string reason);
-    event AddBuilder(address indexed to, uint256 amount);
-    event UpdateBuilder(address indexed to, uint256 amount);
-
-    event AdminAdded(address indexed to);
-    event AdminRemoved(address indexed to);
-    event ContractDrained(uint256 amount);
-    event PrimaryAdminTransferred(address indexed newAdmin);
-    event ERC20FundsReceived(address indexed token, address indexed from, uint256 amount);
-
-    event ContractLocked(bool locked);
-
-    // Withdrawal request events
-    event WithdrawRequested(address indexed builder, uint256 requestId, uint256 amount, string reason);
-    event WithdrawApproved(address indexed builder, uint256 requestId);
-    event WithdrawRejected(address indexed builder, uint256 requestId);
-    event WithdrawCompleted(address indexed builder, uint256 requestId, uint256 amount);
-    event ApprovalRequirementChanged(address indexed builder, bool requiresApproval);
-
-    // Check if a stream for a builder is active
     modifier isStreamActive(address _builder) {
         if (streamingBuilders[_builder].cap == 0) revert NoActiveStreamForBuilder(_builder);
         _;
     }
 
-    // Check if the contract is locked
     modifier isCohortLocked() {
         if (locked) revert ContractIsLocked();
         _;
     }
 
-    // Modifier to check if builder has no pending withdrawal requests
     modifier noPendingRequests(address _builder) {
         bool hasPending = false;
         uint256 requestCount = withdrawRequests[_builder].length;
@@ -1216,27 +1189,173 @@ contract Cohort is AccessControl, ReentrancyGuard {
         _;
     }
 
-    // Fund contract
-    function fundContract(uint256 _amount) public payable {
-        if (!isERC20) {
-            if (msg.value == 0) revert NoValueSent();
-            emit FundsReceived(msg.sender, msg.value);
+    /**
+     * @dev Validates the input for a builder
+     */
+    function validateBuilderInput(address payable _builder, uint256 _cap) internal view {
+        if (_cap < MINIMUM_CAP && !isERC20) revert BelowMinimumCap(_cap, MINIMUM_CAP);
+        if (_cap < MINIMUM_ERC20_CAP && isERC20) revert BelowMinimumCap(_cap, MINIMUM_ERC20_CAP);
+        if (_builder == address(0)) revert InvalidBuilderAddress();
+        if (isAdmin[_builder]) revert InvalidBuilderAddress();
+        if (streamingBuilders[_builder].cap > 0) revert BuilderAlreadyExists();
+    }
+
+    // Fallback function to receive ether
+    receive() external payable {}
+}
+
+
+// File contracts/Abstracts/CohortAdmin.sol
+
+// Original license: SPDX_License_Identifier: MIT
+
+/**
+ * @title CohortAdmin
+ * @dev Contract containing admin functionality for managing Cohort
+ */
+abstract contract CohortAdmin is CohortBase {
+    using SafeERC20 for IERC20;
+
+    /**
+     * @dev Modify admin roles
+     * @param adminAddress Address to grant/revoke admin role
+     * @param shouldGrant Whether to grant or revoke the role
+     */
+    function modifyAdminRole(address adminAddress, bool shouldGrant) public onlyAdmin {
+        if (shouldGrant) {
+            if (streamingBuilders[adminAddress].cap != 0) revert InvalidBuilderAddress();
+            grantRole(DEFAULT_ADMIN_ROLE, adminAddress);
+            isAdmin[adminAddress] = true;
+            emit AdminAdded(adminAddress);
         } else {
-            if (_amount == 0) revert NoValueSent();
-
-            IERC20(tokenAddress).safeTransferFrom(msg.sender, address(this), _amount);
-
-            emit ERC20FundsReceived(tokenAddress, msg.sender, _amount);
+            if (adminAddress == primaryAdmin) revert AccessDenied();
+            revokeRole(DEFAULT_ADMIN_ROLE, adminAddress);
+            isAdmin[adminAddress] = false;
+            emit AdminRemoved(adminAddress);
         }
     }
 
-    // Lock or unlock the contract
+    /**
+     * @dev Transfer primary admin role
+     * @param newPrimaryAdmin Address of the new primary admin
+     */
+    function transferPrimaryAdmin(address newPrimaryAdmin) public {
+        if (msg.sender != primaryAdmin) revert NotAuthorized();
+        if (newPrimaryAdmin == address(0)) revert InvalidNewAdminAddress();
+
+        primaryAdmin = newPrimaryAdmin;
+
+        _revokeRole(DEFAULT_ADMIN_ROLE, primaryAdmin);
+        _grantRole(DEFAULT_ADMIN_ROLE, newPrimaryAdmin);
+
+        emit PrimaryAdminTransferred(newPrimaryAdmin);
+    }
+
+    /**
+     * @dev Lock or unlock the contract
+     * @param _enable Whether to lock the contract
+     */
     function toggleLock(bool _enable) public onlyAdmin {
         locked = _enable;
         emit ContractLocked(_enable);
     }
 
-    // Get all builders' data.
+    /**
+     * @dev Set whether this contract requires approval for withdrawals
+     * @param _enable Whether to require approval
+     */
+    function toggleContractApprovalRequirement(bool _enable) public onlyAdmin {
+        requireApprovalForWithdrawals = _enable;
+        emit ApprovalRequirementChanged(address(this), _enable);
+    }
+
+    /**
+     * @dev Set whether a builder requires approval for withdrawals
+     * @param _builder Builder address
+     * @param _requiresApproval Whether the builder requires approval
+     */
+    function setBuilderApprovalRequirement(
+        address _builder,
+        bool _requiresApproval
+    ) public onlyAdmin isStreamActive(_builder) {
+        requiresApproval[_builder] = _requiresApproval;
+        emit ApprovalRequirementChanged(_builder, _requiresApproval);
+    }
+
+    /**
+     * @dev Approve a withdrawal request
+     * @param _builder Builder address
+     * @param _requestId ID of the request to approve
+     */
+    function approveWithdraw(address _builder, uint256 _requestId) public onlyAdmin {
+        if (withdrawRequests[_builder].length <= _requestId) revert WithdrawRequestNotFound();
+        WithdrawRequest storage request = withdrawRequests[_builder][_requestId];
+
+        if (request.completed) revert WithdrawRequestAlreadyCompleted();
+
+        request.approved = true;
+        emit WithdrawApproved(_builder, _requestId);
+    }
+
+    /**
+     * @dev Reject a withdrawal request
+     * @param _builder Builder address
+     * @param _requestId ID of the request to reject
+     */
+    function rejectWithdraw(address _builder, uint256 _requestId) public onlyAdmin {
+        if (withdrawRequests[_builder].length <= _requestId) revert WithdrawRequestNotFound();
+        WithdrawRequest storage request = withdrawRequests[_builder][_requestId];
+
+        if (request.completed) revert WithdrawRequestAlreadyCompleted();
+
+        // Delete the request by marking it as completed but not approved
+        request.completed = true;
+        request.approved = false;
+        emit WithdrawRejected(_builder, _requestId);
+    }
+
+    /**
+     * @dev Drain the contract to the primary admin address
+     * @param _token Token address (zero address for ETH)
+     */
+    function drainContract(address _token) public onlyAdmin nonReentrant {
+        uint256 remainingBalance;
+
+        // Drain Ether
+        if (_token == address(0)) {
+            remainingBalance = address(this).balance;
+            if (remainingBalance > 0) {
+                (bool sent, ) = primaryAdmin.call{ value: remainingBalance }("");
+                if (!sent) revert EtherSendingFailed();
+                emit ContractDrained(remainingBalance);
+            }
+            return;
+        }
+
+        // Drain ERC20 tokens
+        remainingBalance = IERC20(_token).balanceOf(address(this));
+        if (remainingBalance > 0) {
+            IERC20(_token).safeTransfer(primaryAdmin, remainingBalance);
+            emit ContractDrained(remainingBalance);
+        }
+    }
+}
+
+
+// File contracts/Abstracts/CohortBuilderManager.sol
+
+// Original license: SPDX_License_Identifier: MIT
+
+/**
+ * @title CohortBuilderManager
+ * @dev Contract containing functionality for managing builders in a Cohort
+ */
+abstract contract CohortBuilderManager is CohortAdmin {
+    /**
+     * @dev Get all builders' data
+     * @param _builders Array of builder addresses
+     * @return Array of BuilderStreamInfo for each builder
+     */
     function allBuildersData(address[] calldata _builders) public view returns (BuilderStreamInfo[] memory) {
         uint256 builderLength = _builders.length;
         BuilderStreamInfo[] memory result = new BuilderStreamInfo[](builderLength);
@@ -1250,7 +1369,11 @@ contract Cohort is AccessControl, ReentrancyGuard {
         return result;
     }
 
-    // Get the unlocked amount for a builder.
+    /**
+     * @dev Get the unlocked amount for a builder
+     * @param _builder Builder address
+     * @return Unlocked amount for the builder
+     */
     function unlockedBuilderAmount(address _builder) public view isStreamActive(_builder) returns (uint256) {
         BuilderStreamInfo memory builderStream = streamingBuilders[_builder];
 
@@ -1272,7 +1395,11 @@ contract Cohort is AccessControl, ReentrancyGuard {
         }
     }
 
-    // Add a new builder's stream. No more than 25 builders are allowed.
+    /**
+     * @dev Add a new builder's stream
+     * @param _builder Builder address
+     * @param _cap Maximum amount of funds that can be withdrawn in a cycle
+     */
     function addBuilderStream(address payable _builder, uint256 _cap) public onlyAdmin {
         // Check for maximum builders.
         if (activeBuilders.length >= MAXCREATORS) revert MaxBuildersReached();
@@ -1295,7 +1422,11 @@ contract Cohort is AccessControl, ReentrancyGuard {
         emit AddBuilder(_builder, _cap);
     }
 
-    // Add a batch of builders.
+    /**
+     * @dev Add a batch of builders
+     * @param _builders Array of builder addresses
+     * @param _caps Array of cap values
+     */
     function addBatch(address[] memory _builders, uint256[] memory _caps) public onlyAdmin {
         uint256 cLength = _builders.length;
         if (_builders.length >= MAXCREATORS) revert MaxBuildersReached();
@@ -1308,17 +1439,11 @@ contract Cohort is AccessControl, ReentrancyGuard {
         }
     }
 
-    // Validate the input for a builder
-    function validateBuilderInput(address payable _builder, uint256 _cap) internal view {
-        //check if minimum cap is met, eth mode and erc20 mode
-        if (_cap < MINIMUM_CAP && !isERC20) revert BelowMinimumCap(_cap, MINIMUM_CAP);
-        if (_cap < MINIMUM_ERC20_CAP && isERC20) revert BelowMinimumCap(_cap, MINIMUM_ERC20_CAP);
-        if (_builder == address(0)) revert InvalidBuilderAddress();
-        if (isAdmin[_builder]) revert InvalidBuilderAddress();
-        if (streamingBuilders[_builder].cap > 0) revert BuilderAlreadyExists();
-    }
-
-    // Update a builder's stream cap
+    /**
+     * @dev Update a builder's stream cap
+     * @param _builder Builder address
+     * @param _newCap New cap value
+     */
     function updateBuilderStreamCap(
         address payable _builder,
         uint256 _newCap
@@ -1330,12 +1455,17 @@ contract Cohort is AccessControl, ReentrancyGuard {
 
         builderStream.cap = _newCap;
 
-        builderStream.last = block.timestamp - (cycle);
+        if (!isONETIME) {
+            builderStream.last = block.timestamp - (cycle);
+        }
 
         emit UpdateBuilder(_builder, _newCap);
     }
 
-    // Remove a builder's stream
+    /**
+     * @dev Remove a builder's stream
+     * @param _builder Builder address
+     */
     function removeBuilderStream(address _builder) public onlyAdmin isStreamActive(_builder) {
         uint256 builderIndexToRemove = builderIndex[_builder];
         address lastBuilder = activeBuilders[activeBuilders.length - 1];
@@ -1352,23 +1482,25 @@ contract Cohort is AccessControl, ReentrancyGuard {
 
         emit UpdateBuilder(_builder, 0);
     }
+}
 
-    // Set whether a builder requires approval for withdrawals
-    function setBuilderApprovalRequirement(
-        address _builder,
-        bool _requiresApproval
-    ) public onlyAdmin isStreamActive(_builder) {
-        requiresApproval[_builder] = _requiresApproval;
-        emit ApprovalRequirementChanged(_builder, _requiresApproval);
-    }
 
-    // Set whether this contracts requires approval for withdrawals
-    function toggleContractApprovalRequirement(bool _enable) public onlyAdmin {
-        requireApprovalForWithdrawals = _enable;
-        emit ApprovalRequirementChanged(address(this), _enable);
-    }
+// File contracts/Abstracts/CohortWithdrawal.sol
 
-    // Request a withdrawal - for builders that require approval
+// Original license: SPDX_License_Identifier: MIT
+
+/**
+ * @title CohortWithdrawal
+ * @dev Contract containing functionality for withdrawals in a Cohort
+ */
+abstract contract CohortWithdrawal is CohortBuilderManager {
+    using SafeERC20 for IERC20;
+
+    /**
+     * @dev Request a withdrawal for builders that require approval
+     * @param _amount Amount to withdraw
+     * @param _reason Reason for withdrawal
+     */
     function _requestWithdraw(uint256 _amount, string memory _reason) private noPendingRequests(msg.sender) {
         // Check if the builder has enough unlocked to withdraw
         uint256 totalAmountCanWithdraw = unlockedBuilderAmount(msg.sender);
@@ -1391,31 +1523,10 @@ contract Cohort is AccessControl, ReentrancyGuard {
         emit WithdrawRequested(msg.sender, requestId, _amount, _reason);
     }
 
-    // Approve a withdrawal request - only admins can call this
-    function approveWithdraw(address _builder, uint256 _requestId) public onlyAdmin {
-        if (withdrawRequests[_builder].length <= _requestId) revert WithdrawRequestNotFound();
-        WithdrawRequest storage request = withdrawRequests[_builder][_requestId];
-
-        if (request.completed) revert WithdrawRequestAlreadyCompleted();
-
-        request.approved = true;
-        emit WithdrawApproved(_builder, _requestId);
-    }
-
-    // Reject a withdrawal request - only admins can call this
-    function rejectWithdraw(address _builder, uint256 _requestId) public onlyAdmin {
-        if (withdrawRequests[_builder].length <= _requestId) revert WithdrawRequestNotFound();
-        WithdrawRequest storage request = withdrawRequests[_builder][_requestId];
-
-        if (request.completed) revert WithdrawRequestAlreadyCompleted();
-
-        // Delete the request by marking it as completed but not approved
-        request.completed = true;
-        request.approved = false;
-        emit WithdrawRejected(_builder, _requestId);
-    }
-
-    // Complete a withdrawal that was previously approved
+    /**
+     * @dev Complete a withdrawal that was previously approved
+     * @param _requestId ID of the request to complete
+     */
     function completeWithdraw(uint256 _requestId) public isStreamActive(msg.sender) nonReentrant isCohortLocked {
         // Check if request exists
         if (withdrawRequests[msg.sender].length <= _requestId) revert WithdrawRequestNotFound();
@@ -1440,31 +1551,17 @@ contract Cohort is AccessControl, ReentrancyGuard {
         emit Withdraw(msg.sender, request.amount, request.reason);
     }
 
-    function streamWithdraw(
-        uint256 _amount,
-        string memory _reason
-    ) public isStreamActive(msg.sender) nonReentrant isCohortLocked {
-        if (requiresApproval[msg.sender]) {
-            _requestWithdraw(_amount, _reason);
-            return;
-        }
-
-        if (isONETIME) {
-            _processOneTimeWithdraw();
-        } else {
-            _processStreamWithdraw(_amount);
-        }
-
-        emit Withdraw(msg.sender, _amount, _reason);
-    }
-
+    /**
+     * @dev Process a withdrawal for a streamed cohort
+     * @param _amount Amount to withdraw
+     */
     function _processStreamWithdraw(uint256 _amount) private {
         uint256 totalAmountCanWithdraw = unlockedBuilderAmount(msg.sender);
         if (totalAmountCanWithdraw < _amount) {
             revert InsufficientInStream(_amount, totalAmountCanWithdraw);
         }
 
-        // Process the withdrawal similar to streamWithdraw
+        // Process the withdrawal
         BuilderStreamInfo storage builderStream = streamingBuilders[msg.sender];
         uint256 builderstreamLast = builderStream.last;
         uint256 timestamp = block.timestamp;
@@ -1494,6 +1591,9 @@ contract Cohort is AccessControl, ReentrancyGuard {
         builderStream.last = builderstreamLast + (((timestamp - builderstreamLast) * _amount) / totalAmountCanWithdraw);
     }
 
+    /**
+     * @dev Process a one-time withdrawal
+     */
     function _processOneTimeWithdraw() private {
         BuilderStreamInfo storage builderStream = streamingBuilders[msg.sender];
 
@@ -1524,31 +1624,92 @@ contract Cohort is AccessControl, ReentrancyGuard {
         builderStream.last = block.timestamp;
     }
 
-    // Drain the contract to the primary admin address
-    function drainContract(address _token) public onlyAdmin nonReentrant {
-        uint256 remainingBalance;
-
-        // Drain Ether
-        if (_token == address(0)) {
-            remainingBalance = address(this).balance;
-            if (remainingBalance > 0) {
-                (bool sent, ) = primaryAdmin.call{ value: remainingBalance }("");
-                if (!sent) revert EtherSendingFailed();
-                emit ContractDrained(remainingBalance);
-            }
+    /**
+     * @dev Stream withdraw for a builder
+     * @param _amount Amount to withdraw
+     * @param _reason Reason for withdrawal
+     */
+    function streamWithdraw(
+        uint256 _amount,
+        string memory _reason
+    ) public isStreamActive(msg.sender) nonReentrant isCohortLocked {
+        if (requiresApproval[msg.sender]) {
+            _requestWithdraw(_amount, _reason);
             return;
         }
 
-        // Drain ERC20 tokens
-        remainingBalance = IERC20(_token).balanceOf(address(this));
-        if (remainingBalance > 0) {
-            IERC20(_token).safeTransfer(primaryAdmin, remainingBalance);
-            emit ContractDrained(remainingBalance);
+        if (isONETIME) {
+            _processOneTimeWithdraw();
+        } else {
+            _processStreamWithdraw(_amount);
+        }
+
+        emit Withdraw(msg.sender, _amount, _reason);
+    }
+}
+
+
+// File contracts/Abstracts/CohortFunding.sol
+
+// Original license: SPDX_License_Identifier: MIT
+
+/**
+ * @title CohortFunding
+ * @dev Contract containing functionality for funding a Cohort
+ */
+abstract contract CohortFunding is CohortWithdrawal {
+    using SafeERC20 for IERC20;
+
+    /**
+     * @dev Fund the contract with ETH or ERC20 tokens
+     * @param _amount Amount to fund (for ERC20 tokens)
+     */
+    function fundContract(uint256 _amount) public payable {
+        if (!isERC20) {
+            if (msg.value == 0) revert NoValueSent();
+            emit FundsReceived(msg.sender, msg.value);
+        } else {
+            if (_amount == 0) revert NoValueSent();
+
+            IERC20(tokenAddress).safeTransferFrom(msg.sender, address(this), _amount);
+
+            emit ERC20FundsReceived(tokenAddress, msg.sender, _amount);
         }
     }
+}
 
-    // Fallback function to receive ether
-    receive() external payable {}
+
+// File contracts/Cohort.sol
+
+// Original license: SPDX_License_Identifier: MIT
+
+/**
+ * @title Cohort
+ * @dev Main contract for streaming ETH or ERC20 tokens to builders
+ * Inherits all functionality from modular contracts
+ */
+contract Cohort is CohortFunding {
+    /**
+     * @dev Constructor that passes parameters to the base contract
+     * @param _primaryAdmin Address of the primary admin
+     * @param _tokenAddress Address of ERC20 token (zero address for ETH)
+     * @param _name Name of the cohort
+     * @param _description Description of the cohort
+     * @param _cycle Cycle duration
+     * @param _builders Array of builder addresses
+     * @param _caps Array of cap values for builders
+     * @param _requiresApproval Whether withdrawals require approval
+     */
+    constructor(
+        address _primaryAdmin,
+        address _tokenAddress,
+        string memory _name,
+        string memory _description,
+        uint256 _cycle,
+        address[] memory _builders,
+        uint256[] memory _caps,
+        bool _requiresApproval
+    ) CohortBase(_primaryAdmin, _tokenAddress, _name, _description, _cycle, _builders, _caps, _requiresApproval) {}
 }` as const;
 
 export default source;
