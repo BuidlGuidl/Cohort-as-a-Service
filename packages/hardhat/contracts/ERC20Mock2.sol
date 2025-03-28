@@ -3,6 +3,10 @@ pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+/**
+ * @title CohortFactory
+ * @dev Mock ERC20 token with decimals set to 6
+ */
 contract ERC20Mock2 is ERC20 {
     uint256 public faucetAmount;
 

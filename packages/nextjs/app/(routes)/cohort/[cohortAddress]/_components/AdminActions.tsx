@@ -18,7 +18,7 @@ export const AdminActions = ({ cohortAddress, adminAddress }: AdminActionsProps)
         </label>
         <ul
           tabIndex={0}
-          className="dropdown-content z-[1] menu p-2 space-y-1 shadow bg-base-100 rounded-box border w-max"
+          className="dropdown-content z-[20] menu p-2 space-y-1 shadow bg-base-100 rounded-box border w-max"
         >
           <li>
             <label htmlFor={`remove-admin-modal-${adminAddress.slice(-8)}`} className="w-full">

@@ -538,6 +538,10 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
 
 // Original license: SPDX_License_Identifier: MIT
 
+/**
+ * @title CohortFactory
+ * @dev Mock ERC20 token with decimals set to 6
+ */
 contract ERC20Mock2 is ERC20 {
     uint256 public faucetAmount;
 
