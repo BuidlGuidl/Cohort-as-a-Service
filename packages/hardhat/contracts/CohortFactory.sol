@@ -75,8 +75,11 @@ contract CohortFactory is Ownable {
      * @dev Calculates required ETH amount for creation fee based on current ETH price
      * @return Required ETH amount in wei
      */
+
     function getRequiredEthAmount() public view returns (uint256) {
-        uint256 ethPrice = PriceConverter.getPrice(priceFeed);
+        // Using 1 hour as the maxStalePeriod
+        uint256 maxStalePeriod = 1 * 60 * 60;
+        uint256 ethPrice = PriceConverter.getPrice(priceFeed, maxStalePeriod);
         return (creationFeeUSD * 1e18) / ethPrice;
     }
 
@@ -103,7 +106,8 @@ contract CohortFactory is Ownable {
     ) external payable returns (address) {
         uint256 requiredEth = getRequiredEthAmount();
 
-        if (msg.value.getConversionRate(priceFeed) < creationFeeUSD) {
+        uint256 maxStalePeriod = 1 * 60 * 60;
+        if (msg.value.getConversionRate(priceFeed, maxStalePeriod) < creationFeeUSD) {
             revert InsufficientPayment(requiredEth, msg.value);
         }
 

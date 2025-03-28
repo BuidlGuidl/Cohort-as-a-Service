@@ -78,8 +78,7 @@ abstract contract CohortWithdrawal is CohortBuilderManager {
         // Process the withdrawal
         BuilderStreamInfo storage builderStream = streamingBuilders[msg.sender];
         uint256 builderstreamLast = builderStream.last;
-        uint256 timestamp = block.timestamp;
-        uint256 cappedLast = timestamp - cycle;
+        uint256 cappedLast = block.timestamp - cycle;
         if (builderstreamLast < cappedLast) {
             builderstreamLast = cappedLast;
         }
@@ -102,7 +101,9 @@ abstract contract CohortWithdrawal is CohortBuilderManager {
         }
 
         // Update last withdrawal time
-        builderStream.last = builderstreamLast + (((timestamp - builderstreamLast) * _amount) / totalAmountCanWithdraw);
+        builderStream.last =
+            builderstreamLast +
+            (((block.timestamp - builderstreamLast) * _amount) / totalAmountCanWithdraw);
     }
 
     /**

@@ -36,7 +36,6 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
     mapping(address => BuilderStreamInfo) public streamingBuilders;
     mapping(address => uint256) public builderIndex;
     address[] public activeBuilders;
-    mapping(address => bool) public isAdmin;
 
     // Withdrawal request data
     mapping(address => WithdrawRequest[]) public withdrawRequests;
@@ -58,7 +57,6 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
         if (bytes(_name).length > MAX_NAME_LENGTH) revert MaxNameLength(bytes(_name).length, MAX_NAME_LENGTH);
 
         _grantRole(DEFAULT_ADMIN_ROLE, _primaryAdmin);
-        isAdmin[_primaryAdmin] = true;
         primaryAdmin = _primaryAdmin;
         name = _name;
         description = _description;
@@ -144,7 +142,7 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
         if (_cap < MINIMUM_CAP && !isERC20) revert BelowMinimumCap(_cap, MINIMUM_CAP);
         if (_cap < MINIMUM_ERC20_CAP && isERC20) revert BelowMinimumCap(_cap, MINIMUM_ERC20_CAP);
         if (_builder == address(0)) revert InvalidBuilderAddress();
-        if (isAdmin[_builder]) revert InvalidBuilderAddress();
+        if (hasRole(DEFAULT_ADMIN_ROLE, _builder)) revert InvalidBuilderAddress();
         if (streamingBuilders[_builder].cap > 0) revert BuilderAlreadyExists();
     }
 
