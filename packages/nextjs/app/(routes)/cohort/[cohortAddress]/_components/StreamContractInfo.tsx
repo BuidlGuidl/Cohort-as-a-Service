@@ -8,7 +8,10 @@ import { useSwitchChain } from "wagmi";
 import { BanknotesIcon } from "@heroicons/react/24/outline";
 import { EtherInput } from "~~/components/scaffold-eth";
 import { Address, Balance } from "~~/components/scaffold-eth";
+import { getChainById } from "~~/data/chains";
+import { getNetworkColor } from "~~/hooks/scaffold-eth";
 import { useCohortWithdraw } from "~~/hooks/useCohortWithdraw";
+import { ChainWithAttributes } from "~~/utils/scaffold-eth";
 
 interface StreamContractInfoProps {
   owner: string;
@@ -55,6 +58,7 @@ export const StreamContractInfo = ({
 }: StreamContractInfoProps) => {
   const { address, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
+  const [networkColor, setNetworkColor] = useState<string>("#bbbbbb");
 
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
@@ -81,6 +85,14 @@ export const StreamContractInfo = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSuccess]);
 
+  useEffect(() => {
+    if (!chainId) return;
+    const chain = getChainById(chainId);
+    console.log(chain?.name);
+    const networkColor = getNetworkColor(chain as ChainWithAttributes, true);
+    setNetworkColor(networkColor);
+  }, [chainId]);
+
   return (
     <>
       <div className="">
@@ -103,7 +115,9 @@ export const StreamContractInfo = ({
                 </div>
               )}
 
-              <span className="text-xs text-[#f01a37]">{chainName}</span>
+              <span className="text-xs" style={{ color: networkColor }}>
+                {chainName}
+              </span>
             </div>
             <div className="w-full">
               <span className="text-xs text-accent/70">{cycle > 0 ? `Cycle: ${cycle} days` : "One Time Cohort"}</span>
