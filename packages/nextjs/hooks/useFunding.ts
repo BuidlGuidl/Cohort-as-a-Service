@@ -40,6 +40,8 @@ export const useFunding = ({
   const [tokenSymbol, setTokenSymbol] = useState<string>();
   const [tokenName, setTokenName] = useState<string>();
 
+  const [isSuccess, setIsSuccess] = useState(false);
+
   const [updateAllowance, setUpdateAllowance] = useState(false);
 
   const { isPending, writeContractAsync } = useWriteContract();
@@ -123,6 +125,7 @@ export const useFunding = ({
           });
 
         await writeTx(makeWriteWithParams);
+        setIsSuccess(true);
       } catch (e: any) {
         const message = getParsedError(e);
         notification.error(message);
@@ -230,5 +233,6 @@ export const useFunding = ({
     tokenName: tokenName,
     tokenDecimals: tokenDecimals,
     isLoading: isLoading || isPending,
+    isSuccess,
   };
 };
