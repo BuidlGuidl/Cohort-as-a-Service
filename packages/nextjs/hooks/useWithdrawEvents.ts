@@ -11,6 +11,7 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
   const [filteredRequestEvents, setFilteredRequestEvents] = useState<any[]>([]);
   const [pendingRequestEvents, setPendingRequestEvents] = useState<any[]>([]);
   const [approvedRequestEvents, setApprovedRequestEvents] = useState<any[]>([]);
+  const [rejectedRequestEvents, setRejectedRequestEvents] = useState<any[]>([]);
 
   const { data: deployedContract } = useLocalDeployedContractInfo({
     contractName: "Cohort",
@@ -153,6 +154,7 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
       const pendingRequests: any[] = [];
       const approvedRequests: any[] = [];
       const processedEvents: any[] = [];
+      const rejectedEvents: any[] = [];
 
       if (requests) {
         for (let i = 0; i < requests.length; i++) {
@@ -167,12 +169,17 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
               pendingRequests.push(extendedEvent);
             }
           }
+
+          if (extendedEvent.rejected) {
+            rejectedEvents.push(extendedEvent);
+          }
         }
       }
 
       setRequestEvents(processedEvents);
       setPendingRequestEvents(pendingRequests);
       setApprovedRequestEvents(approvedRequests);
+      setRejectedRequestEvents(rejectedEvents);
 
       // Filter for selected address
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -217,6 +224,7 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
     filteredRequestEvents,
     pendingRequestEvents,
     approvedRequestEvents,
+    rejectedRequestEvents,
     isLoadingWithdrawEvents,
     isLoadingRequests,
     filterEventsByAddress,
