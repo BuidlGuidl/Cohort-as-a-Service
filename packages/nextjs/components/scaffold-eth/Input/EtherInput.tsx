@@ -71,6 +71,10 @@ export const EtherInput = ({
   }, [nativeCurrencyPrice, transitoryDisplayValue, displayUsdMode, value]);
 
   const handleChangeNumber = (newValue: string) => {
+    if (newValue.startsWith(".")) {
+      newValue = "0" + newValue;
+    }
+
     if (newValue && !SIGNED_NUMBER_REGEX.test(newValue)) {
       return;
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { EtherInput } from "~~/components/scaffold-eth";
 import { useFunding } from "~~/hooks/useFunding";
 
@@ -16,7 +16,7 @@ export const FundCohort = ({ cohortAddress, tokenAddress, isErc20, tokenSymbol, 
   const [amount, setAmount] = useState<number>(0);
   const [isTransferLoading, setIsTransferLoading] = useState(false);
 
-  const { fund, isLoading, isMining, approve, allowance } = useFunding({
+  const { fund, isLoading, isMining, approve, allowance, isSuccess } = useFunding({
     cohortAddress,
     amount,
     tokenAddress,
@@ -36,6 +36,16 @@ export const FundCohort = ({ cohortAddress, tokenAddress, isErc20, tokenSymbol, 
     }
     setIsTransferLoading(false);
   };
+
+  useEffect(() => {
+    if (isSuccess) {
+      const modalCheckbox = document.getElementById("fund-cohort-modal") as HTMLInputElement;
+      if (modalCheckbox) {
+        modalCheckbox.checked = false;
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuccess]);
 
   return (
     <>

@@ -18,7 +18,7 @@ export const useApproveWithdrawal = ({ cohortAddress, builderAddress, requestId 
   const { targetNetwork } = useTargetNetwork();
   const cohort = contracts?.[baseChainId]["Cohort"];
   const writeTx = useTransactor();
-  const { isPending, writeContractAsync } = useWriteContract();
+  const { isPending, writeContractAsync, isSuccess } = useWriteContract();
 
   const sendContractWriteTx = async () => {
     if (!chain) {
@@ -54,5 +54,6 @@ export const useApproveWithdrawal = ({ cohortAddress, builderAddress, requestId 
   return {
     approveWithdrawal: sendContractWriteTx,
     isPending,
+    isSuccess,
   };
 };

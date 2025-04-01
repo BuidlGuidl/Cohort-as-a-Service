@@ -145,17 +145,23 @@ export const EventsModal: React.FC<EventsModalProps> = ({
                               cohortAddress={cohortAddress}
                               builderAddress={event.args.builder}
                               requestId={event.args.requestId}
+                              onClose={onClose}
                             />
                             <RejectWithdrawal
                               cohortAddress={cohortAddress}
                               builderAddress={event.args.builder}
                               requestId={event.args.requestId}
+                              onClose={onClose}
                             />
                           </div>
                         )}
                         {address == event.args.builder && event.status === "Approved" && (
                           <div className="flex gap-2 mt-2">
-                            <CompleteWithdrawal cohortAddress={cohortAddress} requestId={event.args.requestId} />
+                            <CompleteWithdrawal
+                              cohortAddress={cohortAddress}
+                              requestId={event.args.requestId}
+                              onClose={onClose}
+                            />
                           </div>
                         )}
                         <hr className="my-8" />
