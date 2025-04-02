@@ -47,7 +47,7 @@ export const NETWORKS_EXTRA_DATA: Record<string, ChainAttributes> = {
     color: "#b8af0c",
   },
   [chains.mainnet.id]: {
-    color: "#ff8b9e",
+    color: "#3D4CEB",
   },
   [chains.sepolia.id]: {
     color: ["#5f4bb6", "#87ff65"],
@@ -89,6 +89,12 @@ export const NETWORKS_EXTRA_DATA: Record<string, ChainAttributes> = {
   },
   [chains.celoAlfajores.id]: {
     color: "#476520",
+  },
+  [chains.base.id]: {
+    color: "#96B8F4",
+  },
+  [chains.baseSepolia.id]: {
+    color: "#96B8F4",
   },
 };
 
