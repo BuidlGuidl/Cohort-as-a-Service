@@ -2,6 +2,7 @@ import React from "react";
 import { Actions } from "../members/_components/Actions";
 import { AddBatch } from "../members/_components/AddBatch";
 import { NotificationBell } from "../members/_components/NotificationBell";
+import { NotificationNote } from "../members/_components/NotificationNote";
 import { Address } from "~~/components/scaffold-eth";
 
 interface BuilderStream {
@@ -23,6 +24,7 @@ interface BuildersListProps {
   isLoading: boolean;
   pendingRequestEvents: any[];
   approvedRequestEvents: any[];
+  rejectedRequestEvents: any[];
   openEventsModal: (address: string, view: "contributions" | "requests") => void;
 }
 
@@ -38,6 +40,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
   isLoading,
   pendingRequestEvents,
   approvedRequestEvents,
+  rejectedRequestEvents,
   openEventsModal,
 }) => {
   const getPendingRequestsCount = (builderAddress: string) => {
@@ -48,6 +51,20 @@ export const BuildersList: React.FC<BuildersListProps> = ({
     return approvedRequestEvents.filter(event => event.args && event.args.builder === builderAddress).length;
   };
 
+  const getRejectedRequestsCountInThePastDay = (builderAddress: string) => {
+    const currentTimestamp = BigInt(Math.floor(Date.now() / 1000));
+    const oneDayInSeconds = 86400n; // 24 hours * 60 minutes * 60 seconds
+    const oneDayAgoTimestamp = currentTimestamp - oneDayInSeconds;
+
+    return rejectedRequestEvents.filter(
+      event =>
+        event.args &&
+        event.args.builder === builderAddress &&
+        event.blockData &&
+        event.blockData.timestamp &&
+        event.blockData.timestamp >= oneDayAgoTimestamp,
+    ).length;
+  };
   return (
     <div className="flex flex-col gap-6">
       {isAdmin && <AddBatch cohortAddress={cohortAddress} isErc20={isERC20} tokenDecimals={tokenDecimals} />}
@@ -67,18 +84,23 @@ export const BuildersList: React.FC<BuildersListProps> = ({
           const percentage = Math.floor((unlocked / cap) * 100);
           const pendingCount = getPendingRequestsCount(builderStream.builderAddress);
           const approvedCount = getApprovedRequestsCount(builderStream.builderAddress);
+          const rejectedCount = getRejectedRequestsCountInThePastDay(builderStream.builderAddress);
 
           // Show notification for admin or if it's the builder's own approved requests
           const showNotification =
             (isAdmin && pendingCount > 0) ||
-            (isBuilder && userAddress === builderStream.builderAddress && approvedCount > 0);
+            (isBuilder && userAddress === builderStream.builderAddress && (approvedCount > 0 || rejectedCount > 0));
 
           // Count to display
-          const notificationCount = isAdmin
+          const bellNotificationCount = isAdmin
             ? pendingCount
             : isBuilder && userAddress === builderStream.builderAddress
-              ? approvedCount
+              ? approvedCount + rejectedCount
               : 0;
+
+          const showNotificationNote = isBuilder && pendingCount > 0;
+
+          const noteNotificationCount = pendingCount;
 
           return (
             <div className="flex items-center" key={builderStream.builderAddress}>
@@ -108,9 +130,16 @@ export const BuildersList: React.FC<BuildersListProps> = ({
                     )}
                     {showNotification && (
                       <NotificationBell
-                        count={notificationCount}
+                        count={bellNotificationCount}
                         onClick={() => openEventsModal(builderStream.builderAddress, "requests")}
                         variant={isAdmin ? "warning" : "info"}
+                      />
+                    )}
+                    {showNotificationNote && (
+                      <NotificationNote
+                        count={noteNotificationCount}
+                        onClick={() => openEventsModal(builderStream.builderAddress, "requests")}
+                        variant={"info"}
                       />
                     )}
                   </div>

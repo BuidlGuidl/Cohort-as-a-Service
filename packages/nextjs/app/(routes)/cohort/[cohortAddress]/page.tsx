@@ -52,6 +52,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     filteredRequestEvents,
     pendingRequestEvents,
     approvedRequestEvents,
+    rejectedRequestEvents,
     isLoadingWithdrawEvents,
     isLoadingRequests,
     filterEventsByAddress,
@@ -114,6 +115,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
             isLoading={isLoadingBuilders}
             pendingRequestEvents={pendingRequestEvents}
             approvedRequestEvents={approvedRequestEvents}
+            rejectedRequestEvents={rejectedRequestEvents}
             openEventsModal={openEventsModal}
             tokenDecimals={tokenDecimals}
           />

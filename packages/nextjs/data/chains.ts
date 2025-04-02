@@ -1,3 +1,5 @@
+import { getTargetNetworks } from "~~/utils/scaffold-eth";
+
 export interface Chain {
   id: string;
   name: string;
@@ -67,3 +69,15 @@ export const chains: Chain[] = [
     isEVM: true,
   },
 ];
+
+const allNetworks = getTargetNetworks();
+
+export function getChainById(id: number) {
+  for (const chain of Object.values(allNetworks)) {
+    if ("id" in chain) {
+      if (chain.id === id) {
+        return chain;
+      }
+    }
+  }
+}
