@@ -69,12 +69,12 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     router.push(`/cohort/${params.cohortAddress}/members`);
   };
 
-  // const onProjectClick = () => {
-  //   router.push(`/cohort/${params.cohortAddress}/projects`);
-  // };
+  const onProjectClick = () => {
+    router.push(`/cohort/${params.cohortAddress}/projects`);
+  };
 
   return (
-    <div className="max-w-4xl mt-8">
+    <div className="max-w-4xl">
       {isAdmin && (
         <Link href="/cohorts" className="btn btn-ghost btn-sm rounded-sm">
           <ArrowLongLeftIcon className="w-7 h-4" />
@@ -91,10 +91,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
             Members
           </span>
           contributing to any of the active{" "}
-          <span
-            // onClick={onProjectClick}
-            className="link link-primary"
-          >
+          <span onClick={onProjectClick} className="link link-primary">
             projects
           </span>{" "}
           can submit their work and claim grant streams, while showcasing their contributions to the public.

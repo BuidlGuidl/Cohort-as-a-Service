@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getBytecode, getTransactionReceipt } from "@wagmi/core";
 import { readContract } from "@wagmi/core";
+import axios from "axios";
 import { Plus, Trash } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { erc20Abi, formatEther, parseEther, parseUnits } from "viem";
@@ -212,6 +213,10 @@ const CreateCohortForm = () => {
         console.error("Contract verification failed:", verifyError);
       }
 
+      await axios.post(`/api/cohort`, {
+        deployedAddress,
+        adminAddress: values.adminAddress,
+      });
       router.push(`/cohort/${deployedAddress}`);
     } catch (e) {
       console.error("Error creating cohort", e);

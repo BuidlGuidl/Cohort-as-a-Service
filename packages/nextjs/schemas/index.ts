@@ -30,3 +30,10 @@ export const CreateCohortSchema = z.object({
     .default([]),
   requiresApproval: z.boolean().default(false),
 });
+
+export const CreateProjectSchema = z.object({
+  name: z.string().min(1, "Name is required").max(40, "Name cannot exceed 40 characters"),
+  description: z.string().min(1, "Description is required"),
+  githubUrl: z.string().url("Must be a valid URL").or(z.string().length(0)),
+  websiteUrl: z.string().url("Must be a valid URL").or(z.string().length(0)),
+});

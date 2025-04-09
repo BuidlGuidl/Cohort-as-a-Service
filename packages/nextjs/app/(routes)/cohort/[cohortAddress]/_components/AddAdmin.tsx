@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { AddressInput } from "~~/components/scaffold-eth";
 import { useAddAdmin } from "~~/hooks/useAddAdmin";

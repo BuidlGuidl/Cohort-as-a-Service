@@ -27,7 +27,10 @@
     "postinstall": "husky install",
     "precommit": "lint-staged",
     "vercel": "yarn workspace @se-2/nextjs vercel",
-    "vercel:yolo": "yarn workspace @se-2/nextjs vercel:yolo"
+    "vercel:yolo": "yarn workspace @se-2/nextjs vercel:yolo",
+    "next:generate": "yarn workspace @se-2/nextjs prisma generate",
+    "next:push": "yarn workspace @se-2/nextjs prisma db push",
+    "studio": "yarn workspace @se-2/nextjs prisma studio"
   },
   "packageManager": "yarn@3.2.3",
   "devDependencies": {
