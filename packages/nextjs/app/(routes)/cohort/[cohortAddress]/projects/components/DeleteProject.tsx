@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Project } from "@prisma/client";
 import axios from "axios";
-import { Trash } from "lucide-react";
 import { useSignMessage } from "wagmi";
 import { notification } from "~~/utils/scaffold-eth";
 
