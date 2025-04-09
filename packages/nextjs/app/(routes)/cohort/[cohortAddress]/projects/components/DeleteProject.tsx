@@ -53,7 +53,7 @@ export const DeleteProject = ({ project, onSuccess }: DeleteProjectProps) => {
           notification.success("Project deleted successfully");
           router.refresh();
         } catch (error) {
-          notification.error("Failed to delete project");
+          notification.error("Something went wrong");
           console.error("Error deleting project:", error);
         } finally {
           setIsPending(false);
