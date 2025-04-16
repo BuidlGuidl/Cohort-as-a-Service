@@ -1,10 +1,12 @@
 "use client";
 
+// app/cohort/[cohortAddress]/page.tsx
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BuildersList } from "./_components/BuildersList";
 import { StreamContractInfo } from "./_components/StreamContractInfo";
+import { ThemeCustomizer } from "./_components/ThemeCustomizer";
 import { EventsModal } from "./members/_components/EventsModal";
 import { useAccount } from "wagmi";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
@@ -51,8 +53,8 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     filteredWithdrawnEvents,
     filteredRequestEvents,
     pendingRequestEvents,
-    approvedRequestEvents,
     rejectedRequestEvents,
+    completedRequestEvents,
     isLoadingWithdrawEvents,
     isLoadingRequests,
     filterEventsByAddress,
@@ -111,7 +113,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
             tokenSymbol={tokenSymbol ?? ""}
             isLoading={isLoadingBuilders}
             pendingRequestEvents={pendingRequestEvents}
-            approvedRequestEvents={approvedRequestEvents}
+            completedRequestEvents={completedRequestEvents}
             rejectedRequestEvents={rejectedRequestEvents}
             openEventsModal={openEventsModal}
             tokenDecimals={tokenDecimals}
@@ -166,6 +168,8 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         isAdmin={isAdmin ?? false}
         cohortAddress={params.cohortAddress}
       />
+
+      <ThemeCustomizer cohortAddress={params.cohortAddress} isAdmin={isAdmin ?? false} />
     </div>
   );
 };

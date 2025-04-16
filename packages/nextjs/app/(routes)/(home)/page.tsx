@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { NextPage } from "next";
+import { useAccount } from "wagmi";
 
 const Home: NextPage = () => {
+  const { isConnected } = useAccount();
   return (
     <>
       <div className="flex flex-col flex-grow pt-10 max-w-4xl mx-auto">
@@ -16,15 +19,18 @@ const Home: NextPage = () => {
             users manage their builders
           </p>
         </div>
-        <div className="flex gap-3">
-          {" "}
-          <Link href="/create">
-            <button className="btn btn-sm rounded-sm btn-primary">Create now</button>
-          </Link>
-          <Link href="/cohorts" className="btn btn-ghost btn-sm rounded-sm">
-            My cohorts
-          </Link>
-        </div>
+        {isConnected ? (
+          <div className="flex gap-3">
+            <Link href="/create">
+              <button className="btn btn-sm rounded-sm btn-primary">Create now</button>
+            </Link>
+            <Link href="/cohorts" className="btn btn-ghost btn-sm rounded-sm">
+              My cohorts
+            </Link>
+          </div>
+        ) : (
+          <ConnectButton label="Connect Wallet" />
+        )}
       </div>
     </>
   );

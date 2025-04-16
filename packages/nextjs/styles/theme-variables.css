@@ -1,0 +1,23 @@
+
+:root {
+  /* Default theme colors */
+  --primary: #c913ff;
+  --primary-content: #49ff13;
+  --secondary: #49ff13;
+  --secondary-content: #212638;
+  --accent: #93bbfb;
+  --accent-content: #212638;
+  --neutral: #212638;
+  --neutral-content: #ffffff;
+  --base-100: #000000;
+  --base-200: #f9fbff;
+  --base-300: #dae8ff;
+  --base-content: #ffffff;
+  --font-family: sans-serif;
+}
+
+body {
+  font-family: var(--font-family, sans-serif);
+}
+
+

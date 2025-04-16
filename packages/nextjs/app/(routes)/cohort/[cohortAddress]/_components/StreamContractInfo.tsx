@@ -88,7 +88,6 @@ export const StreamContractInfo = ({
   useEffect(() => {
     if (!chainId) return;
     const chain = getChainById(chainId);
-    console.log(chain?.name);
     const networkColor = getNetworkColor(chain as ChainWithAttributes, true);
     setNetworkColor(networkColor);
   }, [chainId]);

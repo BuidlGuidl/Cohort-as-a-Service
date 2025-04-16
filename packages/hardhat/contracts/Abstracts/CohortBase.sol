@@ -146,6 +146,32 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
         if (streamingBuilders[_builder].cap > 0) revert BuilderAlreadyExists();
     }
 
+    /**
+     * @dev Get the unlocked amount for a builder
+     * @param _builder Builder address
+     * @return Unlocked amount for the builder
+     */
+    function unlockedBuilderAmount(address _builder) public view isStreamActive(_builder) returns (uint256) {
+        BuilderStreamInfo memory builderStream = streamingBuilders[_builder];
+
+        if (isONETIME) {
+            if (builderStream.last == type(uint256).max) {
+                return builderStream.cap;
+            } else {
+                return 0;
+            }
+        }
+
+        uint256 timePassed = block.timestamp - builderStream.last;
+
+        if (timePassed < cycle) {
+            uint256 unlockedAmount = (timePassed * builderStream.cap) / cycle;
+            return unlockedAmount;
+        } else {
+            return builderStream.cap;
+        }
+    }
+
     // Fallback function to receive ether
     receive() external payable {}
 }

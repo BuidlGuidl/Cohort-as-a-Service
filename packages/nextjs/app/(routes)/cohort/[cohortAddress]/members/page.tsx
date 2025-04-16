@@ -49,7 +49,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
     filteredWithdrawnEvents,
     filteredRequestEvents,
     pendingRequestEvents,
-    approvedRequestEvents,
+    completedRequestEvents,
     rejectedRequestEvents,
     isLoadingWithdrawEvents,
     isLoadingRequests,
@@ -83,7 +83,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
             tokenSymbol={tokenSymbol ?? ""}
             isLoading={isLoadingBuilders}
             pendingRequestEvents={pendingRequestEvents}
-            approvedRequestEvents={approvedRequestEvents}
+            completedRequestEvents={completedRequestEvents}
             rejectedRequestEvents={rejectedRequestEvents}
             openEventsModal={openEventsModal}
             tokenDecimals={tokenDecimals}
