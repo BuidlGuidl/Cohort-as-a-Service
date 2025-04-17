@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { NextPage } from "next";
 import { useAccount } from "wagmi";
+import { RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 
 const Home: NextPage = () => {
   const { isConnected } = useAccount();
@@ -29,7 +30,9 @@ const Home: NextPage = () => {
             </Link>
           </div>
         ) : (
-          <ConnectButton label="Connect Wallet" />
+          <div>
+            <RainbowKitCustomConnectButton />
+          </div>
         )}
       </div>
     </>
