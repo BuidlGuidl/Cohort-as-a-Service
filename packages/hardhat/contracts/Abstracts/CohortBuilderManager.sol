@@ -27,32 +27,6 @@ abstract contract CohortBuilderManager is CohortAdmin {
     }
 
     /**
-     * @dev Get the unlocked amount for a builder
-     * @param _builder Builder address
-     * @return Unlocked amount for the builder
-     */
-    function unlockedBuilderAmount(address _builder) public view isStreamActive(_builder) returns (uint256) {
-        BuilderStreamInfo memory builderStream = streamingBuilders[_builder];
-
-        if (isONETIME) {
-            if (builderStream.last == type(uint256).max) {
-                return builderStream.cap;
-            } else {
-                return 0;
-            }
-        }
-
-        uint256 timePassed = block.timestamp - builderStream.last;
-
-        if (timePassed < cycle) {
-            uint256 unlockedAmount = (timePassed * builderStream.cap) / cycle;
-            return unlockedAmount;
-        } else {
-            return builderStream.cap;
-        }
-    }
-
-    /**
      * @dev Add a new builder's stream
      * @param _builder Builder address
      * @param _cap Maximum amount of funds that can be withdrawn in a cycle

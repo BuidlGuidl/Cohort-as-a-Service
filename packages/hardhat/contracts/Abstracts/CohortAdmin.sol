@@ -75,11 +75,87 @@ abstract contract CohortAdmin is CohortBase {
     }
 
     /**
-     * @dev Approve a withdrawal request
+     * @dev Process a withdrawal for a streamed cohort
      * @param _builder Builder address
-     * @param _requestId ID of the request to approve
+     * @param _amount Amount to withdraw
      */
-    function approveWithdraw(address _builder, uint256 _requestId) public onlyAdmin {
+    function _processStreamWithdraw(address _builder, uint256 _amount) internal {
+        uint256 totalAmountCanWithdraw = unlockedBuilderAmount(_builder);
+        if (totalAmountCanWithdraw < _amount) {
+            revert InsufficientInStream(_amount, totalAmountCanWithdraw);
+        }
+
+        // Process the withdrawal
+        BuilderStreamInfo storage builderStream = streamingBuilders[_builder];
+        uint256 builderstreamLast = builderStream.last;
+        uint256 cappedLast = block.timestamp - cycle;
+        if (builderstreamLast < cappedLast) {
+            builderstreamLast = cappedLast;
+        }
+
+        if (!isERC20) {
+            uint256 contractFunds = address(this).balance;
+            if (contractFunds < _amount) {
+                revert InsufficientFundsInContract(_amount, contractFunds);
+            }
+
+            (bool sent, ) = payable(_builder).call{ value: _amount }("");
+            if (!sent) revert EtherSendingFailed();
+        } else {
+            uint256 contractFunds = IERC20(tokenAddress).balanceOf(address(this));
+            if (contractFunds < _amount) {
+                revert InsufficientFundsInContract(_amount, contractFunds);
+            }
+
+            IERC20(tokenAddress).safeTransfer(_builder, _amount);
+        }
+
+        // Update last withdrawal time
+        builderStream.last =
+            builderstreamLast +
+            (((block.timestamp - builderstreamLast) * _amount) / totalAmountCanWithdraw);
+    }
+
+    /**
+     * @dev Process a one-time withdrawal
+     * @param _builder Builder address
+     */
+    function _processOneTimeWithdraw(address _builder) internal {
+        BuilderStreamInfo storage builderStream = streamingBuilders[_builder];
+
+        // Check if the builder has already withdrawn
+        if (builderStream.last != type(uint256).max) {
+            revert AlreadyWithdrawnOneTime();
+        }
+
+        uint256 _amount = builderStream.cap;
+
+        if (!isERC20) {
+            uint256 contractFunds = address(this).balance;
+            if (contractFunds < _amount) {
+                revert InsufficientFundsInContract(_amount, contractFunds);
+            }
+
+            (bool sent, ) = payable(_builder).call{ value: _amount }("");
+            if (!sent) revert EtherSendingFailed();
+        } else {
+            uint256 contractFunds = IERC20(tokenAddress).balanceOf(address(this));
+            if (contractFunds < _amount) {
+                revert InsufficientFundsInContract(_amount, contractFunds);
+            }
+
+            IERC20(tokenAddress).safeTransfer(_builder, _amount);
+        }
+
+        builderStream.last = block.timestamp;
+    }
+
+    /**
+     * @dev Approve and complete a withdrawal request in one step
+     * @param _builder Builder address
+     * @param _requestId ID of the request to approve and complete
+     */
+    function approveWithdraw(address _builder, uint256 _requestId) public onlyAdmin nonReentrant {
         if (withdrawRequests[_builder].length <= _requestId) revert WithdrawRequestNotFound();
         WithdrawRequest storage request = withdrawRequests[_builder][_requestId];
 
@@ -87,6 +163,19 @@ abstract contract CohortAdmin is CohortBase {
 
         request.approved = true;
         emit WithdrawApproved(_builder, _requestId);
+
+        if (locked) revert ContractIsLocked();
+
+        if (isONETIME) {
+            _processOneTimeWithdraw(_builder);
+        } else {
+            _processStreamWithdraw(_builder, request.amount);
+        }
+
+        request.completed = true;
+
+        emit WithdrawCompleted(_builder, _requestId, request.amount);
+        emit Withdraw(_builder, request.amount, request.reason);
     }
 
     /**
@@ -135,7 +224,6 @@ abstract contract CohortAdmin is CohortBase {
     /**
      * @dev Function to check if an address is an admin
      */
-
     function isAdmin(address _address) public view returns (bool) {
         return hasRole(DEFAULT_ADMIN_ROLE, _address);
     }

@@ -1275,6 +1275,32 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
         if (streamingBuilders[_builder].cap > 0) revert BuilderAlreadyExists();
     }
 
+    /**
+     * @dev Get the unlocked amount for a builder
+     * @param _builder Builder address
+     * @return Unlocked amount for the builder
+     */
+    function unlockedBuilderAmount(address _builder) public view isStreamActive(_builder) returns (uint256) {
+        BuilderStreamInfo memory builderStream = streamingBuilders[_builder];
+
+        if (isONETIME) {
+            if (builderStream.last == type(uint256).max) {
+                return builderStream.cap;
+            } else {
+                return 0;
+            }
+        }
+
+        uint256 timePassed = block.timestamp - builderStream.last;
+
+        if (timePassed < cycle) {
+            uint256 unlockedAmount = (timePassed * builderStream.cap) / cycle;
+            return unlockedAmount;
+        } else {
+            return builderStream.cap;
+        }
+    }
+
     // Fallback function to receive ether
     receive() external payable {}
 }
@@ -1356,11 +1382,87 @@ abstract contract CohortAdmin is CohortBase {
     }
 
     /**
-     * @dev Approve a withdrawal request
+     * @dev Process a withdrawal for a streamed cohort
      * @param _builder Builder address
-     * @param _requestId ID of the request to approve
+     * @param _amount Amount to withdraw
      */
-    function approveWithdraw(address _builder, uint256 _requestId) public onlyAdmin {
+    function _processStreamWithdraw(address _builder, uint256 _amount) internal {
+        uint256 totalAmountCanWithdraw = unlockedBuilderAmount(_builder);
+        if (totalAmountCanWithdraw < _amount) {
+            revert InsufficientInStream(_amount, totalAmountCanWithdraw);
+        }
+
+        // Process the withdrawal
+        BuilderStreamInfo storage builderStream = streamingBuilders[_builder];
+        uint256 builderstreamLast = builderStream.last;
+        uint256 cappedLast = block.timestamp - cycle;
+        if (builderstreamLast < cappedLast) {
+            builderstreamLast = cappedLast;
+        }
+
+        if (!isERC20) {
+            uint256 contractFunds = address(this).balance;
+            if (contractFunds < _amount) {
+                revert InsufficientFundsInContract(_amount, contractFunds);
+            }
+
+            (bool sent, ) = payable(_builder).call{ value: _amount }("");
+            if (!sent) revert EtherSendingFailed();
+        } else {
+            uint256 contractFunds = IERC20(tokenAddress).balanceOf(address(this));
+            if (contractFunds < _amount) {
+                revert InsufficientFundsInContract(_amount, contractFunds);
+            }
+
+            IERC20(tokenAddress).safeTransfer(_builder, _amount);
+        }
+
+        // Update last withdrawal time
+        builderStream.last =
+            builderstreamLast +
+            (((block.timestamp - builderstreamLast) * _amount) / totalAmountCanWithdraw);
+    }
+
+    /**
+     * @dev Process a one-time withdrawal
+     * @param _builder Builder address
+     */
+    function _processOneTimeWithdraw(address _builder) internal {
+        BuilderStreamInfo storage builderStream = streamingBuilders[_builder];
+
+        // Check if the builder has already withdrawn
+        if (builderStream.last != type(uint256).max) {
+            revert AlreadyWithdrawnOneTime();
+        }
+
+        uint256 _amount = builderStream.cap;
+
+        if (!isERC20) {
+            uint256 contractFunds = address(this).balance;
+            if (contractFunds < _amount) {
+                revert InsufficientFundsInContract(_amount, contractFunds);
+            }
+
+            (bool sent, ) = payable(_builder).call{ value: _amount }("");
+            if (!sent) revert EtherSendingFailed();
+        } else {
+            uint256 contractFunds = IERC20(tokenAddress).balanceOf(address(this));
+            if (contractFunds < _amount) {
+                revert InsufficientFundsInContract(_amount, contractFunds);
+            }
+
+            IERC20(tokenAddress).safeTransfer(_builder, _amount);
+        }
+
+        builderStream.last = block.timestamp;
+    }
+
+    /**
+     * @dev Approve and complete a withdrawal request in one step
+     * @param _builder Builder address
+     * @param _requestId ID of the request to approve and complete
+     */
+    function approveWithdraw(address _builder, uint256 _requestId) public onlyAdmin nonReentrant {
         if (withdrawRequests[_builder].length <= _requestId) revert WithdrawRequestNotFound();
         WithdrawRequest storage request = withdrawRequests[_builder][_requestId];
 
@@ -1368,6 +1470,19 @@ abstract contract CohortAdmin is CohortBase {
 
         request.approved = true;
         emit WithdrawApproved(_builder, _requestId);
+
+        if (locked) revert ContractIsLocked();
+
+        if (isONETIME) {
+            _processOneTimeWithdraw(_builder);
+        } else {
+            _processStreamWithdraw(_builder, request.amount);
+        }
+
+        request.completed = true;
+
+        emit WithdrawCompleted(_builder, _requestId, request.amount);
+        emit Withdraw(_builder, request.amount, request.reason);
     }
 
     /**
@@ -1416,7 +1531,6 @@ abstract contract CohortAdmin is CohortBase {
     /**
      * @dev Function to check if an address is an admin
      */
-
     function isAdmin(address _address) public view returns (bool) {
         return hasRole(DEFAULT_ADMIN_ROLE, _address);
     }
@@ -1448,32 +1562,6 @@ abstract contract CohortBuilderManager is CohortAdmin {
             }
         }
         return result;
-    }
-
-    /**
-     * @dev Get the unlocked amount for a builder
-     * @param _builder Builder address
-     * @return Unlocked amount for the builder
-     */
-    function unlockedBuilderAmount(address _builder) public view isStreamActive(_builder) returns (uint256) {
-        BuilderStreamInfo memory builderStream = streamingBuilders[_builder];
-
-        if (isONETIME) {
-            if (builderStream.last == type(uint256).max) {
-                return builderStream.cap;
-            } else {
-                return 0;
-            }
-        }
-
-        uint256 timePassed = block.timestamp - builderStream.last;
-
-        if (timePassed < cycle) {
-            uint256 unlockedAmount = (timePassed * builderStream.cap) / cycle;
-            return unlockedAmount;
-        } else {
-            return builderStream.cap;
-        }
     }
 
     /**
@@ -1605,108 +1693,6 @@ abstract contract CohortWithdrawal is CohortBuilderManager {
     }
 
     /**
-     * @dev Complete a withdrawal that was previously approved
-     * @param _requestId ID of the request to complete
-     */
-    function completeWithdraw(uint256 _requestId) public isStreamActive(msg.sender) nonReentrant isCohortLocked {
-        // Check if request exists
-        if (withdrawRequests[msg.sender].length <= _requestId) revert WithdrawRequestNotFound();
-        WithdrawRequest storage request = withdrawRequests[msg.sender][_requestId];
-
-        // Check if request is completed
-        if (request.completed) revert WithdrawRequestAlreadyCompleted();
-
-        // Check if approval is required and given
-        if (requiresApproval[msg.sender] && !request.approved) revert WithdrawRequestNotApproved();
-
-        if (isONETIME) {
-            _processOneTimeWithdraw();
-        } else {
-            _processStreamWithdraw(request.amount);
-        }
-
-        // Mark request as completed
-        request.completed = true;
-
-        emit WithdrawCompleted(msg.sender, _requestId, request.amount);
-        emit Withdraw(msg.sender, request.amount, request.reason);
-    }
-
-    /**
-     * @dev Process a withdrawal for a streamed cohort
-     * @param _amount Amount to withdraw
-     */
-    function _processStreamWithdraw(uint256 _amount) private {
-        uint256 totalAmountCanWithdraw = unlockedBuilderAmount(msg.sender);
-        if (totalAmountCanWithdraw < _amount) {
-            revert InsufficientInStream(_amount, totalAmountCanWithdraw);
-        }
-
-        // Process the withdrawal
-        BuilderStreamInfo storage builderStream = streamingBuilders[msg.sender];
-        uint256 builderstreamLast = builderStream.last;
-        uint256 cappedLast = block.timestamp - cycle;
-        if (builderstreamLast < cappedLast) {
-            builderstreamLast = cappedLast;
-        }
-
-        if (!isERC20) {
-            uint256 contractFunds = address(this).balance;
-            if (contractFunds < _amount) {
-                revert InsufficientFundsInContract(_amount, contractFunds);
-            }
-
-            (bool sent, ) = msg.sender.call{ value: _amount }("");
-            if (!sent) revert EtherSendingFailed();
-        } else {
-            uint256 contractFunds = IERC20(tokenAddress).balanceOf(address(this));
-            if (contractFunds < _amount) {
-                revert InsufficientFundsInContract(_amount, contractFunds);
-            }
-
-            IERC20(tokenAddress).safeTransfer(msg.sender, _amount);
-        }
-
-        // Update last withdrawal time
-        builderStream.last =
-            builderstreamLast +
-            (((block.timestamp - builderstreamLast) * _amount) / totalAmountCanWithdraw);
-    }
-
-    /**
-     * @dev Process a one-time withdrawal
-     */
-    function _processOneTimeWithdraw() private {
-        BuilderStreamInfo storage builderStream = streamingBuilders[msg.sender];
-
-        // Check if the builder has already withdrawn
-        if (builderStream.last != type(uint256).max) {
-            revert AlreadyWithdrawnOneTime();
-        }
-
-        uint256 _amount = builderStream.cap;
-
-        if (!isERC20) {
-            uint256 contractFunds = address(this).balance;
-            if (contractFunds < _amount) {
-                revert InsufficientFundsInContract(_amount, contractFunds);
-            }
-
-            (bool sent, ) = msg.sender.call{ value: _amount }("");
-            if (!sent) revert EtherSendingFailed();
-        } else {
-            uint256 contractFunds = IERC20(tokenAddress).balanceOf(address(this));
-            if (contractFunds < _amount) {
-                revert InsufficientFundsInContract(_amount, contractFunds);
-            }
-
-            IERC20(tokenAddress).safeTransfer(msg.sender, _amount);
-        }
-
-        builderStream.last = block.timestamp;
-    }
-
-    /**
      * @dev Stream withdraw for a builder
      * @param _amount Amount to withdraw
      * @param _reason Reason for withdrawal
@@ -1721,9 +1707,9 @@ abstract contract CohortWithdrawal is CohortBuilderManager {
         }
 
         if (isONETIME) {
-            _processOneTimeWithdraw();
+            _processOneTimeWithdraw(msg.sender);
         } else {
-            _processStreamWithdraw(_amount);
+            _processStreamWithdraw(msg.sender, _amount);
         }
 
         emit Withdraw(msg.sender, _amount, _reason);

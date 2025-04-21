@@ -9,9 +9,10 @@ datasource db {
 
 model Cohort {
     id             String    @id @default(cuid())
-    address  String    @unique
+    address        String    @unique
     adminAddresses String[]
     Project        Project[]
+    theme          Json?
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
