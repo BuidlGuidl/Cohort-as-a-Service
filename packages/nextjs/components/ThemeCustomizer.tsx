@@ -40,9 +40,11 @@ export const defaultTheme: Theme = {
   fontFamily: "sans-serif",
 };
 
+// Enhanced apply theme function that also sets derived variables like shadows
 export const applyTheme = (theme: Theme) => {
   const root = document.documentElement;
 
+  // Set the main theme variables
   Object.entries(theme).forEach(([key, value]) => {
     if (key === "fontFamily") {
       root.style.setProperty("--font-family", value);
@@ -50,6 +52,63 @@ export const applyTheme = (theme: Theme) => {
       root.style.setProperty(`--${key}`, value);
     }
   });
+
+  root.style.setProperty("--border-primary", theme.primary);
+  root.style.setProperty("--border-secondary", theme.secondary);
+  root.style.setProperty("--border-base", theme["base-content"]);
+  root.style.setProperty("--border-neutral", theme.neutral);
+
+  root.style.setProperty("--shadow-primary", `${theme.primary}33`);
+  root.style.setProperty("--shadow-secondary", `${theme.secondary}33`);
+  root.style.setProperty("--shadow-base", `${theme["base-100"]}33`);
+  root.style.setProperty("--shadow-neutral", `${theme.neutral}33`);
+
+  updateShadowStyles(theme);
+};
+
+const updateShadowStyles = (theme: Theme) => {
+  let shadowStyle = document.getElementById("theme-shadow-styles");
+  if (!shadowStyle) {
+    shadowStyle = document.createElement("style");
+    shadowStyle.id = "theme-shadow-styles";
+    document.head.appendChild(shadowStyle);
+  }
+
+  shadowStyle.textContent = `
+    .shadow-primary {
+      --tw-shadow-color: ${theme.primary}33 !important;
+      box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
+    }
+    
+    .shadow-secondary {
+      --tw-shadow-color: ${theme.secondary}33 !important;
+      box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
+    }
+    
+    .shadow-md.shadow-primary {
+      --tw-shadow: 0 4px 6px -1px ${theme.primary}33, 0 2px 4px -1px ${theme.primary}33 !important;
+      --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -1px var(--tw-shadow-color) !important;
+      box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
+    }
+    
+    .shadow-md.shadow-secondary {
+      --tw-shadow: 0 4px 6px -1px ${theme.secondary}33, 0 2px 4px -1px ${theme.secondary}33 !important;
+      --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -1px var(--tw-shadow-color) !important;
+      box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
+    }
+    
+    .shadow-lg.shadow-primary {
+      --tw-shadow: 0 10px 15px -3px ${theme.primary}33, 0 4px 6px -2px ${theme.primary}33 !important;
+      --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -2px var(--tw-shadow-color) !important;
+      box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
+    }
+    
+    .shadow-lg.shadow-secondary {
+      --tw-shadow: 0 10px 15px -3px ${theme.secondary}33, 0 4px 6px -2px ${theme.secondary}33 !important;
+      --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -2px var(--tw-shadow-color) !important;
+      box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
+    }
+  `;
 };
 
 export const ThemeCustomizer = ({ cohortAddress, isAdmin }: ThemeCustomizerProps) => {
@@ -71,6 +130,9 @@ export const ThemeCustomizer = ({ cohortAddress, isAdmin }: ThemeCustomizerProps
     "Inter, sans-serif",
     "Poppins, sans-serif",
   ];
+
+  // Added shadow preview to the component
+  const [previewExpanded, setPreviewExpanded] = useState(false);
 
   useEffect(() => {
     const fetchTheme = async () => {
@@ -316,7 +378,12 @@ export const ThemeCustomizer = ({ cohortAddress, isAdmin }: ThemeCustomizerProps
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Preview</h3>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Preview</h3>
+                  <button onClick={() => setPreviewExpanded(!previewExpanded)} className="btn btn-xs btn-ghost">
+                    {previewExpanded ? "Show Less" : "Show More"}
+                  </button>
+                </div>
 
                 <div className="border border-neutral rounded-lg p-4 space-y-4">
                   <h4 className="text-xl font-bold" style={{ fontFamily: previewTheme.fontFamily }}>
@@ -346,6 +413,30 @@ export const ThemeCustomizer = ({ cohortAddress, isAdmin }: ThemeCustomizerProps
                       B
                     </div>
                   </div>
+
+                  {previewExpanded && (
+                    <>
+                      <h5 className="text-lg font-semibold mt-4">Shadows</h5>
+                      <div className="flex flex-wrap gap-4">
+                        <div className="w-16 h-16 bg-base-100 shadow-md shadow-primary rounded-md flex items-center justify-center">
+                          Primary
+                        </div>
+                        <div className="w-16 h-16 bg-base-100 shadow-md shadow-secondary rounded-md flex items-center justify-center">
+                          Secondary
+                        </div>
+                      </div>
+
+                      <h5 className="text-lg font-semibold mt-4">Borders</h5>
+                      <div className="flex flex-wrap gap-4">
+                        <div className="w-16 h-16 bg-base-100 border-2 border-primary rounded-md flex items-center justify-center">
+                          Primary
+                        </div>
+                        <div className="w-16 h-16 bg-base-100 border-2 border-secondary rounded-md flex items-center justify-center">
+                          Secondary
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

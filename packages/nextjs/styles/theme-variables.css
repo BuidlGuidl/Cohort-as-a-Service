@@ -1,4 +1,6 @@
+/* Simplified Theme Variables CSS file */
 
+/* Define default CSS variables for non-themed pages */
 :root {
   /* Default theme colors */
   --primary: #c913ff;
@@ -14,10 +16,20 @@
   --base-300: #dae8ff;
   --base-content: #ffffff;
   --font-family: sans-serif;
+
+  /* Border colors */
+  --border-primary: #c913ff;
+  --border-secondary: #49ff13;
+  --border-base: #ffffff;
+  --border-neutral: #212638;
+
+  /* Shadow colors with transparency */
+  --shadow-primary: #c913ff33;
+  --shadow-secondary: #49ff1333;
+  --shadow-base: #00000033;
+  --shadow-neutral: #21263833;
 }
 
 body {
   font-family: var(--font-family, sans-serif);
 }
-
-

@@ -15,18 +15,14 @@ export const ThemeIsolator = ({ children }: { children: React.ReactNode }) => {
   console.log(cohortAddress);
 
   useEffect(() => {
-    // Extract cohort address from path if we're on a cohort page
     const cohortAddressMatch = pathname.match(/\/cohort\/([^\/]+)/);
 
-    // If we're on a cohort page
     if (cohortAddressMatch && cohortAddressMatch[1]) {
       const address = cohortAddressMatch[1];
       setCohortAddress(address);
 
-      // Add a data attribute to the html element
       document.documentElement.setAttribute("data-cohort-theme", address);
 
-      // Fetch theme settings
       fetchTheme(address);
     } else {
       document.documentElement.removeAttribute("data-cohort-theme");
@@ -44,6 +40,7 @@ export const ThemeIsolator = ({ children }: { children: React.ReactNode }) => {
       if (response.ok) {
         const data = await response.json();
         if (data.theme) {
+          // Apply theme only on cohort pages
           applyLocalTheme(data.theme, address);
         }
       }
@@ -61,7 +58,6 @@ export const ThemeIsolator = ({ children }: { children: React.ReactNode }) => {
       document.head.appendChild(styleEl);
     }
 
-    // Generate scoped CSS that only applies when the data-cohort-theme attribute is present
     styleEl.textContent = `
       /* Scoped theme styles for cohort ${address} */
       html[data-cohort-theme="${address}"] {
@@ -76,9 +72,20 @@ export const ThemeIsolator = ({ children }: { children: React.ReactNode }) => {
         --base-100: ${theme["base-100"]};
         --base-content: ${theme["base-content"]};
         --font-family: ${theme.fontFamily};
+        
+        /* Border variables explicitly set */
+        --border-primary: ${theme.primary};
+        --border-secondary: ${theme.secondary};
+        --border-base: ${theme["base-content"]};
+        --border-neutral: ${theme.neutral};
+        
+        /* Shadow variables */
+        --shadow-primary: ${theme.primary}33;  /* With 20% alpha */
+        --shadow-secondary: ${theme.secondary}33;
+        --shadow-base: ${theme["base-100"]}33;
+        --shadow-neutral: ${theme.neutral}33;
       }
       
-      /* Only apply these styles on the specific cohort page */
       html[data-cohort-theme="${address}"] body {
         font-family: var(--font-family, sans-serif);
       }
@@ -148,15 +155,101 @@ export const ThemeIsolator = ({ children }: { children: React.ReactNode }) => {
         background-color: var(--secondary) !important;
         color: var(--secondary-content) !important;
       }
+      
+      /* Border styles */
+      html[data-cohort-theme="${address}"] .border-primary {
+        border-color: var(--primary) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .border-secondary {
+        border-color: var(--secondary) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .border-base-content {
+        border-color: var(--base-content) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .border-neutral {
+        border-color: var(--neutral) !important;
+      }
+      
+      /* Handle input focus borders */
+      html[data-cohort-theme="${address}"] .input:focus,
+      html[data-cohort-theme="${address}"] .select:focus,
+      html[data-cohort-theme="${address}"] .textarea:focus {
+        border-color: var(--primary) !important;
+        outline-color: var(--primary) !important;
+      }
+      
+      /* Modal and card borders */
+      html[data-cohort-theme="${address}"] .modal-box,
+      html[data-cohort-theme="${address}"] .card,
+      html[data-cohort-theme="${address}"] .border {
+        border-color: var(--border-neutral) !important;
+      }
+      
+      /* Button outlines */
+      html[data-cohort-theme="${address}"] .btn-outline.btn-primary {
+        color: var(--primary) !important;
+        border-color: var(--primary) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .btn-outline.btn-secondary {
+        color: var(--secondary) !important;
+        border-color: var(--secondary) !important;
+      }
+      
+      /* Shadow styles */
+      html[data-cohort-theme="${address}"] .shadow-primary {
+        --tw-shadow-color: var(--shadow-primary) !important;
+        box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .shadow-secondary {
+        --tw-shadow-color: var(--shadow-secondary) !important;
+        box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .shadow-base {
+        --tw-shadow-color: var(--shadow-base) !important;
+        box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .shadow-neutral {
+        --tw-shadow-color: var(--shadow-neutral) !important;
+        box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
+      }
+      
+      /* Shadow variations like shadow-md with color */
+      html[data-cohort-theme="${address}"] .shadow-md.shadow-primary {
+        --tw-shadow: 0 4px 6px -1px var(--shadow-primary), 0 2px 4px -1px var(--shadow-primary) !important;
+        --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -1px var(--tw-shadow-color) !important;
+        box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .shadow-md.shadow-secondary {
+        --tw-shadow: 0 4px 6px -1px var(--shadow-secondary), 0 2px 4px -1px var(--shadow-secondary) !important;
+        --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -1px var(--tw-shadow-color) !important;
+        box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .shadow-lg.shadow-primary {
+        --tw-shadow: 0 10px 15px -3px var(--shadow-primary), 0 4px 6px -2px var(--shadow-primary) !important;
+        --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -2px var(--tw-shadow-color) !important;
+        box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .shadow-lg.shadow-secondary {
+        --tw-shadow: 0 10px 15px -3px var(--shadow-secondary), 0 4px 6px -2px var(--shadow-secondary) !important;
+        --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -2px var(--tw-shadow-color) !important;
+        box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
+      }
     `;
   };
 
-  // Reset theme by removing all cohort-specific style elements
   const resetTheme = () => {
-    // Remove any cohort-specific style elements
     document.querySelectorAll('[id^="theme-"]').forEach(el => el.remove());
 
-    // Apply default theme as global CSS variables
     applyTheme(defaultTheme);
   };
 
