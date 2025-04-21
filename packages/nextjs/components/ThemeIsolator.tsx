@@ -244,6 +244,72 @@ export const ThemeIsolator = ({ children }: { children: React.ReactNode }) => {
         --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -2px var(--tw-shadow-color) !important;
         box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
       }
+      
+      /* Progress bar styles */
+      html[data-cohort-theme="${address}"] .progress-primary {
+        --progress-color: var(--primary) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .progress-secondary {
+        --progress-color: var(--secondary) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .progress-primary::-webkit-progress-value {
+        background-color: var(--primary) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .progress-secondary::-webkit-progress-value {
+        background-color: var(--secondary) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .progress-primary::-moz-progress-bar {
+        background-color: var(--primary) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .progress-secondary::-moz-progress-bar {
+        background-color: var(--secondary) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .progress.progress-primary {
+        background-color: color-mix(in srgb, var(--primary) 20%, transparent) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .progress.progress-secondary {
+        background-color: color-mix(in srgb, var(--secondary) 20%, transparent) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .progress.bg-primary {
+        background-color: var(--primary) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .progress.bg-secondary {
+        background-color: var(--secondary) !important;
+      }
+      
+      /* Handle specific progress bar combinations */
+      html[data-cohort-theme="${address}"] .progress.progress-primary.bg-secondary {
+        background-color: var(--secondary) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .progress.progress-primary.bg-secondary::-webkit-progress-value {
+        background-color: var(--primary) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .progress.progress-primary.bg-secondary::-moz-progress-bar {
+        background-color: var(--primary) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .progress.progress-secondary.bg-primary {
+        background-color: var(--primary) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .progress.progress-secondary.bg-primary::-webkit-progress-value {
+        background-color: var(--secondary) !important;
+      }
+      
+      html[data-cohort-theme="${address}"] .progress.progress-secondary.bg-primary::-moz-progress-bar {
+        background-color: var(--secondary) !important;
+      }
     `;
   };
 

@@ -121,7 +121,11 @@ export const BuildersList: React.FC<BuildersListProps> = ({
                   <div>
                     {isERC20 ? tokenSymbol : "Ξ"} {unlocked.toFixed(4)} / {cap.toFixed(4)}
                   </div>
-                  <progress className="progress w-56 progress-primary bg-white" value={percentage} max="100"></progress>
+                  <progress
+                    className="progress w-56 progress-primary bg-secondary"
+                    value={percentage}
+                    max="100"
+                  ></progress>
                 </div>
                 <div className="md:w-1/2 flex items-center">
                   <div
