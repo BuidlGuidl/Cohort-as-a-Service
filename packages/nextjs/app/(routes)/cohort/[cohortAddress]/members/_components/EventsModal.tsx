@@ -44,8 +44,11 @@ export const EventsModal: React.FC<EventsModalProps> = ({
   return (
     <>
       <input type="checkbox" id="withdraw-events-modal" className="modal-toggle" checked={isOpen} readOnly />
-      <label htmlFor="withdraw-events-modal" className="modal cursor-pointer" onClick={onClose}>
-        <label className="modal-box relative max-w-4xl border border-primary" onClick={e => e.stopPropagation()}>
+      <label htmlFor="withdraw-events-modal" className="modal cursor-pointer " onClick={onClose}>
+        <label
+          className="modal-box relative max-w-4xl border border-primary bg-base-100"
+          onClick={e => e.stopPropagation()}
+        >
           {/* dummy input to capture event onclick on modal box */}
           <input className="h-0 w-0 absolute top-0 left-0" />
           <h3 className="text-xl font-bold mb-2">

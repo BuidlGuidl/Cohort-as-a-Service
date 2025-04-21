@@ -76,7 +76,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
   };
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-4xl text-base-content">
       {isAdmin && (
         <Link href="/cohorts" className="btn btn-ghost btn-sm rounded-sm">
           <ArrowLongLeftIcon className="w-7 h-4" />
@@ -89,11 +89,11 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         <h2 className="text-2xl font-bold">{name}</h2>
         <p className="mt-0">{description}</p>
         <p>
-          <span onClick={onMemeberClick} className="link link-primary mr-1">
+          <span onClick={onMemeberClick} className="underline text-primary mr-1">
             Members
           </span>
           contributing to any of the active{" "}
-          <span onClick={onProjectClick} className="link link-primary">
+          <span onClick={onProjectClick} className="underline text-primary">
             projects
           </span>{" "}
           can submit their work and claim grant streams, while showcasing their contributions to the public.

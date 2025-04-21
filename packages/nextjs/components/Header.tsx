@@ -61,7 +61,7 @@ export const Header = () => {
             <Image alt="BG logo" className="cursor-pointer" fill src="/BG_Logo.svg" />
           </div>
           <div className="flex flex-col mt-2">
-            <span className="font-bold leading-tight text-xs md:text-lg">Cohorts Services</span>
+            <span className="font-bold leading-tight text-xs md:text-lg text-base-content">Cohorts Services</span>
           </div>
         </Link>
       </div>
