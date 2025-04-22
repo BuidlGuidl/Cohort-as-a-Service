@@ -393,13 +393,6 @@ export const ThemeCustomizer = ({ cohortAddress, isAdmin }: ThemeCustomizerProps
                   <div className="flex flex-wrap gap-2">
                     <button className="btn btn-primary">Primary Button</button>
                     <button className="btn btn-secondary">Secondary Button</button>
-                    <button className="btn">Default Button</button>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    <div className="badge badge-primary">Primary Badge</div>
-                    <div className="badge badge-secondary">Secondary Badge</div>
-                    <div className="badge">Default Badge</div>
                   </div>
 
                   <div className="flex gap-2">
@@ -418,20 +411,20 @@ export const ThemeCustomizer = ({ cohortAddress, isAdmin }: ThemeCustomizerProps
                     <>
                       <h5 className="text-lg font-semibold mt-4">Shadows</h5>
                       <div className="flex flex-wrap gap-4">
-                        <div className="w-16 h-16 bg-base-100 shadow-md shadow-primary rounded-md flex items-center justify-center">
+                        <div className="p-2 bg-base-100 shadow-xl shadow-primary rounded-md flex items-center justify-center">
                           Primary
                         </div>
-                        <div className="w-16 h-16 bg-base-100 shadow-md shadow-secondary rounded-md flex items-center justify-center">
+                        <div className="p-2 bg-base-100 shadow-xl shadow-secondary rounded-md flex items-center justify-center">
                           Secondary
                         </div>
                       </div>
 
                       <h5 className="text-lg font-semibold mt-4">Borders</h5>
                       <div className="flex flex-wrap gap-4">
-                        <div className="w-16 h-16 bg-base-100 border-2 border-primary rounded-md flex items-center justify-center">
+                        <div className="p-2 bg-base-100 border-2 border-primary rounded-md flex items-center justify-center">
                           Primary
                         </div>
-                        <div className="w-16 h-16 bg-base-100 border-2 border-secondary rounded-md flex items-center justify-center">
+                        <div className="p-2 bg-base-100 border-2 border-secondary rounded-md flex items-center justify-center">
                           Secondary
                         </div>
                       </div>
@@ -442,12 +435,12 @@ export const ThemeCustomizer = ({ cohortAddress, isAdmin }: ThemeCustomizerProps
             </div>
 
             <div className="border-t border-neutral p-4 flex justify-between">
-              <button onClick={handleResetDefaults} className="btn btn-ghost btn-sm" disabled={isLoading}>
+              <button onClick={handleResetDefaults} className="btn btn-secondary btn-sm" disabled={isLoading}>
                 Reset to Defaults
               </button>
 
               <div className="flex gap-2">
-                <button onClick={handleCancel} className="btn btn-outline btn-sm">
+                <button onClick={handleCancel} className="btn btn-secondary btn-sm ">
                   Cancel
                 </button>
                 <button onClick={handleSave} className="btn btn-primary btn-sm" disabled={isLoading}>
