@@ -216,6 +216,7 @@ const CreateCohortForm = () => {
       await axios.post(`/api/cohort`, {
         deployedAddress,
         adminAddress: values.adminAddress,
+        chainId,
       });
       router.push(`/cohort/${deployedAddress}`);
     } catch (e) {

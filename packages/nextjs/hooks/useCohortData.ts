@@ -2,12 +2,9 @@ import { useEffect, useState } from "react";
 import { useCohortEventHistory } from "./useCohortEventHistory";
 import { useCohorts } from "./useCohorts";
 import { useLocalDeployedContractInfo } from "./useLocalDeployedContractInfo";
-import { readContract } from "@wagmi/core";
-import { Abi, formatEther, formatUnits } from "viem";
-import { erc20Abi } from "viem";
-import { useAccount } from "wagmi";
-import { usePublicClient } from "wagmi";
-import { wagmiConfig } from "~~/services/web3/wagmiConfig";
+import axios from "axios";
+import { Abi, erc20Abi, formatEther, formatUnits } from "viem";
+import { useAccount, usePublicClient } from "wagmi";
 import { notification } from "~~/utils/scaffold-eth";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
@@ -50,8 +47,10 @@ export type CohortData = {
 };
 
 export const useCohortData = (cohortAddress: string) => {
-  const { address, chainId } = useAccount();
-  const publicClient = usePublicClient({ chainId });
+  const [chainId, setChainId] = useState<AllowedChainIds | undefined>(undefined);
+  const { address } = useAccount();
+  const publicClient = usePublicClient();
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<CohortData | null>(null);
@@ -59,6 +58,22 @@ export const useCohortData = (cohortAddress: string) => {
   const [admins, setAdmins] = useState<string[]>([]);
 
   const { cohorts, isLoading: isLoadingCohorts } = useCohorts({});
+
+  useEffect(() => {
+    const fetchChainId = async () => {
+      if (!cohortAddress) return;
+
+      try {
+        const response = await axios.get(`/api/cohort/${cohortAddress}`);
+        const chainId = response.data?.cohort.chainId;
+        setChainId(chainId);
+      } catch (error) {
+        console.error("Error fetching chain ID:", error);
+      }
+    };
+
+    fetchChainId();
+  }, [cohortAddress]);
 
   const { data: deployedContract } = useLocalDeployedContractInfo({
     contractName: "Cohort",
@@ -70,6 +85,7 @@ export const useCohortData = (cohortAddress: string) => {
     fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
     watch: true,
     contractAddress: cohortAddress,
+    chainId,
   });
 
   const { data: UpdatedBuilderEvents } = useCohortEventHistory({
@@ -78,6 +94,7 @@ export const useCohortData = (cohortAddress: string) => {
     fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
     watch: true,
     contractAddress: cohortAddress,
+    chainId,
   });
 
   const { data: withdrawn } = useCohortEventHistory({
@@ -86,6 +103,7 @@ export const useCohortData = (cohortAddress: string) => {
     fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
     watch: true,
     contractAddress: cohortAddress,
+    chainId,
   });
 
   const { data: adminRemoved } = useCohortEventHistory({
@@ -94,6 +112,7 @@ export const useCohortData = (cohortAddress: string) => {
     fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
     watch: true,
     contractAddress: cohortAddress,
+    chainId,
   });
 
   const { data: cohortLocked } = useCohortEventHistory({
@@ -102,6 +121,7 @@ export const useCohortData = (cohortAddress: string) => {
     fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
     watch: true,
     contractAddress: cohortAddress,
+    chainId,
   });
 
   const { data: erc20Funding } = useCohortEventHistory({
@@ -110,6 +130,7 @@ export const useCohortData = (cohortAddress: string) => {
     fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
     watch: true,
     contractAddress: cohortAddress,
+    chainId,
   });
 
   const {
@@ -124,6 +145,7 @@ export const useCohortData = (cohortAddress: string) => {
     watch: true,
     receiptData: true,
     contractAddress: cohortAddress,
+    chainId,
   });
 
   const {
@@ -138,6 +160,7 @@ export const useCohortData = (cohortAddress: string) => {
     watch: true,
     receiptData: true,
     contractAddress: cohortAddress,
+    chainId,
   });
 
   useEffect(() => {
@@ -177,6 +200,8 @@ export const useCohortData = (cohortAddress: string) => {
       }
     }
 
+    if (!publicClient) return;
+
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const addedBuilders = builderAdded?.map(builder => builder?.args[0]);
@@ -185,14 +210,14 @@ export const useCohortData = (cohortAddress: string) => {
       if (!cohortAddress) return false;
 
       try {
-        const builderIndex = await readContract(wagmiConfig, {
+        const builderIndex = await publicClient.readContract({
           address: cohortAddress,
           abi: deployedContract?.abi as Abi,
           functionName: "builderIndex",
           args: [builder],
         });
 
-        const fetchedBuilder = await readContract(wagmiConfig, {
+        const fetchedBuilder = await publicClient.readContract({
           address: cohortAddress,
           abi: deployedContract?.abi as Abi,
           functionName: "activeBuilders",
@@ -200,7 +225,8 @@ export const useCohortData = (cohortAddress: string) => {
         });
 
         return fetchedBuilder === builder;
-      } catch {
+      } catch (error) {
+        console.error("Error validating builder:", error);
         return false;
       }
     };
@@ -219,7 +245,7 @@ export const useCohortData = (cohortAddress: string) => {
     };
 
     validateBuilders();
-  }, [isLoadingBuilders, deployedContract, builderAdded, buildersRefetch, cohortAddress]);
+  }, [isLoadingBuilders, deployedContract, builderAdded, buildersRefetch, cohortAddress, chainId, publicClient]);
 
   useEffect(() => {
     if (adminAdded && adminAdded.length > 0) {
@@ -230,6 +256,8 @@ export const useCohortData = (cohortAddress: string) => {
       }
     }
 
+    if (!publicClient) return;
+
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const addedAdmins = Array.from(new Set(adminAdded?.map(admin => admin?.args[0])));
@@ -237,14 +265,15 @@ export const useCohortData = (cohortAddress: string) => {
       if (!cohortAddress) return false;
 
       try {
-        const isAdmin = await readContract(wagmiConfig, {
+        const isAdmin = await publicClient.readContract({
           address: cohortAddress,
           abi: deployedContract?.abi as Abi,
           functionName: "isAdmin",
           args: [admin],
         });
         return isAdmin;
-      } catch {
+      } catch (error) {
+        console.error("Error validating admin:", error);
         return false;
       }
     };
@@ -263,10 +292,10 @@ export const useCohortData = (cohortAddress: string) => {
     };
 
     validateAdmins();
-  }, [isLoadingAdmins, deployedContract, adminAdded, cohortAddress, adminRemoved]);
+  }, [isLoadingAdmins, deployedContract, adminAdded, cohortAddress, adminRemoved, chainId, publicClient]);
 
   const fetchCohortData = async () => {
-    if (!cohortAddress || !deployedContract?.abi || !address) return;
+    if (!cohortAddress || !deployedContract?.abi) return;
 
     const chainName = cohorts.find(
       cohort => cohort.cohortAddress?.toLowerCase() === cohortAddress.toLowerCase(),
@@ -275,7 +304,7 @@ export const useCohortData = (cohortAddress: string) => {
       cohort => cohort.cohortAddress?.toLowerCase() === cohortAddress.toLowerCase(),
     )?.chainId;
 
-    if (!chainId || !chainName) {
+    if (!chainId || !chainName || !publicClient) {
       return;
     }
 
@@ -285,69 +314,59 @@ export const useCohortData = (cohortAddress: string) => {
     try {
       const [name, description, isERC20, isONETIME, cycle, tokenAddress, primaryAdmin, locked, requiresApproval] =
         await Promise.all([
-          readContract(wagmiConfig, {
+          publicClient.readContract({
             address: cohortAddress,
             abi: deployedContract.abi,
             functionName: "name",
-            chainId,
           }),
-          readContract(wagmiConfig, {
+          publicClient.readContract({
             address: cohortAddress,
             abi: deployedContract.abi,
             functionName: "description",
-            chainId,
           }),
-          readContract(wagmiConfig, {
+          publicClient.readContract({
             address: cohortAddress,
             abi: deployedContract.abi,
             functionName: "isERC20",
-            chainId,
           }),
-          readContract(wagmiConfig, {
+          publicClient.readContract({
             address: cohortAddress,
             abi: deployedContract.abi,
             functionName: "isONETIME",
-            chainId,
           }),
-          readContract(wagmiConfig, {
+          publicClient.readContract({
             address: cohortAddress,
             abi: deployedContract.abi,
             functionName: "cycle",
-            chainId,
           }),
-          readContract(wagmiConfig, {
+          publicClient.readContract({
             address: cohortAddress,
             abi: deployedContract.abi,
             functionName: "tokenAddress",
-            chainId,
           }),
-          readContract(wagmiConfig, {
+          publicClient.readContract({
             address: cohortAddress,
             abi: deployedContract.abi,
             functionName: "primaryAdmin",
-            chainId,
           }),
-          readContract(wagmiConfig, {
+          publicClient.readContract({
             address: cohortAddress,
             abi: deployedContract.abi,
             functionName: "locked",
-            chainId,
           }),
-          readContract(wagmiConfig, {
+          publicClient.readContract({
             address: cohortAddress,
             abi: deployedContract.abi,
             functionName: "requireApprovalForWithdrawals",
-            chainId,
           }),
         ]);
 
       let tokenSymbol = null;
       if (isERC20 && tokenAddress) {
-        tokenSymbol = await readContract(wagmiConfig, {
+        tokenSymbol = await publicClient.readContract({
           address: tokenAddress,
           abi: erc20Abi,
           functionName: "symbol",
-          chainId,
         });
       }
 
@@ -355,15 +374,14 @@ export const useCohortData = (cohortAddress: string) => {
       let balance = 0;
       let tokenDecimals = 0;
       if (isERC20 && tokenAddress) {
-        const tokenBalance = await readContract(wagmiConfig, {
+        const tokenBalance = await publicClient.readContract({
           address: tokenAddress,
           abi: erc20Abi,
           functionName: "balanceOf",
           args: [cohortAddress],
-          chainId,
         });
 
-        const decimals = await readContract(wagmiConfig, {
+        const decimals = await publicClient.readContract({
           address: tokenAddress,
           abi: erc20Abi,
           functionName: "decimals",
@@ -373,7 +391,7 @@ export const useCohortData = (cohortAddress: string) => {
 
         balance = parseFloat(formatUnits(tokenBalance, decimals));
       } else {
-        const ethBalance = await publicClient?.getBalance({
+        const ethBalance = await publicClient.getBalance({
           address: cohortAddress,
         });
         balance = parseFloat(formatEther(ethBalance || BigInt(0)));
@@ -383,12 +401,11 @@ export const useCohortData = (cohortAddress: string) => {
       const builderStreams = new Map();
 
       // Fetch all builders data in bulk
-      const buildersData = await readContract(wagmiConfig, {
+      const buildersData = await publicClient.readContract({
         address: cohortAddress,
         abi: deployedContract.abi,
         functionName: "allBuildersData",
         args: [builders],
-        chainId,
       });
 
       // Get available amounts for each builder
@@ -399,21 +416,19 @@ export const useCohortData = (cohortAddress: string) => {
         let unlockedAmount = 0;
         let requiresApproval = false;
         try {
-          const available = await readContract(wagmiConfig, {
+          const available = await publicClient.readContract({
             address: cohortAddress,
             abi: deployedContract.abi,
             functionName: "unlockedBuilderAmount",
             args: [builder],
-            chainId,
           });
           unlockedAmount = parseFloat(isERC20 ? formatUnits(available, tokenDecimals) : formatEther(available));
 
-          requiresApproval = await readContract(wagmiConfig, {
+          requiresApproval = await publicClient.readContract({
             address: cohortAddress,
             abi: deployedContract.abi,
             functionName: "requiresApproval",
             args: [builder],
-            chainId,
           });
         } catch (e) {
           console.error(`Error fetching available amount for ${builder}:`, e);
@@ -429,31 +444,35 @@ export const useCohortData = (cohortAddress: string) => {
       }
 
       // Check if current user is admin
-      const isAdmin = await readContract(wagmiConfig, {
-        address: cohortAddress,
-        abi: deployedContract.abi,
-        functionName: "isAdmin",
-        args: [address],
-        chainId,
-      });
 
-      const connectedAddressRequiresApproval = await readContract(wagmiConfig, {
-        address: cohortAddress,
-        abi: deployedContract.abi,
-        functionName: "requiresApproval",
-        args: [address],
-        chainId,
-      });
+      const isAdmin = address
+        ? await publicClient.readContract({
+            address: cohortAddress,
+            abi: deployedContract.abi,
+            functionName: "isAdmin",
+            args: [address],
+          })
+        : false;
 
-      const isBuilder = builders.includes(address);
+      const connectedAddressRequiresApproval = address
+        ? await publicClient.readContract({
+            address: cohortAddress,
+            abi: deployedContract.abi,
+            functionName: "requiresApproval",
+            args: [address],
+          })
+        : false;
 
-      const builderStreamInfo = await readContract(wagmiConfig, {
-        address: cohortAddress,
-        abi: deployedContract.abi,
-        functionName: "streamingBuilders",
-        args: [address],
-        chainId,
-      });
+      const isBuilder = address ? builders.includes(address) : false;
+
+      const builderStreamInfo = address
+        ? await publicClient.readContract({
+            address: cohortAddress,
+            abi: deployedContract.abi,
+            functionName: "streamingBuilders",
+            args: [address],
+          })
+        : [0, 0];
 
       const oneTimeAlreadyWithdrawn = isONETIME ? Number(builderStreamInfo[1]) != 2 ** 256 - 1 : false;
 
