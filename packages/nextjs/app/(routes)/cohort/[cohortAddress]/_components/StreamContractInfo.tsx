@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { AdminsList } from "./AdminsList";
 import { CohortActions } from "./CohortActions";
+import { NativeBalance } from "./NativeBalance";
 import { TokenBalance } from "./TokenBalance";
 import { TriangleAlert, TriangleAlertIcon } from "lucide-react";
 import { useAccount } from "wagmi";
 import { useSwitchChain } from "wagmi";
 import { BanknotesIcon } from "@heroicons/react/24/outline";
 import { EtherInput } from "~~/components/scaffold-eth";
-import { Address, Balance } from "~~/components/scaffold-eth";
+import { Address } from "~~/components/scaffold-eth";
 import { getChainById } from "~~/data/chains";
 import { getNetworkColor } from "~~/hooks/scaffold-eth";
 import { useCohortWithdraw } from "~~/hooks/useCohortWithdraw";
@@ -127,7 +128,7 @@ export const StreamContractInfo = ({
             (isErc20 ? (
               <TokenBalance balance={balance} tokenSymbol={tokenSymbol} className="text-3xl" />
             ) : (
-              <Balance address={cohortAddress} className="text-3xl" chainId={cohortChainId as number} />
+              <NativeBalance address={cohortAddress} className="text-3xl" chainId={cohortChainId as number} />
             ))}
           {isAdmin && (
             <CohortActions
