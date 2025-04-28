@@ -127,7 +127,7 @@ export const StreamContractInfo = ({
             (isErc20 ? (
               <TokenBalance balance={balance} tokenSymbol={tokenSymbol} className="text-3xl" />
             ) : (
-              <Balance address={cohortAddress} className="text-3xl" />
+              <Balance address={cohortAddress} className="text-3xl" chainId={cohortChainId as number} />
             ))}
           {isAdmin && (
             <CohortActions

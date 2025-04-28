@@ -25,7 +25,7 @@ export const ProjectList = ({ projects, cohortAddress }: ProjectListProps) => {
 
   if (!projects || projects.length === 0) {
     return (
-      <div >
+      <div>
         <p> No projects found.</p>
         {isAdmin && <AddProject cohortAddress={cohortAddress} />}
       </div>
