@@ -16,16 +16,15 @@ export const CreateCohortSchema = z.object({
     .refine(val => Number.isInteger(val), { message: "Cycle must be an integer" })
     .refine(val => val >= 0, { message: "Cycle must be a positive number" }),
   builderAddresses: z
-    .array(
-      z
-        .string()
-        .regex(/^0x[a-fA-F0-9]{40}$/, "Invalid address")
-        .or(z.literal("")),
-    )
+    .array(z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid address"))
     .optional()
     .default([]),
   builderCaps: z
     .array(z.number({ invalid_type_error: "Cap is required" }).positive("Cap must be at least 1"))
+    .optional()
+    .default([]),
+  builderGithubUsernames: z
+    .array(z.string().or(z.string().length(0)))
     .optional()
     .default([]),
   requiresApproval: z.boolean().default(false),

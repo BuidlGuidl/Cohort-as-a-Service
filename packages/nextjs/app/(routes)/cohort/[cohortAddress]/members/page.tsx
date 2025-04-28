@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BuildersList } from "../_components/BuildersList";
 import { StreamContractInfo } from "../_components/StreamContractInfo";
 import { EventsModal } from "./_components/EventsModal";
+import { Builder, Cohort } from "@prisma/client";
+import axios from "axios";
 import { useAccount } from "wagmi";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { useCohortData } from "~~/hooks/useCohortData";
@@ -14,6 +16,10 @@ export interface BuilderStream {
   cap: number;
   unlockedAmount: number;
 }
+
+type CohortWithBuilder = Cohort & {
+  Builder: Builder[];
+};
 
 const Page = ({ params }: { params: { cohortAddress: string } }) => {
   const {
@@ -42,6 +48,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
   const [selectedAddress, setSelectedAddress] = useState("");
   const [modalView, setModalView] = useState<"contributions" | "requests">("contributions");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [dbCohort, setDbCohort] = useState<CohortWithBuilder>();
 
   const { address } = useAccount();
 
@@ -62,6 +69,22 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
     filterEventsByAddress(builderAddress);
     setIsModalOpen(true);
   };
+
+  useEffect(() => {
+    const fetchCohort = async () => {
+      if (!params.cohortAddress) return;
+
+      try {
+        const response = await axios.get(`/api/cohort/${params.cohortAddress}`);
+        const cohort = response.data?.cohort;
+        setDbCohort(cohort);
+      } catch (error) {
+        console.error("Error fetching cohort from db:", error);
+      }
+    };
+
+    fetchCohort();
+  }, [params.cohortAddress, builderStreams]);
 
   return (
     <div>
@@ -87,6 +110,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
             rejectedRequestEvents={rejectedRequestEvents}
             openEventsModal={openEventsModal}
             tokenDecimals={tokenDecimals}
+            dbBuilders={dbCohort?.Builder}
           />
         </div>
 

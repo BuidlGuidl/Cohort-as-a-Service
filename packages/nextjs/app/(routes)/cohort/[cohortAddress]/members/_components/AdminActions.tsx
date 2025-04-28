@@ -1,18 +1,28 @@
 import React from "react";
 import { CheckWithdrawals } from "./CheckWithdrawals";
+import EditGithub from "./EditGithub";
 import { RemoveBuilder } from "./RemoveBuilder";
 import { UpdateBuilder } from "./UpdateBuilder";
+import { Builder } from "@prisma/client";
 import { EllipsisVertical } from "lucide-react";
 
-interface ActionsProps {
+interface AdminActionsProps {
   cohortAddress: string;
   builderAddress: string;
   requiresApproval: boolean;
   isErc20: boolean;
   tokenDecimals?: number;
+  dbBuilder?: Builder;
 }
 
-export const Actions = ({ cohortAddress, builderAddress, requiresApproval, isErc20, tokenDecimals }: ActionsProps) => {
+export const AdminActions = ({
+  cohortAddress,
+  builderAddress,
+  requiresApproval,
+  isErc20,
+  tokenDecimals,
+  dbBuilder,
+}: AdminActionsProps) => {
   return (
     <>
       <div className="dropdown dropdown-start">
@@ -38,6 +48,11 @@ export const Actions = ({ cohortAddress, builderAddress, requiresApproval, isErc
               {requiresApproval ? "Uncheck Withdrawals" : "Check withdrawals"}
             </label>
           </li>
+          <li>
+            <label htmlFor={`edit-github-modal-${dbBuilder?.id}`} className="w-full">
+              Edit Github Username
+            </label>
+          </li>
         </ul>
       </div>
 
@@ -53,6 +68,7 @@ export const Actions = ({ cohortAddress, builderAddress, requiresApproval, isErc
         builderAddress={builderAddress}
         requiresApproval={requiresApproval}
       />
+      <EditGithub builder={dbBuilder} />
     </>
   );
 };

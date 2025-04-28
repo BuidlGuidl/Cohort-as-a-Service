@@ -1,18 +1,24 @@
 "use client";
 
 // app/cohort/[cohortAddress]/page.tsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BuildersList } from "./_components/BuildersList";
 import { StreamContractInfo } from "./_components/StreamContractInfo";
 import { ThemeCustomizer } from "./_components/ThemeCustomizer";
 import { EventsModal } from "./members/_components/EventsModal";
+import { Builder, Cohort } from "@prisma/client";
+import axios from "axios";
 import { useAccount } from "wagmi";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { ArrowLongLeftIcon } from "@heroicons/react/24/outline";
 import { useCohortData } from "~~/hooks/useCohortData";
 import { useWithdrawEvents } from "~~/hooks/useWithdrawEvents";
+
+type CohortWithBuilder = Cohort & {
+  Builder: Builder[];
+};
 
 const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
   const {
@@ -44,6 +50,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
   const { address } = useAccount();
 
   const [selectedAddress, setSelectedAddress] = useState("");
+  const [dbCohort, setDbCohort] = useState<CohortWithBuilder>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalView, setModalView] = useState<"contributions" | "requests">("contributions");
 
@@ -75,6 +82,22 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     router.push(`/cohort/${params.cohortAddress}/projects`);
   };
 
+  useEffect(() => {
+    const fetchCohort = async () => {
+      if (!params.cohortAddress) return;
+
+      try {
+        const response = await axios.get(`/api/cohort/${params.cohortAddress}`);
+        const cohort = response.data?.cohort;
+        setDbCohort(cohort);
+      } catch (error) {
+        console.error("Error fetching cohort from db:", error);
+      }
+    };
+
+    fetchCohort();
+  }, [params.cohortAddress, builderStreams]);
+
   return (
     <div className="max-w-4xl text-base-content">
       {isAdmin && (
@@ -89,11 +112,11 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         <h2 className="text-2xl font-bold">{name}</h2>
         <p className="mt-0">{description}</p>
         <p>
-          <span onClick={onMemeberClick} className="underline text-primary mr-1">
+          <span onClick={onMemeberClick} className="underline text-primary mr-1 cursor-pointer">
             Members
           </span>
           contributing to any of the active{" "}
-          <span onClick={onProjectClick} className="underline text-primary">
+          <span onClick={onProjectClick} className="underline text-primary cursor-pointer">
             projects
           </span>{" "}
           can submit their work and claim grant streams, while showcasing their contributions to the public.
@@ -117,6 +140,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
             rejectedRequestEvents={rejectedRequestEvents}
             openEventsModal={openEventsModal}
             tokenDecimals={tokenDecimals}
+            dbBuilders={dbCohort?.Builder}
           />
         </div>
       )}
