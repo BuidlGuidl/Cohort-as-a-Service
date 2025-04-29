@@ -3,7 +3,7 @@ import db from "~~/lib/db";
 
 export async function POST(req: Request) {
   try {
-    const { deployedAddress, adminAddress, builderAddresses, builderGithubUsernames } = await req.json();
+    const { deployedAddress, adminAddress, builderAddresses, builderGithubUsernames, chainId } = await req.json();
 
     const cohort = await db.cohort.create({
       data: {
