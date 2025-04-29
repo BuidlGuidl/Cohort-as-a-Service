@@ -1,7 +1,8 @@
+import { useEffect } from "react";
 import { useTargetNetwork } from "./scaffold-eth";
 import { useTransactor } from "./scaffold-eth";
-import { useAccount } from "wagmi";
-import { useWriteContract } from "wagmi";
+import axios from "axios";
+import { useAccount, useSignMessage, useWriteContract } from "wagmi";
 import { baseChainId } from "~~/data/chains";
 import { notification } from "~~/utils/scaffold-eth";
 import { getParsedError } from "~~/utils/scaffold-eth";
@@ -19,6 +20,8 @@ export const useRemoveBuilder = ({ cohortAddress, builderAddress }: useRemoveBui
   const writeTx = useTransactor();
   const { isPending, writeContractAsync, isSuccess } = useWriteContract();
 
+  const { data: signature, signMessage, isSuccess: isSignatureSuccess } = useSignMessage();
+
   const sendContractWriteTx = async () => {
     if (!chain) {
       notification.error("Please connect your wallet");
@@ -30,6 +33,13 @@ export const useRemoveBuilder = ({ cohortAddress, builderAddress }: useRemoveBui
     }
 
     if (cohort && cohortAddress) {
+      try {
+        const message = `Remove builder ${builderAddress} from cohort ${cohortAddress}`;
+        signMessage({ message });
+      } catch (error) {
+        console.error("Error signing message:", error);
+      }
+
       try {
         const makeWriteWithParams = () =>
           writeContractAsync({
@@ -49,6 +59,29 @@ export const useRemoveBuilder = ({ cohortAddress, builderAddress }: useRemoveBui
       return;
     }
   };
+
+  useEffect(() => {
+    const removeBuilderFromDb = async () => {
+      if (signature && isSignatureSuccess && isSuccess) {
+        const message = `Remove builder ${builderAddress} from cohort ${cohortAddress}`;
+        try {
+          await axios.delete(`/api/cohort/${cohortAddress}/builder`, {
+            data: {
+              message,
+              signature,
+              builderAddress,
+            },
+          });
+        } catch (error) {
+          notification.error("Something went wrong");
+          console.error("Error removing builder from db:", error);
+        }
+      }
+    };
+
+    removeBuilderFromDb();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signature, isSignatureSuccess, isSuccess]);
 
   return {
     removeBuilder: sendContractWriteTx,

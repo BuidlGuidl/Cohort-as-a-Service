@@ -3,7 +3,7 @@ import db from "~~/lib/db";
 
 export async function POST(req: Request) {
   try {
-    const { deployedAddress, adminAddress } = await req.json();
+    const { deployedAddress, adminAddress, builderAddresses, builderGithubUsernames } = await req.json();
 
     const cohort = await db.cohort.create({
       data: {
@@ -11,6 +11,16 @@ export async function POST(req: Request) {
         adminAddresses: [adminAddress],
       },
     });
+
+    for (let i = 0; i < builderAddresses.length; i++) {
+      await db.builder.create({
+        data: {
+          cohortId: cohort.id,
+          githubUsername: builderGithubUsernames[i],
+          address: builderAddresses[i],
+        },
+      });
+    }
 
     return NextResponse.json(cohort);
   } catch (error) {

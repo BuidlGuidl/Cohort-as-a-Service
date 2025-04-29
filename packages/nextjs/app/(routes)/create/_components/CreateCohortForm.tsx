@@ -118,6 +118,7 @@ const CreateCohortForm = () => {
   const handleAddBuilder = () => {
     const currentAddresses = form.getValues("builderAddresses") || [];
     const currentCaps = form.getValues("builderCaps") || [];
+    const currentGithubUsernames = form.getValues("builderGithubUsernames") || [];
 
     form.setValue("builderAddresses", [...currentAddresses, ""], {
       shouldValidate: true,
@@ -126,14 +127,20 @@ const CreateCohortForm = () => {
     form.setValue("builderCaps", [...currentCaps, 1], {
       shouldValidate: true,
     });
+
+    form.setValue("builderGithubUsernames", [...currentGithubUsernames, ""], {
+      shouldValidate: true,
+    });
   };
 
   const handleRemoveBuilder = (index: number) => {
     const currentAddresses = form.getValues("builderAddresses") || [];
     const currentCaps = form.getValues("builderCaps") || [];
+    const currentGithubUsernames = form.getValues("builderGithubUsernames") || [];
 
     const newAddresses = currentAddresses.filter((_, i) => i !== index);
     const newCaps = currentCaps.filter((_, i) => i !== index);
+    const newGithubUsernames = currentGithubUsernames.filter((_, i) => i !== index);
 
     form.setValue("builderAddresses", newAddresses, {
       shouldValidate: true,
@@ -142,12 +149,17 @@ const CreateCohortForm = () => {
     form.setValue("builderCaps", newCaps, {
       shouldValidate: true,
     });
+
+    form.setValue("builderGithubUsernames", newGithubUsernames, {
+      shouldValidate: true,
+    });
   };
 
   const onSubmit = async (values: z.infer<typeof CreateCohortSchema>) => {
     try {
       const filteredAddresses = values.builderAddresses.filter(addr => addr !== "");
       const filteredCaps = values.builderCaps.filter((_, index) => values.builderAddresses[index] !== "");
+      const filteredGithubUsernames = values.builderGithubUsernames;
 
       const isNotNativeCurrency = currentChainCurrencies[0].address !== values.currencyAddress;
 
@@ -216,6 +228,8 @@ const CreateCohortForm = () => {
       await axios.post(`/api/cohort`, {
         deployedAddress,
         adminAddress: values.adminAddress,
+        builderAddresses: filteredAddresses,
+        builderGithubUsernames: filteredGithubUsernames,
       });
       router.push(`/cohort/${deployedAddress}`);
     } catch (e) {
@@ -381,7 +395,7 @@ const CreateCohortForm = () => {
             <div className="flex flex-wrap gap-2 mb-2">
               {PREDEFINED_CYCLES.map(cycle => (
                 <button
-                  key={cycle.value}
+                  key={cycle.label}
                   type="button"
                   className={`btn btn-sm rounded-md ${selectedCycle === cycle.value ? "btn-primary" : "btn-outline"}`}
                   onClick={() => handleCycleSelect(cycle.value, cycle.label)}
@@ -445,7 +459,7 @@ const CreateCohortForm = () => {
               <div className="">
                 {form.watch("builderAddresses").map((_, index) => (
                   <div key={index} className="flex gap-2 items-start mt-2 flex-col md:flex-row">
-                    <div className="flex-grow md:w-[60%] w-full">
+                    <div className="flex-grow md:w-[40%] w-full">
                       <AddressInput
                         name={`builderAddresses.${index}`}
                         value={form.watch(`builderAddresses.${index}`)}
@@ -464,27 +478,49 @@ const CreateCohortForm = () => {
                         </label>
                       )}
                     </div>
-                    <div className="flex flex-grow md:w-[40%] w-full">
+                    <div className="flex-grow md:w-[25%] w-full">
+                      <input
+                        className="input input-sm rounded-md input-bordered border border-base-300 w-full"
+                        placeholder="Enter stream cap"
+                        type="number"
+                        step="any"
+                        {...form.register(`builderCaps.${index}`, {
+                          valueAsNumber: true,
+                          onChange: e => {
+                            const value = e.target.value;
+                            form.setValue(`builderCaps.${index}`, value, {
+                              shouldValidate: true,
+                            });
+                          },
+                        })}
+                      />
+                      {form.formState.errors.builderCaps?.[index] && (
+                        <label className="label">
+                          <span className="label-text-alt text-error">
+                            {form.formState.errors.builderCaps[index]?.message}
+                          </span>
+                        </label>
+                      )}
+                    </div>
+                    <div className="flex flex-grow md:w-[35%] w-full">
                       <div className="w-full">
                         <input
                           className="input input-sm rounded-md input-bordered border border-base-300 w-full"
-                          placeholder="Enter stream cap"
-                          type="number"
-                          step="any"
-                          {...form.register(`builderCaps.${index}`, {
-                            valueAsNumber: true,
+                          placeholder="Github username(optional)"
+                          type="string"
+                          {...form.register(`builderGithubUsernames.${index}`, {
                             onChange: e => {
                               const value = e.target.value;
-                              form.setValue(`builderCaps.${index}`, value, {
+                              form.setValue(`builderGithubUsernames.${index}`, value, {
                                 shouldValidate: true,
                               });
                             },
                           })}
                         />
-                        {form.formState.errors.builderCaps?.[index] && (
+                        {form.formState.errors.builderGithubUsernames?.[index] && (
                           <label className="label">
                             <span className="label-text-alt text-error">
-                              {form.formState.errors.builderCaps[index]?.message}
+                              {form.formState.errors.builderGithubUsernames[index]?.message}
                             </span>
                           </label>
                         )}
