@@ -1,22 +1,22 @@
 "use client";
 
 import { Address, formatEther } from "viem";
-import { useTargetNetwork } from "~~/hooks/scaffold-eth";
 import { useDisplayUsdMode } from "~~/hooks/scaffold-eth/useDisplayUsdMode";
 import { useWatchBalance } from "~~/hooks/scaffold-eth/useWatchBalance";
+import scaffoldConfig from "~~/scaffold.config";
 import { useGlobalState } from "~~/services/store/store";
+
+const { targetNetworks } = scaffoldConfig;
 
 type BalanceProps = {
   address?: Address;
   className?: string;
   usdMode?: boolean;
+  chainId: number;
 };
 
-/**
- * Display (ETH & USD) balance of an ETH address.
- */
-export const Balance = ({ address, className = "", usdMode }: BalanceProps) => {
-  const { targetNetwork } = useTargetNetwork();
+export const NativeBalance = ({ address, className = "", usdMode, chainId }: BalanceProps) => {
+  const targetNetwork = targetNetworks.find(c => c.id == chainId);
   const nativeCurrencyPrice = useGlobalState(state => state.nativeCurrency.price);
   const isNativeCurrencyPriceFetching = useGlobalState(state => state.nativeCurrency.isFetching);
 
@@ -66,7 +66,7 @@ export const Balance = ({ address, className = "", usdMode }: BalanceProps) => {
         ) : (
           <>
             <span>{formattedBalance.toFixed(4)}</span>
-            <span className=" font-bold ml-1">{targetNetwork.nativeCurrency.symbol}</span>
+            <span className=" font-bold ml-1">{targetNetwork?.nativeCurrency.symbol}</span>
           </>
         )}
       </div>

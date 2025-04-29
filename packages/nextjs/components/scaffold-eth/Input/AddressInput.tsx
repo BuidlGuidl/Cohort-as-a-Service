@@ -70,13 +70,16 @@ export const AddressInput = ({ value, name, placeholder, onChange, disabled }: C
     setEnteredEnsName(undefined);
   }, [value]);
 
+  const [isFocused, setIsFocused] = useState(false);
+
   const reFocus =
-    isEnsAddressError ||
-    isEnsNameError ||
-    isEnsNameSuccess ||
-    isEnsAddressSuccess ||
-    ensName === null ||
-    ensAddress === null;
+    isFocused &&
+    (isEnsAddressError ||
+      isEnsNameError ||
+      isEnsNameSuccess ||
+      isEnsAddressSuccess ||
+      ensName === null ||
+      ensAddress === null);
 
   return (
     <InputBase<Address>
@@ -87,6 +90,7 @@ export const AddressInput = ({ value, name, placeholder, onChange, disabled }: C
       onChange={onChange}
       disabled={isEnsAddressLoading || isEnsNameLoading || disabled}
       reFocus={reFocus}
+      onBlur={() => setIsFocused(false)}
       prefix={
         ensName ? (
           <div className="flex bg-base-300 rounded-l-md items-center">

@@ -7,6 +7,9 @@ export async function GET(req: Request, { params }: { params: { address: string 
       where: {
         address: params.address.toLowerCase(),
       },
+      include: {
+        Builder: true,
+      },
     });
 
     if (!cohort) {

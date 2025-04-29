@@ -14,6 +14,18 @@ model Cohort {
     adminAddresses String[]
     Project        Project[]
     theme          Json?
+    Builder        Builder[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Builder {
+    id              String  @id @default(cuid())
+    address         String
+    githubUsername String?
+    cohortId        String
+    cohort          Cohort  @relation(fields: [cohortId], references: [id])
 
 
     createdAt DateTime @default(now())

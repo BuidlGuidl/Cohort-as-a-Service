@@ -15,10 +15,12 @@ interface AddbatchProps {
 export const AddBatch = ({ cohortAddress, isErc20, tokenDecimals }: AddbatchProps) => {
   const [caps, setCaps] = useState<string[]>([""]);
   const [builderAddresses, setBuilderAddresses] = useState<string[]>([""]);
+  const [githubUsernames, setGithubUsernames] = useState<string[]>([""]);
   const { addBatch, isPending, isSuccess } = useAddBuilders({
     cohortAddress,
-    builderAddresss: builderAddresses,
+    builderAddresses: builderAddresses,
     caps,
+    githubUsernames,
     isErc20,
     tokenDecimals,
   });
@@ -34,6 +36,7 @@ export const AddBatch = ({ cohortAddress, isErc20, tokenDecimals }: AddbatchProp
   const handleAddInput = () => {
     setBuilderAddresses((prev: string[] | undefined) => [...(prev ?? []), ""]);
     setCaps((prev: string[] | undefined) => [...(prev ?? []), ""]);
+    setGithubUsernames((prev: string[] | undefined) => [...(prev ?? []), ""]);
   };
 
   const handleRemoveInput = (index: number) => {
@@ -44,6 +47,10 @@ export const AddBatch = ({ cohortAddress, isErc20, tokenDecimals }: AddbatchProp
     setCaps(prev => {
       const newBatchCaps = prev.filter((_, i) => i !== index);
       return newBatchCaps;
+    });
+    setGithubUsernames(prev => {
+      const newGithubUsernames = prev.filter((_, i) => i !== index);
+      return newGithubUsernames;
     });
   };
 
@@ -56,6 +63,7 @@ export const AddBatch = ({ cohortAddress, isErc20, tokenDecimals }: AddbatchProp
 
       setBuilderAddresses([""]);
       setCaps([""]);
+      setGithubUsernames([""]);
     }
   }, [isSuccess]);
 
@@ -109,6 +117,19 @@ export const AddBatch = ({ cohortAddress, isErc20, tokenDecimals }: AddbatchProp
                           onChange={value => handleInputChange(index, value, setBuilderAddresses)}
                         />
                       )}
+
+                      <label htmlFor={`github-handle-${index}`} className="block mt-4 mb-2">
+                        GitHub Username{index != 0 && " " + (index + 1)} (optional):
+                      </label>
+                      <input
+                        className="input input-sm rounded-md input-bordered border border-base-300 w-full"
+                        id={`github-username-${index}`}
+                        name={`github-username-${index}`}
+                        placeholder="GitHub username (optional)"
+                        value={githubUsernames[index] || ""}
+                        onChange={e => handleInputChange(index, e.target.value, setGithubUsernames)}
+                      />
+
                       <label htmlFor={`batch-caps-${index}`} className="block mt-4 mb-2">
                         Cap{index != 0 && " " + (index + 1)}:
                       </label>
@@ -128,6 +149,8 @@ export const AddBatch = ({ cohortAddress, isErc20, tokenDecimals }: AddbatchProp
                           placeholder="Enter stream cap"
                         />
                       )}
+                      <br />
+                      <br />
                     </div>
                   ))}
                 <button className="btn btn-primary btn-sm mt-2 rounded-md flex ml-auto" onClick={handleAddInput}>

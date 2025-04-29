@@ -1,8 +1,13 @@
 import React from "react";
-import { Actions } from "../members/_components/Actions";
+import Image from "next/image";
+import Link from "next/link";
 import { AddBatch } from "../members/_components/AddBatch";
+import { AdminActions } from "../members/_components/AdminActions";
+import { BuilderActions } from "../members/_components/BuilderActions";
 import { NotificationBell } from "../members/_components/NotificationBell";
 import { NotificationNote } from "../members/_components/NotificationNote";
+import { Builder } from "@prisma/client";
+import { useAccount } from "wagmi";
 import { Address } from "~~/components/scaffold-eth";
 
 interface BuilderStream {
@@ -26,6 +31,7 @@ interface BuildersListProps {
   rejectedRequestEvents: any[];
   completedRequestEvents: any[];
   openEventsModal: (address: string, view: "contributions" | "requests") => void;
+  dbBuilders?: Builder[];
 }
 
 export const BuildersList: React.FC<BuildersListProps> = ({
@@ -42,7 +48,9 @@ export const BuildersList: React.FC<BuildersListProps> = ({
   rejectedRequestEvents,
   completedRequestEvents,
   openEventsModal,
+  dbBuilders,
 }) => {
+  const { address } = useAccount();
   const getPendingRequestsCount = (builderAddress: string) => {
     return pendingRequestEvents.filter(event => event.args && event.args.builder === builderAddress).length;
   };
@@ -97,6 +105,11 @@ export const BuildersList: React.FC<BuildersListProps> = ({
           const pendingCount = getPendingRequestsCount(builderStream.builderAddress);
           const completedCount = getCompletedRequestsCountInThePastDay(builderStream.builderAddress);
           const rejectedCount = getRejectedRequestsCountInThePastDay(builderStream.builderAddress);
+          const dbBuilder = dbBuilders?.find(
+            builder => builderStream.builderAddress.toLowerCase() == builder.address.toLowerCase(),
+          );
+          const githubUsername = dbBuilder?.githubUsername;
+          const githubUrl = "https://github.com/" + githubUsername;
 
           // Show notification for admin or if it's the builder's own approved requests
           const showNotification =
@@ -134,16 +147,25 @@ export const BuildersList: React.FC<BuildersListProps> = ({
                   >
                     <Address address={builderStream.builderAddress} disableAddressLink={true} />
                   </div>
-                  <div className="ml-4 flex items-center">
+                  {githubUsername && (
+                    <div className="ml-4">
+                      <Link href={githubUrl} target="_blank" rel="noopener noreferrer">
+                        <Image src="/github.svg" alt="GitHub Url" width={25} height={25} />
+                      </Link>
+                    </div>
+                  )}
+                  <div className="flex items-center">
                     {isAdmin && (
-                      <Actions
+                      <AdminActions
                         cohortAddress={cohortAddress}
                         builderAddress={builderStream.builderAddress}
                         requiresApproval={builderStream.requiresApproval}
                         isErc20={isERC20}
                         tokenDecimals={tokenDecimals}
+                        dbBuilder={dbBuilder}
                       />
                     )}
+                    {isBuilder && address == builderStream.builderAddress && <BuilderActions dbBuilder={dbBuilder} />}
                     {showNotification && (
                       <NotificationBell
                         count={bellNotificationCount}

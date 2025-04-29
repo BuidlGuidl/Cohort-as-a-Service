@@ -1,8 +1,9 @@
+import { useEffect } from "react";
 import { useTargetNetwork } from "./scaffold-eth";
 import { useTransactor } from "./scaffold-eth";
+import axios from "axios";
 import { parseEther, parseUnits } from "viem";
-import { useAccount } from "wagmi";
-import { useWriteContract } from "wagmi";
+import { useAccount, useSignMessage, useWriteContract } from "wagmi";
 import { baseChainId } from "~~/data/chains";
 import { notification } from "~~/utils/scaffold-eth";
 import { getParsedError } from "~~/utils/scaffold-eth";
@@ -10,21 +11,25 @@ import { contracts } from "~~/utils/scaffold-eth/contract";
 
 interface useAddBuildersProps {
   cohortAddress: string;
-  builderAddresss: string[];
+  builderAddresses: string[];
   caps: string[];
   isErc20: boolean;
   tokenDecimals?: number;
+  githubUsernames?: string[];
 }
 
 export const useAddBuilders = ({
   cohortAddress,
-  builderAddresss,
+  builderAddresses,
   caps,
   isErc20,
   tokenDecimals,
+  githubUsernames,
 }: useAddBuildersProps) => {
   const { chain, chainId } = useAccount();
   const { targetNetwork } = useTargetNetwork();
+
+  const { data: signature, signMessage, isSuccess: isSignatureSuccess } = useSignMessage();
 
   const cohort = contracts?.[baseChainId]["Cohort"];
   const writeTx = useTransactor();
@@ -42,6 +47,13 @@ export const useAddBuilders = ({
 
     if (cohort && cohortAddress) {
       try {
+        const message = `Add builder to cohort ${cohortAddress}`;
+        signMessage({ message });
+      } catch (error) {
+        console.error("Error signing message:", error);
+      }
+
+      try {
         const formattedCaps = caps.map(cap => (isErc20 ? parseUnits(cap, tokenDecimals || 18) : parseEther(cap)));
 
         const makeWriteWithParams = () =>
@@ -49,7 +61,7 @@ export const useAddBuilders = ({
             abi: cohort.abi,
             address: cohortAddress,
             functionName: "addBatch",
-            args: [builderAddresss, formattedCaps],
+            args: [builderAddresses, formattedCaps],
           });
 
         await writeTx(makeWriteWithParams);
@@ -62,6 +74,28 @@ export const useAddBuilders = ({
       return;
     }
   };
+
+  useEffect(() => {
+    const addBuildersToDb = async () => {
+      if (signature && isSignatureSuccess && isSuccess) {
+        const message = `Add builder to cohort ${cohortAddress}`;
+        try {
+          await axios.post(`/api/cohort/${cohortAddress}/builder`, {
+            builderAddresses,
+            builderGithubUsernames: githubUsernames,
+            message,
+            signature,
+          });
+        } catch (error) {
+          notification.error("Something went wrong");
+          console.error("Error adding builder to db:", error);
+        }
+      }
+    };
+
+    addBuildersToDb();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signature, isSignatureSuccess, isSuccess]);
 
   return {
     addBatch: sendContractWriteTx,
