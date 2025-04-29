@@ -228,6 +228,7 @@ const CreateCohortForm = () => {
       await axios.post(`/api/cohort`, {
         deployedAddress,
         adminAddress: values.adminAddress,
+        chainId,
         builderAddresses: filteredAddresses,
         builderGithubUsernames: filteredGithubUsernames,
       });

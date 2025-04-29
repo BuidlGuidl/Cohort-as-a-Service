@@ -27,6 +27,7 @@ model Builder {
     cohortId        String
     cohort          Cohort  @relation(fields: [cohortId], references: [id])
 
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }

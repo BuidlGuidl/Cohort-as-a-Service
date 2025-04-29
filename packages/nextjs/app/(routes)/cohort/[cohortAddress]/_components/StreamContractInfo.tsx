@@ -57,7 +57,7 @@ export const StreamContractInfo = ({
   cycle,
   requiresApproval,
 }: StreamContractInfoProps) => {
-  const { address, chainId } = useAccount();
+  const { address, chainId, isConnected } = useAccount();
   const { switchChain } = useSwitchChain();
   const [networkColor, setNetworkColor] = useState<string>("#bbbbbb");
 
@@ -96,7 +96,7 @@ export const StreamContractInfo = ({
   return (
     <>
       <div className="">
-        {cohortChainId && chainId !== cohortChainId && (
+        {cohortChainId && chainId !== cohortChainId && isConnected && (
           <div
             onClick={() => onClick(cohortChainId)}
             className="bg-error/15 px-3 py-1 w-fit rounded-md flex items-center gap-x-2 text-sm text-destructive mb-3 cursor-pointer hover:bg-error/25"
