@@ -36,7 +36,6 @@ const CreateCohortForm = () => {
   const [showCustomCurrencyInput, setShowCustomCurrencyInput] = useState(false);
   const [showCustomCycleInput, setShowCustomCycleInput] = useState(false);
   const [selectedCycle, setSelectedCycle] = useState(PREDEFINED_CYCLES[3].value);
-  const [isBuildersExpanded, setIsBuildersExpanded] = useState(false);
 
   const currentChainCurrencies = chainId ? currencies[chainId]?.contracts || [] : [];
 
@@ -447,100 +446,87 @@ const CreateCohortForm = () => {
               <label className="label">
                 <span className="label-text font-medium">Builders (Optional)</span>
               </label>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={() => setIsBuildersExpanded(!isBuildersExpanded)}
-              >
-                {isBuildersExpanded ? "Hide" : "Add Builders"}
-              </button>
             </div>
 
-            {isBuildersExpanded && (
-              <div className="">
-                {form.watch("builderAddresses").map((_, index) => (
-                  <div key={index} className="flex gap-2 items-start mt-2 flex-col md:flex-row">
-                    <div className="flex-grow md:w-[40%] w-full">
-                      <AddressInput
-                        name={`builderAddresses.${index}`}
-                        value={form.watch(`builderAddresses.${index}`)}
-                        onChange={value => {
-                          form.setValue(`builderAddresses.${index}`, value, {
+            <div className="">
+              {form.watch("builderAddresses").map((_, index) => (
+                <div key={index} className="flex gap-2 items-start mt-2 flex-col md:flex-row">
+                  <div className="flex-grow md:w-[40%] w-full">
+                    <AddressInput
+                      name={`builderAddresses.${index}`}
+                      value={form.watch(`builderAddresses.${index}`)}
+                      onChange={value => {
+                        form.setValue(`builderAddresses.${index}`, value, {
+                          shouldValidate: true,
+                        });
+                      }}
+                      placeholder="Enter builder address"
+                    />
+                    {form.formState.errors.builderAddresses?.[index] && (
+                      <label className="label">
+                        <span className="label-text-alt text-error">
+                          {form.formState.errors.builderAddresses[index]?.message}
+                        </span>
+                      </label>
+                    )}
+                  </div>
+                  <div className="flex-grow md:w-[25%] w-full">
+                    <input
+                      className="input input-sm rounded-md input-bordered border border-base-300 w-full"
+                      placeholder="Enter stream cap"
+                      type="number"
+                      step="any"
+                      {...form.register(`builderCaps.${index}`, {
+                        valueAsNumber: true,
+                        onChange: e => {
+                          const value = e.target.value;
+                          form.setValue(`builderCaps.${index}`, value, {
                             shouldValidate: true,
                           });
-                        }}
-                        placeholder="Enter builder address"
-                      />
-                      {form.formState.errors.builderAddresses?.[index] && (
-                        <label className="label">
-                          <span className="label-text-alt text-error">
-                            {form.formState.errors.builderAddresses[index]?.message}
-                          </span>
-                        </label>
-                      )}
-                    </div>
-                    <div className="flex-grow md:w-[25%] w-full">
+                        },
+                      })}
+                    />
+                    {form.formState.errors.builderCaps?.[index] && (
+                      <label className="label">
+                        <span className="label-text-alt text-error">
+                          {form.formState.errors.builderCaps[index]?.message}
+                        </span>
+                      </label>
+                    )}
+                  </div>
+                  <div className="flex flex-grow md:w-[35%] w-full">
+                    <div className="w-full">
                       <input
                         className="input input-sm rounded-md input-bordered border border-base-300 w-full"
-                        placeholder="Enter stream cap"
-                        type="number"
-                        step="any"
-                        {...form.register(`builderCaps.${index}`, {
-                          valueAsNumber: true,
+                        placeholder="Github username(optional)"
+                        type="string"
+                        {...form.register(`builderGithubUsernames.${index}`, {
                           onChange: e => {
                             const value = e.target.value;
-                            form.setValue(`builderCaps.${index}`, value, {
+                            form.setValue(`builderGithubUsernames.${index}`, value, {
                               shouldValidate: true,
                             });
                           },
                         })}
                       />
-                      {form.formState.errors.builderCaps?.[index] && (
+                      {form.formState.errors.builderGithubUsernames?.[index] && (
                         <label className="label">
                           <span className="label-text-alt text-error">
-                            {form.formState.errors.builderCaps[index]?.message}
+                            {form.formState.errors.builderGithubUsernames[index]?.message}
                           </span>
                         </label>
                       )}
                     </div>
-                    <div className="flex flex-grow md:w-[35%] w-full">
-                      <div className="w-full">
-                        <input
-                          className="input input-sm rounded-md input-bordered border border-base-300 w-full"
-                          placeholder="Github username(optional)"
-                          type="string"
-                          {...form.register(`builderGithubUsernames.${index}`, {
-                            onChange: e => {
-                              const value = e.target.value;
-                              form.setValue(`builderGithubUsernames.${index}`, value, {
-                                shouldValidate: true,
-                              });
-                            },
-                          })}
-                        />
-                        {form.formState.errors.builderGithubUsernames?.[index] && (
-                          <label className="label">
-                            <span className="label-text-alt text-error">
-                              {form.formState.errors.builderGithubUsernames[index]?.message}
-                            </span>
-                          </label>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-sm "
-                        onClick={() => handleRemoveBuilder(index)}
-                      >
-                        <Trash className="h-5 w-5" />
-                      </button>
-                    </div>
+                    <button type="button" className="btn btn-ghost btn-sm " onClick={() => handleRemoveBuilder(index)}>
+                      <Trash className="h-5 w-5" />
+                    </button>
                   </div>
-                ))}
-                <button type="button" className="btn btn-primary btn-sm rounded-md mt-4" onClick={handleAddBuilder}>
-                  <Plus className="h-4 w-4 mr-5" /> Add Builder
-                </button>
-              </div>
-            )}
+                </div>
+              ))}
+              <button type="button" className="btn btn-primary btn-sm rounded-md mt-4" onClick={handleAddBuilder}>
+                <Plus className="h-4 w-4 mr-5" /> Add Builder
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center gap-x-2">

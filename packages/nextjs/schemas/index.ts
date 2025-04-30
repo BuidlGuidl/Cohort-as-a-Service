@@ -20,7 +20,7 @@ export const CreateCohortSchema = z.object({
     .optional()
     .default([]),
   builderCaps: z
-    .array(z.number({ invalid_type_error: "Cap is required" }).positive("Cap must be at least 1"))
+    .array(z.number({ invalid_type_error: "Cap is required" }).positive("Cap must be greater than 0"))
     .optional()
     .default([]),
   builderGithubUsernames: z
