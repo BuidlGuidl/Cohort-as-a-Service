@@ -166,7 +166,7 @@ export const AdminApplicationList = ({
                         cohortAddress={cohortAddress}
                         builderAddress={application.address}
                         githubUsername={application.githubUsername || undefined}
-                        isErc20={isErc20}
+                        isErc20={isErc20 || false}
                         tokenDecimals={tokenDecimals}
                       />
                     )}
