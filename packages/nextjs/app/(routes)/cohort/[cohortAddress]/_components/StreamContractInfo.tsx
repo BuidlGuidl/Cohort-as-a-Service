@@ -165,7 +165,7 @@ export const StreamContractInfo = ({
 
       <input type="checkbox" id="withdraw-modal" className="modal-toggle" />
       <label htmlFor="withdraw-modal" className="modal cursor-pointer">
-        <label className="modal-box relative border border-primary">
+        <label className="modal-box relative bg-base-100 border border-primary">
           <input className="h-0 w-0 absolute top-0 left-0" />
           <h3 className="font-bold">
             {connectedAddressRequiresApproval ? "Request a Withdrawal" : "Withdraw from your stream"}

@@ -20,7 +20,7 @@ interface SearchPageProps {
 const SearchPage = ({ searchParams }: SearchPageProps) => {
   // const [filter, setFilter] = useState<"admin" | "builder">("admin");
   const { isLoading, combinedCohorts: allMyCohorts } = useFilteredCohorts({ ...searchParams });
-  const { isConnected } = useAccount();
+  const { address } = useAccount();
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -42,7 +42,7 @@ const SearchPage = ({ searchParams }: SearchPageProps) => {
             </ul>
           </div>
         </div> */}
-        {isConnected ? (
+        {address ? (
           <div>
             <div className="pb-2 md:mb-0 flex md:flex-row flex-col gap-2">
               <SearchInput />

@@ -8,25 +8,25 @@ datasource db {
 }
 
 model Cohort {
-    id             String    @id @default(cuid())
-    address        String    @unique
+    id             String        @id @default(cuid())
+    address        String        @unique
     chainId        String?
     adminAddresses String[]
     Project        Project[]
     theme          Json?
     Builder        Builder[]
+    Application    Application[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
 
 model Builder {
-    id              String  @id @default(cuid())
-    address         String
+    id             String  @id @default(cuid())
+    address        String
     githubUsername String?
-    cohortId        String
-    cohort          Cohort  @relation(fields: [cohortId], references: [id])
-
+    cohortId       String
+    cohort         Cohort  @relation(fields: [cohortId], references: [id])
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -40,6 +40,25 @@ model Project {
     websiteUrl  String
     cohortId    String
     cohort      Cohort @relation(fields: [cohortId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+enum ApplicationStatus {
+    PENDING
+    APPROVED
+    REJECTED
+}
+
+model Application {
+    id             String  @id @default(cuid())
+    address        String
+    description    String
+    githubUsername String?
+    cohortId       String
+    status         ApplicationStatus @default(PENDING)
+    cohort         Cohort  @relation(fields: [cohortId], references: [id])
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

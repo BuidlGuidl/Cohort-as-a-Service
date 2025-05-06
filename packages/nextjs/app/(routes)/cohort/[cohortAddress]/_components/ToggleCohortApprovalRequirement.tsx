@@ -37,7 +37,7 @@ export const ToggleCohortApprovalRequirement = ({
     <>
       <input type="checkbox" id="toggle-cohort-approval-requirement-modal" className="modal-toggle" />
       <label htmlFor="toggle-cohort-approval-requirement-modal" className="modal cursor-pointer">
-        <label className="modal-box relative border border-primary">
+        <label className="modal-box relative bg-base-100 border border-primary">
           <input className="h-0 w-0 absolute top-0 left-0" />
           <div className="font-bold mb-8 flex items-center gap-1 text-error">
             {requiresApproval ? "Allow Withdrawals" : "Require Approval"}

@@ -39,7 +39,7 @@ export const UpdateBuilder = ({ cohortAddress, builderAddress, isErc20, tokenDec
     <>
       <input type="checkbox" id={modalId} className="modal-toggle" />
       <label htmlFor={modalId} className="modal cursor-pointer">
-        <label className="modal-box relative border border-primary">
+        <label className="modal-box relative bg-base-100 border border-primary">
           {/* dummy input to capture event onclick on modal box */}
           <input className="h-0 w-0 absolute top-0 left-0" />
           <div className="font-bold mb-8 flex items-center gap-1">
@@ -52,7 +52,7 @@ export const UpdateBuilder = ({ cohortAddress, builderAddress, isErc20, tokenDec
             <div className="flex flex-col gap-6 items-center ">
               <input
                 type="number"
-                className="input input-sm rounded-md input-bordered border border-base-300 w-full"
+                className="input input-sm rounded-md input-bordered border border-base-300 w-full bg-transparent"
                 placeholder="New cap"
                 disabled={isPending}
                 onChange={e => setCap(e.target.value.toString())}

@@ -1,5 +1,5 @@
 import React from "react";
-import EditGithub from "./EditGithub";
+import { EditGithub } from "./EditGithub";
 import { Builder } from "@prisma/client";
 import { EllipsisVertical } from "lucide-react";
 
