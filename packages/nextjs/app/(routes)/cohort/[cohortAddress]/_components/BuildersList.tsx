@@ -6,7 +6,9 @@ import { AdminActions } from "../members/_components/AdminActions";
 import { BuilderActions } from "../members/_components/BuilderActions";
 import { NotificationBell } from "../members/_components/NotificationBell";
 import { NotificationNote } from "../members/_components/NotificationNote";
+import { ApplicationModal } from "./ApplicationModal";
 import { Application, Builder } from "@prisma/client";
+import { Plus } from "lucide-react";
 import { useAccount } from "wagmi";
 import { Address } from "~~/components/scaffold-eth";
 
@@ -34,6 +36,7 @@ interface BuildersListProps {
   dbBuilders?: Builder[];
   dbAdminAddresses?: string[];
   applications?: Application[];
+  onApplicationSuccess?: () => void;
 }
 
 export const BuildersList: React.FC<BuildersListProps> = ({
@@ -53,6 +56,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
   dbBuilders,
   dbAdminAddresses,
   applications,
+  onApplicationSuccess,
 }) => {
   const { address } = useAccount();
 
@@ -98,14 +102,35 @@ export const BuildersList: React.FC<BuildersListProps> = ({
   };
 
   const pendingApplicationsCount = applications?.filter(app => app.status === "PENDING").length || 0;
+  const userApplications = applications?.filter(app => app.address.toLowerCase() === address?.toLowerCase()) || [];
+
+  const canApply = () => {
+    if (!userApplications.length) return true;
+
+    const hasPendingOrApproved = userApplications.some(app => app.status === "PENDING" || app.status === "APPROVED");
+    return !hasPendingOrApproved;
+  };
 
   return (
     <div className="flex flex-col gap-6">
-      {address && !isDbBuilderorAdmin() && !isLoading && (
-        <Link href={`/cohort/${cohortAddress}/apply`}>
-          <button className="btn btn-sm btn-primary rounded-md w-fit">Apply to be a builder</button>
+      {address && !isDbBuilderorAdmin() && !isLoading && !canApply() && (
+        <Link href={`/cohort/${cohortAddress}/myapplications`}>
+          <button className="btn btn-sm btn-primary rounded-md w-fit">My applications</button>
         </Link>
       )}
+
+      {address && !isDbBuilderorAdmin() && !isLoading && canApply() && (
+        <div className="mb-6">
+          <label
+            htmlFor="add-application-modal"
+            className="btn rounded-md btn-primary btn-sm font-normal space-x-2 normal-case"
+          >
+            Apply to join
+            <Plus className="h-4 w-4" />
+          </label>
+        </div>
+      )}
+
       {isAdmin && (
         <div className="flex flex-col md:flex-row gap-4">
           <AddBatch cohortAddress={cohortAddress} isErc20={isERC20} tokenDecimals={tokenDecimals} />
@@ -217,6 +242,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
           );
         })
       )}
+      <ApplicationModal cohortAddress={cohortAddress} onApplicationSuccess={onApplicationSuccess} />
     </div>
   );
 };

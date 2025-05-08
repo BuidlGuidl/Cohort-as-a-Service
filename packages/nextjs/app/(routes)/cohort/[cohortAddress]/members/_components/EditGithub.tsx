@@ -15,8 +15,11 @@ const EditGithubSchema = z.object({
   githubUsername: z
     .string()
     .min(1, "GitHub username is required")
-    .max(39, "GitHub username cannot exceed 39 characters")
-    .regex(/^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$/, "Invalid GitHub username format"),
+    .max(30, "GitHub username cannot exceed 30 characters")
+    .regex(
+      /^(?!-)[a-zA-Z0-9-]+(?<!-)$/,
+      "GitHub username may only contain alphanumeric characters or single hyphens, and cannot begin or end with a hyphen",
+    ),
 });
 
 interface EditGithubProps {

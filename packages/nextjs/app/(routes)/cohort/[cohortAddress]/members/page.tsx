@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { BuildersList } from "../_components/BuildersList";
 import { StreamContractInfo } from "../_components/StreamContractInfo";
 import { EventsModal } from "./_components/EventsModal";
@@ -71,21 +71,25 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
     setIsModalOpen(true);
   };
 
+  const fetchCohort = useCallback(async () => {
+    if (!params.cohortAddress) return;
+
+    try {
+      const response = await axios.get(`/api/cohort/${params.cohortAddress}`);
+      const cohort = response.data?.cohort;
+      setDbCohort(cohort);
+    } catch (error) {
+      console.error("Error fetching cohort from db:", error);
+    }
+  }, [params.cohortAddress]);
+
   useEffect(() => {
-    const fetchCohort = async () => {
-      if (!params.cohortAddress) return;
-
-      try {
-        const response = await axios.get(`/api/cohort/${params.cohortAddress}`);
-        const cohort = response.data?.cohort;
-        setDbCohort(cohort);
-      } catch (error) {
-        console.error("Error fetching cohort from db:", error);
-      }
-    };
-
     fetchCohort();
-  }, [params.cohortAddress, builderStreams]);
+  }, [fetchCohort, builderStreams]);
+
+  const handleApplicationSuccess = () => {
+    fetchCohort();
+  };
 
   return (
     <div>
@@ -114,6 +118,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
             dbBuilders={dbCohort?.Builder}
             dbAdminAddresses={dbCohort?.adminAddresses}
             applications={dbCohort?.Application}
+            onApplicationSuccess={handleApplicationSuccess}
           />
         </div>
 

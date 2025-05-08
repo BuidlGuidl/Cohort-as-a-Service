@@ -1,4 +1,3 @@
-// app/cohort/[cohortAddress]/apply/page.tsx
 import React from "react";
 import Link from "next/link";
 import ApplicationList from "./_components/ApplicationList";
@@ -34,8 +33,6 @@ const page = async ({
       </Link>
 
       <div className="mt-8">
-        <h1 className="text-xl mb-6">Apply to enter cohort</h1>
-
         <ApplicationList
           applications={cohort.Application}
           cohortAddress={params.cohortAddress}
