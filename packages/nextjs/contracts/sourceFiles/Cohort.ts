@@ -987,6 +987,7 @@ abstract contract CohortEvents {
     event PrimaryAdminTransferred(address indexed newAdmin);
     event ERC20FundsReceived(address indexed token, address indexed from, uint256 amount);
     event ContractLocked(bool locked);
+    event AllowApplicationsChanged(bool allowApplications);
 
     // Withdrawal request events
     event WithdrawRequested(address indexed builder, uint256 requestId, uint256 amount, string reason);
@@ -1079,6 +1080,7 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
     bool public isONETIME;
     bool public locked;
     bool public requireApprovalForWithdrawals;
+    bool public allowApplications;
     string public name;
     string public description;
     address public tokenAddress;
@@ -1104,7 +1106,8 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
         uint256 _cycle,
         address[] memory _builders,
         uint256[] memory _caps,
-        bool _requiresApproval
+        bool _requiresApproval,
+        bool _allowApplications
     ) {
         if (bytes(_name).length > MAX_NAME_LENGTH) revert MaxNameLength(bytes(_name).length, MAX_NAME_LENGTH);
 
@@ -1114,6 +1117,7 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
         description = _description;
         cycle = _cycle;
         requireApprovalForWithdrawals = _requiresApproval;
+        allowApplications = _allowApplications;
 
         if (_tokenAddress != address(0)) {
             isERC20 = true;
@@ -1280,6 +1284,15 @@ abstract contract CohortAdmin is CohortBase {
     function toggleLock(bool _enable) public onlyAdmin {
         locked = _enable;
         emit ContractLocked(_enable);
+    }
+
+    /**
+     * @dev Allow or disallow applications for new builders
+     * @param _enable Whether to allow applications
+     */
+    function toggleAllowApplications(bool _enable) public onlyAdmin {
+        allowApplications = _enable;
+        emit AllowApplicationsChanged(_enable);
     }
 
     /**
@@ -1699,8 +1712,21 @@ contract Cohort is CohortFunding {
         uint256 _cycle,
         address[] memory _builders,
         uint256[] memory _caps,
-        bool _requiresApproval
-    ) CohortBase(_primaryAdmin, _tokenAddress, _name, _description, _cycle, _builders, _caps, _requiresApproval) {}
+        bool _requiresApproval,
+        bool _allowApplications
+    )
+        CohortBase(
+            _primaryAdmin,
+            _tokenAddress,
+            _name,
+            _description,
+            _cycle,
+            _builders,
+            _caps,
+            _requiresApproval,
+            _allowApplications
+        )
+    {}
 }` as const;
 
 export default source;

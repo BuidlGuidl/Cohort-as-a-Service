@@ -27,6 +27,7 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
     bool public isONETIME;
     bool public locked;
     bool public requireApprovalForWithdrawals;
+    bool public allowApplications;
     string public name;
     string public description;
     address public tokenAddress;
@@ -52,7 +53,8 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
         uint256 _cycle,
         address[] memory _builders,
         uint256[] memory _caps,
-        bool _requiresApproval
+        bool _requiresApproval,
+        bool _allowApplications
     ) {
         if (bytes(_name).length > MAX_NAME_LENGTH) revert MaxNameLength(bytes(_name).length, MAX_NAME_LENGTH);
 
@@ -62,6 +64,7 @@ abstract contract CohortBase is ICohortStructs, AccessControl, ReentrancyGuard, 
         description = _description;
         cycle = _cycle;
         requireApprovalForWithdrawals = _requiresApproval;
+        allowApplications = _allowApplications;
 
         if (_tokenAddress != address(0)) {
             isERC20 = true;

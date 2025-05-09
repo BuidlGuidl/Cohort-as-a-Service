@@ -45,6 +45,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     builderStreams,
     isLoadingBuilders,
     cycle,
+    allowApplications,
   } = useCohortData(params.cohortAddress);
 
   const router = useRouter();
@@ -149,6 +150,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
             dbAdminAddresses={dbCohort?.adminAddresses}
             applications={dbCohort?.Application}
             onApplicationSuccess={handleApplicationSuccess}
+            allowApplications={allowApplications ?? false}
           />
         </div>
       )}
@@ -183,6 +185,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         tokenDecimals={tokenDecimals}
         cycle={cycle ?? 0}
         requiresApproval={requiresApproval ?? false}
+        allowApplications={allowApplications ?? false}
       />
 
       <EventsModal

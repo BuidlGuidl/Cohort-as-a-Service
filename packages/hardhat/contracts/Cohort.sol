@@ -28,6 +28,19 @@ contract Cohort is CohortFunding {
         uint256 _cycle,
         address[] memory _builders,
         uint256[] memory _caps,
-        bool _requiresApproval
-    ) CohortBase(_primaryAdmin, _tokenAddress, _name, _description, _cycle, _builders, _caps, _requiresApproval) {}
+        bool _requiresApproval,
+        bool _allowApplications
+    )
+        CohortBase(
+            _primaryAdmin,
+            _tokenAddress,
+            _name,
+            _description,
+            _cycle,
+            _builders,
+            _caps,
+            _requiresApproval,
+            _allowApplications
+        )
+    {}
 }

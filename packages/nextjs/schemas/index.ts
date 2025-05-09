@@ -37,6 +37,7 @@ export const CreateCohortSchema = z.object({
     .optional()
     .default([]),
   requiresApproval: z.boolean().default(false),
+  allowApplications: z.boolean().default(false),
 });
 
 export const CreateProjectSchema = z.object({

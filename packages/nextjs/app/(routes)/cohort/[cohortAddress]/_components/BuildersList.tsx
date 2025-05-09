@@ -35,6 +35,7 @@ interface BuildersListProps {
   openEventsModal: (address: string, view: "contributions" | "requests") => void;
   dbBuilders?: Builder[];
   dbAdminAddresses?: string[];
+  allowApplications?: boolean;
   applications?: Application[];
   onApplicationSuccess?: () => void;
 }
@@ -55,6 +56,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
   openEventsModal,
   dbBuilders,
   dbAdminAddresses,
+  allowApplications,
   applications,
   onApplicationSuccess,
 }) => {
@@ -105,7 +107,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
   const userApplications = applications?.filter(app => app.address.toLowerCase() === address?.toLowerCase()) || [];
 
   const canApply = () => {
-    if (!userApplications.length) return true;
+    if (!userApplications.length && allowApplications) return true;
 
     const hasPendingOrApproved = userApplications.some(app => app.status === "PENDING" || app.status === "APPROVED");
     return !hasPendingOrApproved;
@@ -119,7 +121,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
         </Link>
       )}
 
-      {address && !isDbBuilderorAdmin() && !isLoading && canApply() && (
+      {address && !isDbBuilderorAdmin() && !isLoading && canApply() && allowApplications && (
         <div className="mb-6">
           <label
             htmlFor="add-application-modal"

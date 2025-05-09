@@ -44,6 +44,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
     locked,
     requiresApproval,
     cycle,
+    allowApplications,
   } = useCohortData(params.cohortAddress);
 
   const [selectedAddress, setSelectedAddress] = useState("");
@@ -119,6 +120,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
             dbAdminAddresses={dbCohort?.adminAddresses}
             applications={dbCohort?.Application}
             onApplicationSuccess={handleApplicationSuccess}
+            allowApplications={allowApplications ?? false}
           />
         </div>
 
@@ -150,6 +152,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
           locked={locked ?? false}
           requiresApproval={requiresApproval ?? false}
           cycle={cycle ?? 0}
+          allowApplications={allowApplications ?? false}
         />
       </div>
 

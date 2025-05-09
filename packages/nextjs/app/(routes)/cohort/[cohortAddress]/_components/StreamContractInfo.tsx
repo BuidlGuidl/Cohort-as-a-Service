@@ -34,6 +34,7 @@ interface StreamContractInfoProps {
   locked: boolean;
   cycle: number;
   requiresApproval: boolean;
+  allowApplications: boolean;
 }
 
 export const StreamContractInfo = ({
@@ -56,6 +57,7 @@ export const StreamContractInfo = ({
   tokenDecimals,
   cycle,
   requiresApproval,
+  allowApplications,
 }: StreamContractInfoProps) => {
   const { address, chainId, isConnected } = useAccount();
   const { switchChain } = useSwitchChain();
@@ -139,6 +141,7 @@ export const StreamContractInfo = ({
               locked={locked}
               tokenDecimals={tokenDecimals}
               requiresApproval={requiresApproval}
+              allowApplications={allowApplications}
             />
           )}
         </div>

@@ -36,6 +36,10 @@ export async function PATCH(req: Request, { params }: { params: { address: strin
       return new NextResponse("Application not found", { status: 404 });
     }
 
+    if (application.status !== "PENDING") {
+      return new NextResponse("Application already processed", { status: 400 });
+    }
+
     if (status !== "APPROVED" && status !== "REJECTED") {
       console.error("[APPLICATION_UPDATE] Invalid status", status);
       return new NextResponse("Invalid status", { status: 400 });

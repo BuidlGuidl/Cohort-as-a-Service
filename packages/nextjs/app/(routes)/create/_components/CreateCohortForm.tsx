@@ -56,6 +56,7 @@ const CreateCohortForm = () => {
       builderAddresses: [],
       builderCaps: [],
       requiresApproval: false,
+      allowApplications: false,
     },
     mode: "onChange",
   });
@@ -177,14 +178,17 @@ const CreateCohortForm = () => {
       const hash = await writeYourContractAsync({
         functionName: "createCohort",
         args: [
-          values.adminAddress,
-          values.currencyAddress,
-          values.name,
-          values.description,
-          BigInt(cycleInSeconds(values.cycle)),
-          filteredAddresses || [],
-          FormattedBuilderCaps || [],
-          values.requiresApproval,
+          {
+            primaryAdmin: values.adminAddress,
+            tokenAddress: values.currencyAddress,
+            name: values.name,
+            description: values.description,
+            cycle: BigInt(cycleInSeconds(values.cycle)),
+            builders: filteredAddresses || [],
+            caps: FormattedBuilderCaps || [],
+            requiresApproval: values.requiresApproval,
+            allowApplications: values.allowApplications,
+          },
         ],
         value: parseEther(costWithAllowance),
       });
@@ -211,6 +215,7 @@ const CreateCohortForm = () => {
             filteredAddresses || [],
             FormattedBuilderCaps || [],
             values.requiresApproval,
+            values.allowApplications,
           ],
           contract: {
             abi: localDeployedContract?.abi,
@@ -317,28 +322,6 @@ const CreateCohortForm = () => {
             )}
           </div>
 
-          <div className="form-control">
-            <label className="label cursor-pointer">
-              <span className="label-text font-medium">Require approval for builder withdrawals</span>
-              <input
-                type="checkbox"
-                className="toggle toggle-primary"
-                checked={form.watch("requiresApproval")}
-                onChange={e => {
-                  form.setValue("requiresApproval", e.target.checked, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                }}
-              />
-            </label>
-            <label className="label">
-              <span className="label-text-alt text-base-content/60">
-                When enabled, builders will need admin approval before they can withdraw funds
-              </span>
-            </label>
-          </div>
-
           <div className="form-control w-full">
             <label className="label">
               <span className="label-text font-medium">Currency</span>
@@ -439,6 +422,50 @@ const CreateCohortForm = () => {
                 </span>
               </label>
             )}
+          </div>
+
+          <div className="form-control">
+            <label className="label cursor-pointer">
+              <span className="label-text font-medium">Require approval for builder withdrawals</span>
+              <input
+                type="checkbox"
+                className="toggle toggle-primary"
+                checked={form.watch("requiresApproval")}
+                onChange={e => {
+                  form.setValue("requiresApproval", e.target.checked, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                }}
+              />
+            </label>
+            <label className="label">
+              <span className="label-text-alt text-base-content/60">
+                When enabled, builders will need admin approval before they can withdraw funds
+              </span>
+            </label>
+          </div>
+
+          <div className="form-control">
+            <label className="label cursor-pointer">
+              <span className="label-text font-medium">Allow builder applications to join cohort</span>
+              <input
+                type="checkbox"
+                className="toggle toggle-primary"
+                checked={form.watch("allowApplications")}
+                onChange={e => {
+                  form.setValue("allowApplications", e.target.checked, {
+                    shouldValidate: true,
+                    shouldDirty: true,
+                  });
+                }}
+              />
+            </label>
+            <label className="label">
+              <span className="label-text-alt text-base-content/60">
+                When enabled, random builders can submit applications to join the cohort
+              </span>
+            </label>
           </div>
 
           <div className="form-control w-full">

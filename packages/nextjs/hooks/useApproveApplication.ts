@@ -1,5 +1,6 @@
 // hooks/useApproveApplication.ts
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTargetNetwork } from "./scaffold-eth";
 import { useTransactor } from "./scaffold-eth";
 import axios from "axios";
@@ -29,6 +30,7 @@ export const useApproveApplication = ({
   applicationId,
   githubUsername,
 }: useApproveApplicationProps) => {
+  const router = useRouter();
   const { chain, chainId } = useAccount();
   const { targetNetwork } = useTargetNetwork();
   const [contractSuccess, setContractSuccess] = useState(false);
@@ -116,6 +118,7 @@ export const useApproveApplication = ({
           });
 
           notification.success("Builder approved");
+          router.refresh();
         } catch (error) {
           notification.error("Something went wrong ");
           console.error("Error updating application in database:", error);
