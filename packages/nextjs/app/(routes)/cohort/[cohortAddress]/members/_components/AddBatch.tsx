@@ -76,7 +76,7 @@ export const AddBatch = ({ cohortAddress, isErc20, tokenDecimals }: AddbatchProp
 
       <input type="checkbox" id="add-batch-modal" className="modal-toggle" />
       <label htmlFor="add-batch-modal" className="modal cursor-pointer">
-        <label className="modal-box relative border border-primary">
+        <label className="modal-box relative bg-base-100 border border-primary">
           <input className="h-0 w-0 absolute top-0 left-0" />
           <p className="font-bold mb-8 flex items-center gap-1 ">Add new builders</p>
           <label htmlFor="add-batch-modal" className="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">
@@ -122,7 +122,7 @@ export const AddBatch = ({ cohortAddress, isErc20, tokenDecimals }: AddbatchProp
                         GitHub Username{index != 0 && " " + (index + 1)} (optional):
                       </label>
                       <input
-                        className="input input-sm rounded-md input-bordered border border-base-300 w-full"
+                        className="input input-sm rounded-md input-bordered border border-base-300 w-full bg-transparent"
                         id={`github-username-${index}`}
                         name={`github-username-${index}`}
                         placeholder="GitHub username (optional)"

@@ -11,13 +11,15 @@ import { useSignMessage } from "wagmi";
 import * as z from "zod";
 import { notification } from "~~/utils/scaffold-eth";
 
-// Define schema for GitHub username validation
 const EditGithubSchema = z.object({
   githubUsername: z
     .string()
     .min(1, "GitHub username is required")
-    .max(39, "GitHub username cannot exceed 39 characters")
-    .regex(/^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$/, "Invalid GitHub username format"),
+    .max(30, "GitHub username cannot exceed 30 characters")
+    .regex(
+      /^(?!-)[a-zA-Z0-9-]+(?<!-)$/,
+      "GitHub username may only contain alphanumeric characters or single hyphens, and cannot begin or end with a hyphen",
+    ),
 });
 
 interface EditGithubProps {
@@ -46,7 +48,6 @@ export const EditGithub = ({ builder, onSuccess }: EditGithubProps) => {
 
   const { isSubmitting, isValid, errors } = form.formState;
 
-  // Update form values if builder prop changes
   useEffect(() => {
     form.reset({
       githubUsername: builder?.githubUsername || "",
@@ -112,7 +113,7 @@ export const EditGithub = ({ builder, onSuccess }: EditGithubProps) => {
     <div>
       <input type="checkbox" id={`edit-github-modal-${builder?.id}`} className="modal-toggle" />
       <label htmlFor={`edit-github-modal-${builder?.id}`} className="modal cursor-pointer">
-        <label className="modal-box relative border border-primary">
+        <label className="modal-box relative bg-base-100 border border-primary">
           {/* dummy input to capture event onclick on modal box */}
           <input className="h-0 w-0 absolute top-0 left-0" />
           <div className="font-bold mb-4 flex items-center gap-1">Edit GitHub Username</div>
@@ -130,7 +131,7 @@ export const EditGithub = ({ builder, onSuccess }: EditGithubProps) => {
               </label>
               <input
                 type="text"
-                className={`input input-sm rounded-md input-bordered border border-base-300 w-full ${
+                className={`input input-sm rounded-md input-bordered border border-base-300 w-full bg-transparent ${
                   errors.githubUsername ? "input-error" : ""
                 }`}
                 placeholder="github username"
@@ -159,5 +160,3 @@ export const EditGithub = ({ builder, onSuccess }: EditGithubProps) => {
     </div>
   );
 };
-
-export default EditGithub;

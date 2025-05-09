@@ -34,6 +34,7 @@ interface StreamContractInfoProps {
   locked: boolean;
   cycle: number;
   requiresApproval: boolean;
+  allowApplications: boolean;
 }
 
 export const StreamContractInfo = ({
@@ -56,6 +57,7 @@ export const StreamContractInfo = ({
   tokenDecimals,
   cycle,
   requiresApproval,
+  allowApplications,
 }: StreamContractInfoProps) => {
   const { address, chainId, isConnected } = useAccount();
   const { switchChain } = useSwitchChain();
@@ -139,6 +141,7 @@ export const StreamContractInfo = ({
               locked={locked}
               tokenDecimals={tokenDecimals}
               requiresApproval={requiresApproval}
+              allowApplications={allowApplications}
             />
           )}
         </div>
@@ -165,7 +168,7 @@ export const StreamContractInfo = ({
 
       <input type="checkbox" id="withdraw-modal" className="modal-toggle" />
       <label htmlFor="withdraw-modal" className="modal cursor-pointer">
-        <label className="modal-box relative border border-primary">
+        <label className="modal-box relative bg-base-100 border border-primary">
           <input className="h-0 w-0 absolute top-0 left-0" />
           <h3 className="font-bold">
             {connectedAddressRequiresApproval ? "Request a Withdrawal" : "Withdraw from your stream"}

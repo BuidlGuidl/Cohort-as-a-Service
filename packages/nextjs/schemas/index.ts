@@ -24,10 +24,20 @@ export const CreateCohortSchema = z.object({
     .optional()
     .default([]),
   builderGithubUsernames: z
-    .array(z.string().or(z.string().length(0)))
+    .array(
+      z
+        .string()
+        .max(30, "GitHub username cannot exceed 30 characters")
+        .regex(
+          /^(?!-)[a-zA-Z0-9-]+(?<!-)$/,
+          "GitHub username may only contain alphanumeric characters or single hyphens, and cannot begin or end with a hyphen",
+        )
+        .or(z.string().length(0)),
+    )
     .optional()
     .default([]),
   requiresApproval: z.boolean().default(false),
+  allowApplications: z.boolean().default(false),
 });
 
 export const CreateProjectSchema = z.object({

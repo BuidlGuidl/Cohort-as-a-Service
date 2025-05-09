@@ -17,6 +17,7 @@ abstract contract CohortEvents {
     event PrimaryAdminTransferred(address indexed newAdmin);
     event ERC20FundsReceived(address indexed token, address indexed from, uint256 amount);
     event ContractLocked(bool locked);
+    event AllowApplicationsChanged(bool allowApplications);
 
     // Withdrawal request events
     event WithdrawRequested(address indexed builder, uint256 requestId, uint256 amount, string reason);

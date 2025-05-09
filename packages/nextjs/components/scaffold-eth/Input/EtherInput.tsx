@@ -110,7 +110,7 @@ export const EtherInput = ({
       placeholder={placeholder}
       onChange={handleChangeNumber}
       disabled={disabled}
-      prefix={<span className="pl-4 -mr-2 text-accent self-center">{displayUsdMode ? "$" : "Ξ"}</span>}
+      prefix={<span className="pl-4 -mr-2 text-accent self-center fixed">{displayUsdMode ? "$" : "Ξ"}</span>}
       suffix={
         <div
           className={`${

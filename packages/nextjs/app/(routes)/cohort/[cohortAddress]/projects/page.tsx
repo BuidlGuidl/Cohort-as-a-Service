@@ -13,12 +13,16 @@ const page = async ({
 }) => {
   const cohort = await db.cohort.findUnique({
     where: {
-      address: params.cohortAddress,
+      address: params.cohortAddress.toLowerCase(),
     },
     include: {
       Project: true,
     },
   });
+
+  if (!cohort) {
+    return <div>Cohort not found</div>;
+  }
 
   return (
     <div className="max-w-4xl">

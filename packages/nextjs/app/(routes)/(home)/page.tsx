@@ -6,7 +6,7 @@ import { useAccount } from "wagmi";
 import { RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 
 const Home: NextPage = () => {
-  const { isConnected } = useAccount();
+  const { address } = useAccount();
   return (
     <>
       <div className="flex flex-col flex-grow pt-10 max-w-4xl mx-auto">
@@ -19,7 +19,7 @@ const Home: NextPage = () => {
             users manage their builders
           </p>
         </div>
-        {isConnected ? (
+        {address ? (
           <div className="flex gap-3">
             <Link href="/create">
               <button className="btn btn-sm rounded-sm btn-primary">Create now</button>

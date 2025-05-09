@@ -53,6 +53,15 @@ abstract contract CohortAdmin is CohortBase {
     }
 
     /**
+     * @dev Allow or disallow applications for new builders
+     * @param _enable Whether to allow applications
+     */
+    function toggleAllowApplications(bool _enable) public onlyAdmin {
+        allowApplications = _enable;
+        emit AllowApplicationsChanged(_enable);
+    }
+
+    /**
      * @dev Set whether this contract requires approval for withdrawals
      * @param _enable Whether to require approval
      */

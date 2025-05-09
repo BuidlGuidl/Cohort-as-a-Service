@@ -11,16 +11,14 @@ export async function POST(req: NextRequest, { params }: { params: { address: st
       return new NextResponse("Missing required fields or invalid format", { status: 400 });
     }
 
-    // Verify signature
     const signerAddress = await recoverMessageAddress({
       message,
       signature,
     });
 
-    // Find cohort
     const cohort = await db.cohort.findUnique({
       where: {
-        address: params.address,
+        address: params.address.toLowerCase(),
       },
     });
 
@@ -28,12 +26,10 @@ export async function POST(req: NextRequest, { params }: { params: { address: st
       return new NextResponse("Cohort not found", { status: 404 });
     }
 
-    // Check if signer is admin
     if (!cohort.adminAddresses.includes(signerAddress)) {
       return new NextResponse("Unauthorized - Only admins can add builders", { status: 403 });
     }
 
-    // Process builders
     const builderRecords = [];
 
     for (let i = 0; i < builderAddresses.length; i++) {

@@ -25,6 +25,7 @@ export type CohortData = {
   primaryAdmin: string;
   locked: boolean;
   requiresApproval: boolean;
+  allowApplications: boolean;
   balance: number;
   activeBuilders: string[];
   builderStreams: Map<
@@ -118,6 +119,15 @@ export const useCohortData = (cohortAddress: string) => {
   const { data: cohortLocked } = useCohortEventHistory({
     contractName: "Cohort",
     eventName: "ContractLocked",
+    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
+    watch: true,
+    contractAddress: cohortAddress,
+    chainId,
+  });
+
+  const { data: allowApplicationsChanged } = useCohortEventHistory({
+    contractName: "Cohort",
+    eventName: "AllowApplicationsChanged",
     fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
     watch: true,
     contractAddress: cohortAddress,
@@ -312,54 +322,69 @@ export const useCohortData = (cohortAddress: string) => {
     setError(null);
 
     try {
-      const [name, description, isERC20, isONETIME, cycle, tokenAddress, primaryAdmin, locked, requiresApproval] =
-        await Promise.all([
-          publicClient.readContract({
-            address: cohortAddress,
-            abi: deployedContract.abi,
-            functionName: "name",
-          }),
-          publicClient.readContract({
-            address: cohortAddress,
-            abi: deployedContract.abi,
-            functionName: "description",
-          }),
-          publicClient.readContract({
-            address: cohortAddress,
-            abi: deployedContract.abi,
-            functionName: "isERC20",
-          }),
-          publicClient.readContract({
-            address: cohortAddress,
-            abi: deployedContract.abi,
-            functionName: "isONETIME",
-          }),
-          publicClient.readContract({
-            address: cohortAddress,
-            abi: deployedContract.abi,
-            functionName: "cycle",
-          }),
-          publicClient.readContract({
-            address: cohortAddress,
-            abi: deployedContract.abi,
-            functionName: "tokenAddress",
-          }),
-          publicClient.readContract({
-            address: cohortAddress,
-            abi: deployedContract.abi,
-            functionName: "primaryAdmin",
-          }),
-          publicClient.readContract({
-            address: cohortAddress,
-            abi: deployedContract.abi,
-            functionName: "locked",
-          }),
-          publicClient.readContract({
-            address: cohortAddress,
-            abi: deployedContract.abi,
-            functionName: "requireApprovalForWithdrawals",
-          }),
-        ]);
+      const [
+        name,
+        description,
+        isERC20,
+        isONETIME,
+        cycle,
+        tokenAddress,
+        primaryAdmin,
+        locked,
+        requiresApproval,
+        allowApplications,
+      ] = await Promise.all([
+        publicClient.readContract({
+          address: cohortAddress,
+          abi: deployedContract.abi,
+          functionName: "name",
+        }),
+        publicClient.readContract({
+          address: cohortAddress,
+          abi: deployedContract.abi,
+          functionName: "description",
+        }),
+        publicClient.readContract({
+          address: cohortAddress,
+          abi: deployedContract.abi,
+          functionName: "isERC20",
+        }),
+        publicClient.readContract({
+          address: cohortAddress,
+          abi: deployedContract.abi,
+          functionName: "isONETIME",
+        }),
+        publicClient.readContract({
+          address: cohortAddress,
+          abi: deployedContract.abi,
+          functionName: "cycle",
+        }),
+        publicClient.readContract({
+          address: cohortAddress,
+          abi: deployedContract.abi,
+          functionName: "tokenAddress",
+        }),
+        publicClient.readContract({
+          address: cohortAddress,
+          abi: deployedContract.abi,
+          functionName: "primaryAdmin",
+        }),
+        publicClient.readContract({
+          address: cohortAddress,
+          abi: deployedContract.abi,
+          functionName: "locked",
+        }),
+        publicClient.readContract({
+          address: cohortAddress,
+          abi: deployedContract.abi,
+          functionName: "requireApprovalForWithdrawals",
+        }),
+        publicClient.readContract({
+          address: cohortAddress,
+          abi: deployedContract.abi,
+          functionName: "allowApplications",
+        }),
+      ]);
 
       let tokenSymbol = null;
       if (isERC20 && tokenAddress) {
@@ -488,6 +513,7 @@ export const useCohortData = (cohortAddress: string) => {
         primaryAdmin,
         locked,
         requiresApproval,
+        allowApplications,
         balance,
         activeBuilders: builders,
         builderStreams,
@@ -526,6 +552,7 @@ export const useCohortData = (cohortAddress: string) => {
     withdrawn,
     erc20Funding,
     cohortLocked,
+    allowApplicationsChanged,
   ]);
 
   return {

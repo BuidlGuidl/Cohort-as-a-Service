@@ -34,7 +34,7 @@ export const DrainCohort = ({ cohortAddress, tokenAddress }: DrainCohortProps) =
     <>
       <input type="checkbox" id="drain-cohort-modal" className="modal-toggle" />
       <label htmlFor="drain-cohort-modal" className="modal cursor-pointer">
-        <label className="modal-box relative border border-primary">
+        <label className="modal-box relative bg-base-100 border border-primary">
           <input className="h-0 w-0 absolute top-0 left-0" />
           <div className="font-bold mb-8 flex items-center gap-1 text-error">Drain Cohort</div>
           <label htmlFor="drain-cohort-modal" className="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">
