@@ -106,6 +106,13 @@ export const BuildersList: React.FC<BuildersListProps> = ({
   const pendingApplicationsCount = applications?.filter(app => app.status === "PENDING").length || 0;
   const userApplications = applications?.filter(app => app.address.toLowerCase() === address?.toLowerCase()) || [];
 
+  const dayOldUserRejectedApplicationsCount = userApplications.filter(
+    app =>
+      app.status === "REJECTED" &&
+      app.updatedAt &&
+      new Date(app.updatedAt) >= new Date(Date.now() - 24 * 60 * 60 * 1000),
+  ).length;
+
   const canApply = () => {
     if (!userApplications.length && allowApplications) return true;
 
@@ -125,10 +132,15 @@ export const BuildersList: React.FC<BuildersListProps> = ({
         <div className="mb-6">
           <label
             htmlFor="add-application-modal"
-            className="btn rounded-md btn-primary btn-sm font-normal space-x-2 normal-case"
+            className="btn rounded-md btn-primary btn-sm font-normal space-x-2 normal-case relative"
           >
             Apply to join
             <Plus className="h-4 w-4" />
+            {dayOldUserRejectedApplicationsCount > 0 && (
+              <div className="badge badge-warning badge-sm absolute -top-2 -right-2">
+                {dayOldUserRejectedApplicationsCount}
+              </div>
+            )}
           </label>
         </div>
       )}

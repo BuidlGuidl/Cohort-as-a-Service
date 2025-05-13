@@ -35,7 +35,7 @@ export const useRejectApplication = ({ applicationId, cohortAddress }: UseReject
             signature,
           });
 
-          notification.success("Application rejected successfully");
+          notification.success("Application rejected");
           router.refresh();
         } catch (error) {
           notification.error("Something went wrong");
