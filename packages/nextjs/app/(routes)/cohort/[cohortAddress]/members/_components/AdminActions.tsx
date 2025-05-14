@@ -1,6 +1,6 @@
 import React from "react";
 import { CheckWithdrawals } from "./CheckWithdrawals";
-import EditGithub from "./EditGithub";
+import { EditGithub } from "./EditGithub";
 import { RemoveBuilder } from "./RemoveBuilder";
 import { UpdateBuilder } from "./UpdateBuilder";
 import { Builder } from "@prisma/client";

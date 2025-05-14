@@ -112,7 +112,7 @@ export const AddProject = ({ onSuccess, cohortAddress }: AddProjectProps) => {
 
       <input type="checkbox" id="add-project-modal" className="modal-toggle" />
       <label htmlFor="add-project-modal" className="modal cursor-pointer">
-        <label className="modal-box relative border border-primary">
+        <label className="modal-box relative bg-base-100 border border-primary">
           {/* dummy input to capture event onclick on modal box */}
           <input className="h-0 w-0 absolute top-0 left-0" />
           <div className="font-bold mb-4 flex items-center gap-1">Add a new project</div>

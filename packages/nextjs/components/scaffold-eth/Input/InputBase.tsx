@@ -22,13 +22,13 @@ export const InputBase = <T extends { toString: () => string } | undefined = str
   reFocus,
   onBlur,
 }: InputBaseProps<T>) => {
-  const inputReft = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   let modifier = "";
   if (error) {
     modifier = "border-error";
   } else if (disabled) {
-    modifier = "border-disabled bg-base-300";
+    modifier = "border-disabled";
   }
 
   const handleChange = useCallback(
@@ -46,21 +46,21 @@ export const InputBase = <T extends { toString: () => string } | undefined = str
     }
   };
   useEffect(() => {
-    if (reFocus !== undefined && reFocus === true) inputReft.current?.focus();
+    if (reFocus !== undefined && reFocus === true) inputRef.current?.focus();
   }, [reFocus]);
 
   return (
-    <div className={`flex border rounded-md ${modifier}`}>
+    <div className={`flex items-center ${modifier}`}>
       {prefix}
       <input
-        className="input input-ghost input-sm focus-within:border-transparent focus:outline-none focus:bg-transparent w-full placeholder:text-accent/70 text-base-content/70 focus:text-base-content/70"
+        className="input input-ghost input-sm focus-within:border-transparent focus:outline-none focus:bg-transparent w-full placeholder:text-accent/70 text-base-content/70 focus:text-base-content/70 rounded-md pl-8 input-bordered border border-base-300 bg-transparent"
         placeholder={placeholder}
         name={name}
         value={value?.toString()}
         onChange={handleChange}
         disabled={disabled}
         autoComplete="off"
-        ref={inputReft}
+        ref={inputRef}
         onFocus={onFocus}
         onBlur={onBlur}
       />

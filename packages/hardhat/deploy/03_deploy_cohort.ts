@@ -31,6 +31,7 @@ const deployCohort: DeployFunction = async function (hre: HardhatRuntimeEnvironm
   const description = "Cohort contract";
   const cycle = 30 * 24 * 60 * 60; // 30 days
   const requiresApproval = false;
+  const allowApplications = false;
 
   await deploy("Cohort", {
     from: deployer,
@@ -49,6 +50,7 @@ const deployCohort: DeployFunction = async function (hre: HardhatRuntimeEnvironm
       [],
       [],
       requiresApproval,
+      allowApplications,
     ],
 
     log: true,

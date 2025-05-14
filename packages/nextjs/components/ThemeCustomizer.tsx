@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useSignMessage } from "wagmi";
 import { CheckIcon, Cog6ToothIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
-// Define theme setting types
 export interface Theme {
   primary: string;
   "primary-content": string;
@@ -25,7 +24,6 @@ interface ThemeCustomizerProps {
   isAdmin: boolean;
 }
 
-// Default theme values
 export const defaultTheme: Theme = {
   primary: "#c913ff",
   "primary-content": "#49ff13",
@@ -40,11 +38,9 @@ export const defaultTheme: Theme = {
   fontFamily: "sans-serif",
 };
 
-// Enhanced apply theme function that also sets derived variables like shadows
 export const applyTheme = (theme: Theme) => {
   const root = document.documentElement;
 
-  // Set the main theme variables
   Object.entries(theme).forEach(([key, value]) => {
     if (key === "fontFamily") {
       root.style.setProperty("--font-family", value);
@@ -121,7 +117,6 @@ export const ThemeCustomizer = ({ cohortAddress, isAdmin }: ThemeCustomizerProps
   const [theme, setTheme] = useState<Theme>(defaultTheme);
   const [previewTheme, setPreviewTheme] = useState<Theme>(defaultTheme);
 
-  // Font options
   const fontOptions = [
     "sans-serif",
     "serif",
@@ -131,7 +126,6 @@ export const ThemeCustomizer = ({ cohortAddress, isAdmin }: ThemeCustomizerProps
     "Poppins, sans-serif",
   ];
 
-  // Added shadow preview to the component
   const [previewExpanded, setPreviewExpanded] = useState(false);
 
   useEffect(() => {

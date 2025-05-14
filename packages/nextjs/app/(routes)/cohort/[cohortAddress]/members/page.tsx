@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { BuildersList } from "../_components/BuildersList";
 import { StreamContractInfo } from "../_components/StreamContractInfo";
 import { EventsModal } from "./_components/EventsModal";
-import { Builder, Cohort } from "@prisma/client";
+import { Application, Builder, Cohort } from "@prisma/client";
 import axios from "axios";
 import { useAccount } from "wagmi";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
@@ -19,6 +19,7 @@ export interface BuilderStream {
 
 type CohortWithBuilder = Cohort & {
   Builder: Builder[];
+  Application: Application[];
 };
 
 const Page = ({ params }: { params: { cohortAddress: string } }) => {
@@ -43,6 +44,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
     locked,
     requiresApproval,
     cycle,
+    allowApplications,
   } = useCohortData(params.cohortAddress);
 
   const [selectedAddress, setSelectedAddress] = useState("");
@@ -70,21 +72,25 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
     setIsModalOpen(true);
   };
 
+  const fetchCohort = useCallback(async () => {
+    if (!params.cohortAddress) return;
+
+    try {
+      const response = await axios.get(`/api/cohort/${params.cohortAddress}`);
+      const cohort = response.data?.cohort;
+      setDbCohort(cohort);
+    } catch (error) {
+      console.error("Error fetching cohort from db:", error);
+    }
+  }, [params.cohortAddress]);
+
   useEffect(() => {
-    const fetchCohort = async () => {
-      if (!params.cohortAddress) return;
-
-      try {
-        const response = await axios.get(`/api/cohort/${params.cohortAddress}`);
-        const cohort = response.data?.cohort;
-        setDbCohort(cohort);
-      } catch (error) {
-        console.error("Error fetching cohort from db:", error);
-      }
-    };
-
     fetchCohort();
-  }, [params.cohortAddress, builderStreams]);
+  }, [fetchCohort, builderStreams]);
+
+  const handleApplicationSuccess = () => {
+    fetchCohort();
+  };
 
   return (
     <div>
@@ -111,6 +117,10 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
             openEventsModal={openEventsModal}
             tokenDecimals={tokenDecimals}
             dbBuilders={dbCohort?.Builder}
+            dbAdminAddresses={dbCohort?.adminAddresses}
+            applications={dbCohort?.Application}
+            onApplicationSuccess={handleApplicationSuccess}
+            allowApplications={allowApplications ?? false}
           />
         </div>
 
@@ -142,6 +152,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
           locked={locked ?? false}
           requiresApproval={requiresApproval ?? false}
           cycle={cycle ?? 0}
+          allowApplications={allowApplications ?? false}
         />
       </div>
 

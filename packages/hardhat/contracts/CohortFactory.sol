@@ -19,6 +19,18 @@ contract CohortFactory is Ownable {
         uint256 creationTimestamp;
     }
 
+    struct CohortCreationParams {
+        address primaryAdmin;
+        address tokenAddress;
+        string name;
+        string description;
+        uint256 cycle;
+        address[] builders;
+        uint256[] caps;
+        bool requiresApproval;
+        bool allowApplications;
+    }
+
     AggregatorV3Interface private priceFeed;
 
     uint256 public creationFeeUSD;
@@ -75,7 +87,6 @@ contract CohortFactory is Ownable {
      * @dev Calculates required ETH amount for creation fee based on current ETH price
      * @return Required ETH amount in wei
      */
-
     function getRequiredEthAmount() public view returns (uint256) {
         // Using 1 hour as the maxStalePeriod
         uint256 maxStalePeriod = 1 * 60 * 60;
@@ -85,60 +96,64 @@ contract CohortFactory is Ownable {
 
     /**
      * @dev Creates a new Cohort contract
-     * @param _primaryAdmin Address of the primary admin
-     * @param _tokenAddress Address of ERC20 token (zero address for ETH)
-     * @param _name Name of the cohort
-     * @param _description Description of the cohort
-     * @param _cycle Cycle duration
-     * @param _builders Array of builder addresses
-     * @param _caps Array of cap values for builders
+     * @param params Struct containing all parameters for cohort creation
      * @return Address of the newly created cohort
      */
-    function createCohort(
-        address _primaryAdmin,
-        address _tokenAddress,
-        string memory _name,
-        string memory _description,
-        uint256 _cycle,
-        address[] memory _builders,
-        uint256[] memory _caps,
-        bool _requiresApproval
-    ) external payable returns (address) {
+    function createCohort(CohortCreationParams calldata params) external payable returns (address) {
         uint256 requiredEth = getRequiredEthAmount();
-
         uint256 maxStalePeriod = 1 * 60 * 60;
+
         if (msg.value.getConversionRate(priceFeed, maxStalePeriod) < creationFeeUSD) {
             revert InsufficientPayment(requiredEth, msg.value);
         }
 
+        address cohortAddress = _deployNewCohort(params);
+        _registerCohort(cohortAddress, params.name);
+
+        (bool sent, ) = owner().call{ value: msg.value }("");
+        if (!sent) revert FailedToSendETH();
+
+        emit CohortCreated(cohortAddress, params.primaryAdmin, params.name, params.description);
+        return cohortAddress;
+    }
+
+    /**
+     * @dev Internal function to deploy a new Cohort contract
+     * @param params Struct containing cohort parameters
+     * @return Address of the newly created cohort
+     */
+    function _deployNewCohort(CohortCreationParams calldata params) internal returns (address) {
         Cohort newCohort = new Cohort(
-            _primaryAdmin,
-            _tokenAddress,
-            _name,
-            _description,
-            _cycle,
-            _builders,
-            _caps,
-            _requiresApproval
+            params.primaryAdmin,
+            params.tokenAddress,
+            params.name,
+            params.description,
+            params.cycle,
+            params.builders,
+            params.caps,
+            params.requiresApproval,
+            params.allowApplications
         );
 
-        address cohortAddress = address(newCohort);
+        return address(newCohort);
+    }
+
+    /**
+     * @dev Internal function to register a cohort in the registry
+     * @param cohortAddress Address of the new cohort
+     * @param name Name of the cohort
+     */
+    function _registerCohort(address cohortAddress, string calldata name) internal {
         isCohort[cohortAddress] = true;
 
         uint256 cohortId = totalCohorts;
         cohortRegistry[cohortId] = CohortInfo({
             cohortAddress: cohortAddress,
-            name: _name,
+            name: name,
             creationTimestamp: block.timestamp
         });
 
         totalCohorts++;
-
-        (bool sent, ) = owner().call{ value: msg.value }("");
-        if (!sent) revert FailedToSendETH();
-
-        emit CohortCreated(cohortAddress, _primaryAdmin, _name, _description);
-        return cohortAddress;
     }
 
     /**

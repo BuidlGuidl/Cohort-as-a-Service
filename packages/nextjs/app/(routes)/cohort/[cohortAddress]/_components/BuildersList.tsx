@@ -1,12 +1,16 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AddBatch } from "../members/_components/AddBatch";
 import { AdminActions } from "../members/_components/AdminActions";
 import { BuilderActions } from "../members/_components/BuilderActions";
 import { NotificationBell } from "../members/_components/NotificationBell";
 import { NotificationNote } from "../members/_components/NotificationNote";
-import { Builder } from "@prisma/client";
+import { ApplicationModal } from "./ApplicationModal";
+import { Application, Builder } from "@prisma/client";
+import { Plus } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useAccount } from "wagmi";
 import { Address } from "~~/components/scaffold-eth";
 
@@ -32,6 +36,10 @@ interface BuildersListProps {
   completedRequestEvents: any[];
   openEventsModal: (address: string, view: "contributions" | "requests") => void;
   dbBuilders?: Builder[];
+  dbAdminAddresses?: string[];
+  allowApplications?: boolean;
+  applications?: Application[];
+  onApplicationSuccess?: () => void;
 }
 
 export const BuildersList: React.FC<BuildersListProps> = ({
@@ -49,15 +57,28 @@ export const BuildersList: React.FC<BuildersListProps> = ({
   completedRequestEvents,
   openEventsModal,
   dbBuilders,
+  dbAdminAddresses,
+  allowApplications,
+  applications,
+  onApplicationSuccess,
 }) => {
   const { address } = useAccount();
+  const router = useRouter();
+
+  const isDbBuilderorAdmin = () => {
+    if (!address) return false;
+    const isBuilder = dbBuilders?.some(builder => builder.address.toLowerCase() === address.toLowerCase());
+    const isAdmin = dbAdminAddresses?.some(admin => admin.toLowerCase() === address.toLowerCase());
+    return isBuilder || isAdmin;
+  };
+
   const getPendingRequestsCount = (builderAddress: string) => {
     return pendingRequestEvents.filter(event => event.args && event.args.builder === builderAddress).length;
   };
 
   const getCompletedRequestsCountInThePastDay = (builderAddress: string) => {
     const currentTimestamp = BigInt(Math.floor(Date.now() / 1000));
-    const oneDayInSeconds = 86400n; // 24 hours * 60 minutes * 60 seconds
+    const oneDayInSeconds = 86400n;
     const oneDayAgoTimestamp = currentTimestamp - oneDayInSeconds;
 
     return completedRequestEvents?.filter(
@@ -72,7 +93,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
 
   const getRejectedRequestsCountInThePastDay = (builderAddress: string) => {
     const currentTimestamp = BigInt(Math.floor(Date.now() / 1000));
-    const oneDayInSeconds = 86400n; // 24 hours * 60 minutes * 60 seconds
+    const oneDayInSeconds = 86400n;
     const oneDayAgoTimestamp = currentTimestamp - oneDayInSeconds;
 
     return rejectedRequestEvents.filter(
@@ -85,9 +106,73 @@ export const BuildersList: React.FC<BuildersListProps> = ({
     ).length;
   };
 
+  const handleClick = () => {
+    router.push(`/cohort/${cohortAddress}/myapplications`);
+  };
+
+  const pendingApplicationsCount = applications?.filter(app => app.status === "PENDING").length || 0;
+  const userApplications = applications?.filter(app => app.address.toLowerCase() === address?.toLowerCase()) || [];
+
+  const dayOldUserRejectedApplicationsCount = userApplications.filter(
+    app =>
+      app.status === "REJECTED" &&
+      app.updatedAt &&
+      new Date(app.updatedAt) >= new Date(Date.now() - 24 * 60 * 60 * 1000),
+  ).length;
+
+  const userPendingApplicationsCount = userApplications.filter(app => app.status === "PENDING").length;
+
+  const canApply = () => {
+    if (!userApplications.length && allowApplications) return true;
+
+    const hasPendingOrApproved = userApplications.some(app => app.status === "PENDING" || app.status === "APPROVED");
+    return !hasPendingOrApproved;
+  };
+
   return (
     <div className="flex flex-col gap-6">
-      {isAdmin && <AddBatch cohortAddress={cohortAddress} isErc20={isERC20} tokenDecimals={tokenDecimals} />}
+      {address && !isDbBuilderorAdmin() && !isLoading && !canApply() && (
+        <Link href={`/cohort/${cohortAddress}/myapplications`}>
+          <button className="btn btn-sm btn-primary rounded-md w-fit">My applications</button>
+        </Link>
+      )}
+
+      {address && !isDbBuilderorAdmin() && !isLoading && canApply() && allowApplications && (
+        <div className="mb-6 flex gap-4 items-center">
+          <label
+            htmlFor="add-application-modal"
+            className="btn rounded-md btn-primary btn-sm font-normal space-x-2 normal-case relative"
+          >
+            Apply to join
+            <Plus className="h-4 w-4" />
+          </label>
+
+          {dayOldUserRejectedApplicationsCount > 0 && userPendingApplicationsCount == 0 && (
+            <span
+              className="tooltip text-white font-normal tooltip-right"
+              data-tip="Your recent application was rejected. Click to see details."
+              onClick={handleClick}
+            >
+              <AlertCircle className="h-6 w-6 inline-block text-error" />
+            </span>
+          )}
+        </div>
+      )}
+
+      {isAdmin && (
+        <div className="flex flex-col md:flex-row gap-4">
+          <AddBatch cohortAddress={cohortAddress} isErc20={isERC20} tokenDecimals={tokenDecimals} />
+
+          {pendingApplicationsCount > 0 && (
+            <Link href={`/cohort/${cohortAddress}/applications`}>
+              <button className="btn btn-sm btn-primary rounded-md w-fit relative">
+                Applications
+                <div className="badge badge-warning badge-sm absolute -top-2 -right-2">{pendingApplicationsCount}</div>
+              </button>
+            </Link>
+          )}
+        </div>
+      )}
 
       {isLoading ? (
         <div>
@@ -111,12 +196,10 @@ export const BuildersList: React.FC<BuildersListProps> = ({
           const githubUsername = dbBuilder?.githubUsername;
           const githubUrl = "https://github.com/" + githubUsername;
 
-          // Show notification for admin or if it's the builder's own approved requests
           const showNotification =
             (isAdmin && pendingCount > 0) ||
             (isBuilder && userAddress === builderStream.builderAddress && (completedCount > 0 || rejectedCount > 0));
 
-          // Count to display
           const bellNotificationCount = isAdmin
             ? pendingCount
             : isBuilder && userAddress === builderStream.builderAddress
@@ -187,6 +270,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
           );
         })
       )}
+      <ApplicationModal cohortAddress={cohortAddress} onApplicationSuccess={onApplicationSuccess} />
     </div>
   );
 };

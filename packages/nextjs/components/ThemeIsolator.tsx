@@ -40,7 +40,6 @@ export const ThemeIsolator = ({ children }: { children: React.ReactNode }) => {
       if (response.ok) {
         const data = await response.json();
         if (data.theme) {
-          // Apply theme only on cohort pages
           applyLocalTheme(data.theme, address);
         }
       }

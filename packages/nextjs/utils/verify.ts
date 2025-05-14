@@ -24,7 +24,6 @@ export async function verifyContract({
     console.log(`✅ API URL: ${apiUrl}`);
     console.log(`✅ API Key: ${apiKey ? "Loaded" : "Missing"}`);
 
-    // Extract constructor parameters from ABI
     const constructorAbi = contract.abi.find((item: any) => item.type === "constructor");
     const constructorInputs = constructorAbi ? constructorAbi.inputs : [];
 
