@@ -1,28 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Application, Builder } from "@prisma/client";
+import { Application } from "@prisma/client";
 import { useAccount } from "wagmi";
 import { RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 
 interface ApplicationListProps {
   applications: Application[];
-  builders: Builder[];
-  adminAddresses: string[];
   cohortAddress: string;
 }
 
-export const ApplicationList = ({ applications, builders, adminAddresses }: ApplicationListProps) => {
+export const ApplicationList = ({ applications }: ApplicationListProps) => {
   const { address } = useAccount();
 
   const [userApplications, setUserApplications] = useState<Application[]>([]);
-
-  const isBuilderorAdmin = () => {
-    if (!address) return false;
-    const isBuilder = builders.some(builder => builder.address.toLowerCase() === address.toLowerCase());
-    const isAdmin = adminAddresses.some(admin => admin.toLowerCase() === address.toLowerCase());
-    return isBuilder || isAdmin;
-  };
 
   useEffect(() => {
     if (address && applications) {
