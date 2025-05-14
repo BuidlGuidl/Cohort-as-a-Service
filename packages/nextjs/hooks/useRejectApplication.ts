@@ -8,9 +8,10 @@ import { notification } from "~~/utils/scaffold-eth";
 interface UseRejectApplicationProps {
   applicationId: string;
   cohortAddress: string;
+  note?: string;
 }
 
-export const useRejectApplication = ({ applicationId, cohortAddress }: UseRejectApplicationProps) => {
+export const useRejectApplication = ({ applicationId, cohortAddress, note }: UseRejectApplicationProps) => {
   const { data: signature, signMessage, isSuccess: isSignatureSuccess } = useSignMessage();
   const router = useRouter();
 
@@ -33,6 +34,7 @@ export const useRejectApplication = ({ applicationId, cohortAddress }: UseReject
             status: "REJECTED",
             message,
             signature,
+            note,
           });
 
           notification.success("Application rejected");

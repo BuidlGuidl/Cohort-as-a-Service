@@ -1,6 +1,7 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AddBatch } from "../members/_components/AddBatch";
 import { AdminActions } from "../members/_components/AdminActions";
 import { BuilderActions } from "../members/_components/BuilderActions";
@@ -9,6 +10,7 @@ import { NotificationNote } from "../members/_components/NotificationNote";
 import { ApplicationModal } from "./ApplicationModal";
 import { Application, Builder } from "@prisma/client";
 import { Plus } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useAccount } from "wagmi";
 import { Address } from "~~/components/scaffold-eth";
 
@@ -61,6 +63,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
   onApplicationSuccess,
 }) => {
   const { address } = useAccount();
+  const router = useRouter();
 
   const isDbBuilderorAdmin = () => {
     if (!address) return false;
@@ -90,7 +93,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
 
   const getRejectedRequestsCountInThePastDay = (builderAddress: string) => {
     const currentTimestamp = BigInt(Math.floor(Date.now() / 1000));
-    const oneDayInSeconds = 86400n; // 24 hours * 60 minutes * 60 seconds
+    const oneDayInSeconds = 86400n;
     const oneDayAgoTimestamp = currentTimestamp - oneDayInSeconds;
 
     return rejectedRequestEvents.filter(
@@ -103,6 +106,10 @@ export const BuildersList: React.FC<BuildersListProps> = ({
     ).length;
   };
 
+  const handleClick = () => {
+    router.push(`/cohort/${cohortAddress}/myapplications`);
+  };
+
   const pendingApplicationsCount = applications?.filter(app => app.status === "PENDING").length || 0;
   const userApplications = applications?.filter(app => app.address.toLowerCase() === address?.toLowerCase()) || [];
 
@@ -112,6 +119,8 @@ export const BuildersList: React.FC<BuildersListProps> = ({
       app.updatedAt &&
       new Date(app.updatedAt) >= new Date(Date.now() - 24 * 60 * 60 * 1000),
   ).length;
+
+  const userPendingApplicationsCount = userApplications.filter(app => app.status === "PENDING").length;
 
   const canApply = () => {
     if (!userApplications.length && allowApplications) return true;
@@ -129,19 +138,24 @@ export const BuildersList: React.FC<BuildersListProps> = ({
       )}
 
       {address && !isDbBuilderorAdmin() && !isLoading && canApply() && allowApplications && (
-        <div className="mb-6">
+        <div className="mb-6 flex gap-4 items-center">
           <label
             htmlFor="add-application-modal"
             className="btn rounded-md btn-primary btn-sm font-normal space-x-2 normal-case relative"
           >
             Apply to join
             <Plus className="h-4 w-4" />
-            {dayOldUserRejectedApplicationsCount > 0 && (
-              <div className="badge badge-warning badge-sm absolute -top-2 -right-2">
-                {dayOldUserRejectedApplicationsCount}
-              </div>
-            )}
           </label>
+
+          {dayOldUserRejectedApplicationsCount > 0 && userPendingApplicationsCount == 0 && (
+            <span
+              className="tooltip text-white font-normal tooltip-right"
+              data-tip="Your recent application was rejected. Click to see details."
+              onClick={handleClick}
+            >
+              <AlertCircle className="h-6 w-6 inline-block text-error" />
+            </span>
+          )}
         </div>
       )}
 

@@ -57,6 +57,7 @@ model Application {
     description    String
     githubUsername String?
     cohortId       String
+    note           String?
     status         ApplicationStatus @default(PENDING)
     cohort         Cohort  @relation(fields: [cohortId], references: [id])
 

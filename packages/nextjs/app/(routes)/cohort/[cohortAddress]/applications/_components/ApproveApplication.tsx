@@ -27,6 +27,7 @@ export const ApproveApplication = ({
   const router = useRouter();
   const [isPendingReject, setIsPendingReject] = useState(false);
   const [cap, setCap] = useState<string>("");
+  const [note, setNote] = useState<string>("");
 
   const {
     approveApplication,
@@ -40,15 +41,24 @@ export const ApproveApplication = ({
     tokenDecimals,
     applicationId,
     githubUsername,
+    note,
   });
 
   const { rejectApplication, isSuccess: isRejectSuccess } = useRejectApplication({
     applicationId,
     cohortAddress,
+    note,
   });
 
   const handleApprove = () => {
     const modalCheckbox = document.getElementById("approve-builder-modal") as HTMLInputElement;
+    if (modalCheckbox) {
+      modalCheckbox.checked = true;
+    }
+  };
+
+  const OpenRejectModal = () => {
+    const modalCheckbox = document.getElementById("reject-builder-modal") as HTMLInputElement;
     if (modalCheckbox) {
       modalCheckbox.checked = true;
     }
@@ -86,7 +96,7 @@ export const ApproveApplication = ({
         )}
       </button>
 
-      <button className="btn btn-xs btn-error" onClick={handleReject} disabled={isPendingApprove || isPendingReject}>
+      <button className="btn btn-xs btn-error" onClick={OpenRejectModal}>
         {isPendingReject ? <span className="loading loading-spinner loading-xs"></span> : <X className="h-3 w-3" />}
       </button>
 
@@ -142,12 +152,63 @@ export const ApproveApplication = ({
               )}
             </div>
 
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-medium">Note (optional)</span>
+              </label>
+
+              <textarea
+                className="textarea textarea-sm rounded-md input-bordered border border-base-300 w-full h-36 bg-base-100"
+                placeholder="Add a note "
+                onChange={e => {
+                  setNote((e.target as HTMLTextAreaElement).value);
+                }}
+                value={note}
+              />
+            </div>
+
             <button
               className="btn btn-sm btn-primary w-full mt-4"
               onClick={approveApplication}
               disabled={isPendingApprove || !cap}
             >
               {isPendingApprove ? "Processing..." : "Approve Builder"}
+            </button>
+          </div>
+        </label>
+      </label>
+
+      <input type="checkbox" id="reject-builder-modal" className="modal-toggle" />
+      <label htmlFor="reject-builder-modal" className="modal cursor-pointer">
+        <label className="modal-box relative bg-base-100 border border-primary">
+          <input className="h-0 w-0 absolute top-0 left-0" />
+          <p className="font-bold mb-6 flex items-center gap-1">Reject Application</p>
+          <label htmlFor="reject-builder-modal" className="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">
+            ✕
+          </label>
+
+          <div className="space-y-4">
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-medium">Note (optional)</span>
+              </label>
+
+              <textarea
+                className="textarea textarea-sm rounded-md input-bordered border border-base-300 w-full h-36 bg-base-100"
+                placeholder="Reason for rejection"
+                onChange={e => {
+                  setNote((e.target as HTMLTextAreaElement).value);
+                }}
+                value={note}
+              />
+            </div>
+
+            <button
+              className="btn btn-sm btn-primary w-full mt-4"
+              onClick={handleReject}
+              disabled={isPendingApprove || isPendingReject}
+            >
+              {isPendingApprove ? "Processing..." : "Reject Application"}
             </button>
           </div>
         </label>

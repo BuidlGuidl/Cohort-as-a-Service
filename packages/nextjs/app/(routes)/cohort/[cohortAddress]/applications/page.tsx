@@ -35,7 +35,7 @@ const page = async ({
       <div className="mt-8">
         <AdminApplicationList
           cohortAddress={params.cohortAddress}
-          applications={cohort.Application}
+          applications={cohort.Application.reverse()}
           adminAddresses={cohort.adminAddresses}
         />
       </div>

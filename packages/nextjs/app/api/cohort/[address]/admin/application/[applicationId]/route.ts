@@ -4,7 +4,7 @@ import db from "~~/lib/db";
 
 export async function PATCH(req: Request, { params }: { params: { address: string; applicationId: string } }) {
   try {
-    const { status, signature, message } = await req.json();
+    const { status, signature, message, note } = await req.json();
 
     const adminAddress = await recoverMessageAddress({
       message,
@@ -51,6 +51,7 @@ export async function PATCH(req: Request, { params }: { params: { address: strin
       },
       data: {
         status,
+        note,
       },
     });
 

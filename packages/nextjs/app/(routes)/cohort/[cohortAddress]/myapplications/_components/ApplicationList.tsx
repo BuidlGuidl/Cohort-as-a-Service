@@ -26,7 +26,7 @@ export const ApplicationList = ({ applications, builders, adminAddresses }: Appl
 
   useEffect(() => {
     if (address && applications) {
-      const filtered = applications.filter(app => app.address.toLowerCase() === address.toLowerCase());
+      const filtered = applications.filter(app => app.address.toLowerCase() === address.toLowerCase()).reverse();
       setUserApplications(filtered);
     }
   }, [address, applications]);
@@ -56,14 +56,10 @@ export const ApplicationList = ({ applications, builders, adminAddresses }: Appl
     <div className="w-full">
       {!address ? (
         <div className="mb-4">Connect your wallet to view and submit applications</div>
-      ) : isBuilderorAdmin() ? (
-        <div className="mb-4">
-          <p className="text-sm">You are already member of this cohort. You cannot apply.</p>
-        </div>
       ) : (
         <>
           {userApplications.length === 0 ? (
-            <p>You haven&apos;t submitted any applications yet.</p>
+            <p>No application record</p>
           ) : (
             <div className="space-y-4">
               <h3 className="text-xl font-bold">Your Applications</h3>
@@ -86,6 +82,7 @@ export const ApplicationList = ({ applications, builders, adminAddresses }: Appl
                       </a>
                     </p>
                   )}
+                  {application.note && <p className="text-xs text-gray-400">Note: {application.note}</p>}
                   <p className="text-xs text-gray-400 mt-2">Submitted on {formatDate(application.createdAt)}</p>
                 </div>
               ))}

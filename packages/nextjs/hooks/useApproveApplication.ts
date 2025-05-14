@@ -19,6 +19,7 @@ interface useApproveApplicationProps {
   tokenDecimals?: number;
   applicationId: string;
   githubUsername?: string;
+  note?: string;
 }
 
 export const useApproveApplication = ({
@@ -29,6 +30,7 @@ export const useApproveApplication = ({
   tokenDecimals,
   applicationId,
   githubUsername,
+  note,
 }: useApproveApplicationProps) => {
   const router = useRouter();
   const { chain, chainId } = useAccount();
@@ -107,6 +109,7 @@ export const useApproveApplication = ({
             status: "APPROVED",
             message,
             signature,
+            note,
           });
 
           // Then, add the builder to the database
