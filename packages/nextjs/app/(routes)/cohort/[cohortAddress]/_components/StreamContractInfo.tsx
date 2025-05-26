@@ -3,10 +3,13 @@ import { AdminsList } from "./AdminsList";
 import { CohortActions } from "./CohortActions";
 import { NativeBalance } from "./NativeBalance";
 import { TokenBalance } from "./TokenBalance";
-import { TriangleAlert, TriangleAlertIcon } from "lucide-react";
+import { Project } from "@prisma/client";
+import { ChevronDown, TriangleAlert, TriangleAlertIcon, X } from "lucide-react";
 import { useAccount } from "wagmi";
 import { useSwitchChain } from "wagmi";
 import { BanknotesIcon } from "@heroicons/react/24/outline";
+import { Editor } from "~~/components/editor";
+import { Preview } from "~~/components/preview";
 import { EtherInput } from "~~/components/scaffold-eth";
 import { Address } from "~~/components/scaffold-eth";
 import { getChainById } from "~~/data/chains";
@@ -35,7 +38,98 @@ interface StreamContractInfoProps {
   cycle: number;
   requiresApproval: boolean;
   allowApplications: boolean;
+  projects?: Project[];
 }
+
+const ProjectSelector = ({
+  projects = [],
+  selectedProjects,
+  onSelectionChange,
+}: {
+  projects: Project[];
+  selectedProjects: string[];
+  onSelectionChange: (selectedIds: string[]) => void;
+}) => {
+  const toggleProject = (projectId: string) => {
+    const isSelected = selectedProjects.includes(projectId);
+    if (isSelected) {
+      onSelectionChange(selectedProjects.filter(id => id !== projectId));
+    } else {
+      onSelectionChange([...selectedProjects, projectId]);
+    }
+  };
+
+  const removeProject = (projectId: string) => {
+    onSelectionChange(selectedProjects.filter(id => id !== projectId));
+  };
+
+  const selectedProjectsData = projects.filter(p => selectedProjects.includes(p.id));
+
+  if (projects.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="w-full">
+      <label className="label">
+        <span className="label-text font-medium">Related Projects </span>
+      </label>
+
+      {selectedProjects.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-2">
+          {selectedProjectsData.map(project => (
+            <div key={project.id} className="badge badge-primary gap-2">
+              <span className="text-xs">{project.name}</span>
+              <button
+                type="button"
+                onClick={() => removeProject(project.id)}
+                className="hover:bg-primary-focus rounded-full"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="dropdown w-full">
+        <div
+          tabIndex={0}
+          role="button"
+          className="input input-sm input-bordered border border-base-300 w-full flex items-center justify-between bg-base-100 rounded-md"
+        >
+          <span className="text-base-content/60">
+            {selectedProjects.length === 0
+              ? "Select related projects..."
+              : `${selectedProjects.length} project${selectedProjects.length === 1 ? "" : "s"} selected`}
+          </span>
+          <ChevronDown className="w-4 h-4" />
+        </div>
+        <ul
+          tabIndex={0}
+          className="dropdown-content menu bg-base-100 rounded-box z-[9999] w-full p-2 shadow-lg border border-base-300 max-h-60 overflow-y-auto"
+        >
+          {projects.map(project => {
+            const isSelected = selectedProjects.includes(project.id);
+            return (
+              <li key={project.id}>
+                <label className="cursor-pointer flex items-center gap-2 hover:bg-base-200">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-xs checkbox-primary"
+                    checked={isSelected}
+                    onChange={() => toggleProject(project.id)}
+                  />
+                  <span className="font-medium text-sm">{project.name}</span>
+                </label>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
+  );
+};
 
 export const StreamContractInfo = ({
   owner,
@@ -58,6 +152,7 @@ export const StreamContractInfo = ({
   cycle,
   requiresApproval,
   allowApplications,
+  projects = [],
 }: StreamContractInfoProps) => {
   const { address, chainId, isConnected } = useAccount();
   const { switchChain } = useSwitchChain();
@@ -65,6 +160,8 @@ export const StreamContractInfo = ({
 
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
+  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
+  const [isPreviewing, setIsPreviewing] = useState(false);
 
   const { streamWithdraw, isPending, isSuccess } = useCohortWithdraw({
     cohortAddress,
@@ -72,6 +169,7 @@ export const StreamContractInfo = ({
     reason,
     isErc20,
     tokenDecimals,
+    selectedProjects,
   });
 
   const onClick = (chainId: number) => {
@@ -84,6 +182,9 @@ export const StreamContractInfo = ({
       if (modalCheckbox) {
         modalCheckbox.checked = false;
       }
+      setAmount("");
+      setReason("");
+      setSelectedProjects([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSuccess]);
@@ -167,9 +268,8 @@ export const StreamContractInfo = ({
       </div>
 
       <input type="checkbox" id="withdraw-modal" className="modal-toggle" />
-      <label htmlFor="withdraw-modal" className="modal cursor-pointer">
-        <label className="modal-box relative bg-base-100 border border-primary">
-          <input className="h-0 w-0 absolute top-0 left-0" />
+      <div className="modal">
+        <div className="modal-box relative bg-base-100 border border-primary max-w-2xl">
           <h3 className="font-bold">
             {connectedAddressRequiresApproval ? "Request a Withdrawal" : "Withdraw from your stream"}
           </h3>
@@ -182,13 +282,49 @@ export const StreamContractInfo = ({
             ✕
           </label>
           <div className="space-y-3 mt-8">
-            <div className="flex flex-col gap-6 items-center">
-              <textarea
-                className="textarea textarea-ghost focus:outline-none min-h-[200px] focus:bg-transparent px-4 w-full font-medium placeholder:text-accent/50 border border-base-300 rounded-md text-accent"
-                placeholder="Reason for withdrawing & links"
-                value={reason}
-                onChange={event => setReason(event.target.value)}
+            <div className="flex flex-col gap-2 items-center space-y-4">
+              <ProjectSelector
+                projects={projects}
+                selectedProjects={selectedProjects}
+                onSelectionChange={setSelectedProjects}
               />
+
+              <div className="form-control w-full">
+                <label className="label">
+                  <span className="label-text font-medium">Reason for withdrawal</span>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      className={`btn btn-xs ${!isPreviewing ? "btn-primary" : "btn-ghost"}`}
+                      onClick={() => setIsPreviewing(false)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn btn-xs ${isPreviewing ? "btn-primary" : "btn-ghost"}`}
+                      onClick={() => setIsPreviewing(true)}
+                    >
+                      Preview
+                    </button>
+                  </div>
+                </label>
+
+                <div className="min-h-[200px] border border-base-300 rounded-md">
+                  {isPreviewing ? (
+                    <div className="p-4">
+                      {reason ? (
+                        <Preview value={reason} />
+                      ) : (
+                        <p className="text-base-content/60 italic">Nothing to preview yet...</p>
+                      )}
+                    </div>
+                  ) : (
+                    <Editor value={reason} onChange={setReason} />
+                  )}
+                </div>
+              </div>
+
               {cycle > 0 && (
                 <div className="w-full">
                   {isErc20 ? (
@@ -199,10 +335,11 @@ export const StreamContractInfo = ({
                       onChange={e => setAmount(e.target.value.toString())}
                     />
                   ) : (
-                    <EtherInput value={amount} onChange={value => setAmount(value)} />
+                    <EtherInput value={amount} onChange={value => setAmount(value)} placeholder="Amount in ETH" />
                   )}
                 </div>
               )}
+
               <button
                 type="button"
                 className="btn btn-secondary btn-sm w-full"
@@ -213,8 +350,9 @@ export const StreamContractInfo = ({
               </button>
             </div>
           </div>
-        </label>
-      </label>
+        </div>
+        <label className="modal-backdrop" htmlFor="withdraw-modal"></label>
+      </div>
 
       <div className="mt-8">
         <p className="font-bold mb-2 text-secondary">Owner</p>
