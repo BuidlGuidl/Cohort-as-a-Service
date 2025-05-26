@@ -223,7 +223,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
                     max="100"
                   ></progress>
                 </div>
-                <div className="md:w-1/2 flex items-center">
+                <div className="flex items-center gap-2">
                   <div
                     className="cursor-pointer"
                     onClick={() => openEventsModal(builderStream.builderAddress, "contributions")}
@@ -231,7 +231,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
                     <Address address={builderStream.builderAddress} disableAddressLink={true} />
                   </div>
                   {githubUsername && (
-                    <div className="ml-4">
+                    <div className="">
                       <Link href={githubUrl} target="_blank" rel="noopener noreferrer">
                         <Image src="/github.svg" alt="GitHub Url" width={25} height={25} />
                       </Link>

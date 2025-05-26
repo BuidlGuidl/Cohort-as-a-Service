@@ -30,7 +30,7 @@ export const CohortActions = ({
   return (
     <>
       <div className="dropdown dropdown-end px-0 ">
-        <label tabIndex={0} className="btn btn-ghost btn-sm m-1">
+        <label tabIndex={0} className="btn btn-ghost btn-sm m-1 p-0">
           <EllipsisVertical className="w-5 h-5" />
         </label>
         <ul
