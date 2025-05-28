@@ -59,7 +59,7 @@ export const CohortActions = ({
           </li>
           <li>
             <label htmlFor={`allow-applications-modal`} className="w-full">
-              {allowApplications ? "Disallow " : "allow "} applications
+              {allowApplications ? "Disallow " : "Allow "} applications
             </label>
           </li>
         </ul>

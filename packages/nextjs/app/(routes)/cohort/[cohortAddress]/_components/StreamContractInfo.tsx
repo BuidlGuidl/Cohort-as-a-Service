@@ -92,7 +92,7 @@ const ProjectSelector = ({
         </div>
       )}
 
-      <div className="dropdown w-full">
+      <div className="dropdown dropdown-top w-full">
         <div
           tabIndex={0}
           role="button"
@@ -107,7 +107,7 @@ const ProjectSelector = ({
         </div>
         <ul
           tabIndex={0}
-          className="dropdown-content menu bg-base-100 rounded-box z-[9999] w-full p-2 shadow-lg border border-base-300 max-h-60 overflow-y-auto"
+          className="dropdown-content menu bg-base-100 rounded-box z-[9999] w-full p-2 shadow-lg border border-base-300 max-h-40 overflow-y-auto"
         >
           {projects.map(project => {
             const isSelected = selectedProjects.includes(project.id);
@@ -283,12 +283,6 @@ export const StreamContractInfo = ({
           </label>
           <div className="space-y-3 mt-8">
             <div className="flex flex-col gap-2 items-center space-y-4">
-              <ProjectSelector
-                projects={projects}
-                selectedProjects={selectedProjects}
-                onSelectionChange={setSelectedProjects}
-              />
-
               <div className="form-control w-full">
                 <label className="label">
                   <span className="label-text font-medium">Reason for withdrawal</span>
@@ -339,6 +333,12 @@ export const StreamContractInfo = ({
                   )}
                 </div>
               )}
+
+              <ProjectSelector
+                projects={projects}
+                selectedProjects={selectedProjects}
+                onSelectionChange={setSelectedProjects}
+              />
 
               <button
                 type="button"
