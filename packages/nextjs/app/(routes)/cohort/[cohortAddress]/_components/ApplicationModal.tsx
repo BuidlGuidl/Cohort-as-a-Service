@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import { useSignMessage } from "wagmi";
 import { useAccount } from "wagmi";
 import * as z from "zod";
+import { Editor } from "~~/components/editor";
+import { Preview } from "~~/components/preview";
 import { notification } from "~~/utils/scaffold-eth";
 
 interface ApplicationModalProps {
@@ -30,7 +32,10 @@ export const ApplicationModal = ({ cohortAddress, onApplicationSuccess }: Applic
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  const [isPreviewing, setIsPreviewing] = useState(false);
   const [formValues, setFormValues] = useState<z.infer<typeof CreateApplicationSchema> | null>(null);
+  const [description, setDescription] = useState("");
 
   const { data: signature, signMessage, isSuccess: isSignatureSuccess } = useSignMessage();
 
@@ -45,6 +50,11 @@ export const ApplicationModal = ({ cohortAddress, onApplicationSuccess }: Applic
 
   const { isSubmitting, isValid, errors } = form.formState;
 
+  // Update form value when description changes
+  useEffect(() => {
+    form.setValue("description", description, { shouldValidate: true });
+  }, [description, form]);
+
   useEffect(() => {
     if (isSuccess) {
       const modalCheckbox = document.getElementById("add-application-modal") as HTMLInputElement;
@@ -56,6 +66,7 @@ export const ApplicationModal = ({ cohortAddress, onApplicationSuccess }: Applic
         description: "",
         githubUsername: "",
       });
+      setDescription("");
 
       if (onApplicationSuccess) {
         onApplicationSuccess();
@@ -111,8 +122,8 @@ export const ApplicationModal = ({ cohortAddress, onApplicationSuccess }: Applic
   return (
     <div>
       <input type="checkbox" id="add-application-modal" className="modal-toggle" />
-      <label htmlFor="add-application-modal" className="modal cursor-pointer">
-        <label className="modal-box relative bg-base-100 border border-primary ">
+      <div className="modal">
+        <div className="modal-box relative bg-base-100 border border-primary max-w-2xl ">
           <input className="h-0 w-0 absolute top-0 left-0" />
           <div className="font-bold mb-4 flex items-center gap-1">Submit Application</div>
           <label htmlFor="add-application-modal" className="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">
@@ -123,25 +134,48 @@ export const ApplicationModal = ({ cohortAddress, onApplicationSuccess }: Applic
             <div className="form-control w-full">
               <label className="label">
                 <span className="label-text font-medium">Why do you want to join this cohort?</span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className={`btn btn-xs ${!isPreviewing ? "btn-primary" : "btn-ghost"}`}
+                    onClick={() => setIsPreviewing(false)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn btn-xs ${isPreviewing ? "btn-primary" : "btn-ghost"}`}
+                    onClick={() => setIsPreviewing(true)}
+                  >
+                    Preview
+                  </button>
+                </div>
               </label>
-              <textarea
-                className={`textarea textarea-sm rounded-md input-bordered border border-base-300 w-full h-36 bg-base-100 ${
-                  errors.description ? "input-error" : ""
-                }`}
-                placeholder="Describe your background, skills, and why you're interested in joining this cohort..."
-                disabled={isSubmitting || isPending}
-                {...form.register("description")}
-              />
-              {errors.description && (
+
+              <div className=" rounded-md">
+                {isPreviewing ? (
+                  <div className="p-4">
+                    {description && description != "<p><br></p>" ? (
+                      <Preview value={description} />
+                    ) : (
+                      <p className="text-base-content/60 italic">Nothing to preview yet...</p>
+                    )}
+                  </div>
+                ) : (
+                  <Editor value={description} onChange={setDescription} />
+                )}
+              </div>
+
+              {errors.description && !isPreviewing && (
                 <label className="label">
                   <span className="label-text-alt text-error">{errors.description.message}</span>
                 </label>
               )}
             </div>
 
-            <div className="form-control w-full">
+            <div className="form-control w-full ">
               <label className="label">
-                <span className="label-text font-medium">GitHub Username (Optional)</span>
+                <span className="label-text font-medium">GitHub Username</span>
               </label>
               <input
                 type="text"
@@ -169,8 +203,8 @@ export const ApplicationModal = ({ cohortAddress, onApplicationSuccess }: Applic
               </button>
             </div>
           </form>
-        </label>
-      </label>
+        </div>
+      </div>
     </div>
   );
 };

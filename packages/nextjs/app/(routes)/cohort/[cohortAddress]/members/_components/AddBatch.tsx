@@ -118,18 +118,6 @@ export const AddBatch = ({ cohortAddress, isErc20, tokenDecimals }: AddbatchProp
                         />
                       )}
 
-                      <label htmlFor={`github-handle-${index}`} className="block mt-4 mb-2">
-                        GitHub Username{index != 0 && " " + (index + 1)} (optional):
-                      </label>
-                      <input
-                        className="input input-sm rounded-md input-bordered border border-base-300 w-full bg-transparent"
-                        id={`github-username-${index}`}
-                        name={`github-username-${index}`}
-                        placeholder="GitHub username (optional)"
-                        value={githubUsernames[index] || ""}
-                        onChange={e => handleInputChange(index, e.target.value, setGithubUsernames)}
-                      />
-
                       <label htmlFor={`batch-caps-${index}`} className="block mt-4 mb-2">
                         Cap{index != 0 && " " + (index + 1)}:
                       </label>
@@ -149,6 +137,18 @@ export const AddBatch = ({ cohortAddress, isErc20, tokenDecimals }: AddbatchProp
                           placeholder="Enter stream cap"
                         />
                       )}
+
+                      <label htmlFor={`github-handle-${index}`} className="block mt-4 mb-2">
+                        GitHub Username{index != 0 && " " + (index + 1)} (optional):
+                      </label>
+                      <input
+                        className="input input-sm rounded-md input-bordered border border-base-300 w-full bg-transparent"
+                        id={`github-username-${index}`}
+                        name={`github-username-${index}`}
+                        placeholder="GitHub username (optional)"
+                        value={githubUsernames[index] || ""}
+                        onChange={e => handleInputChange(index, e.target.value, setGithubUsernames)}
+                      />
                       <br />
                       <br />
                     </div>

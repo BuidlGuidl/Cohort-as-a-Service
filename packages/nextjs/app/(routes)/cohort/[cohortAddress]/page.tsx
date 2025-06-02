@@ -8,7 +8,7 @@ import { BuildersList } from "./_components/BuildersList";
 import { StreamContractInfo } from "./_components/StreamContractInfo";
 import { ThemeCustomizer } from "./_components/ThemeCustomizer";
 import { EventsModal } from "./members/_components/EventsModal";
-import { Application, Builder, Cohort } from "@prisma/client";
+import { Application, Builder, Cohort, Project } from "@prisma/client";
 import axios from "axios";
 import { useAccount } from "wagmi";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
@@ -19,6 +19,7 @@ import { useWithdrawEvents } from "~~/hooks/useWithdrawEvents";
 type CohortWithBuilder = Cohort & {
   Builder: Builder[];
   Application: Application[];
+  Project: Project[];
 };
 
 const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
@@ -186,6 +187,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         cycle={cycle ?? 0}
         requiresApproval={requiresApproval ?? false}
         allowApplications={allowApplications ?? false}
+        projects={dbCohort?.Project}
       />
 
       <EventsModal
@@ -202,6 +204,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         isLoadingRequests={isLoadingRequests}
         isAdmin={isAdmin ?? false}
         cohortAddress={params.cohortAddress}
+        projects={dbCohort?.Project}
       />
 
       <ThemeCustomizer cohortAddress={params.cohortAddress} isAdmin={isAdmin ?? false} />

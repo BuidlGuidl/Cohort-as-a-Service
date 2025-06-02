@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { BuildersList } from "../_components/BuildersList";
 import { StreamContractInfo } from "../_components/StreamContractInfo";
 import { EventsModal } from "./_components/EventsModal";
-import { Application, Builder, Cohort } from "@prisma/client";
+import { Application, Builder, Cohort, Project } from "@prisma/client";
 import axios from "axios";
 import { useAccount } from "wagmi";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
@@ -20,6 +20,7 @@ export interface BuilderStream {
 type CohortWithBuilder = Cohort & {
   Builder: Builder[];
   Application: Application[];
+  Project: Project[];
 };
 
 const Page = ({ params }: { params: { cohortAddress: string } }) => {
@@ -153,6 +154,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
           requiresApproval={requiresApproval ?? false}
           cycle={cycle ?? 0}
           allowApplications={allowApplications ?? false}
+          projects={dbCohort?.Project}
         />
       </div>
 
