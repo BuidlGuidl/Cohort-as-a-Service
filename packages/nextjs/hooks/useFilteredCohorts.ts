@@ -31,10 +31,11 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
   const [isLoadingAdmin, setIsLoadingAdmin] = useState(true);
   const [isLoadingBuilder, setIsLoadingBuilder] = useState(true);
 
-  const { address, isConnecting, isReconnecting } = useAccount();
+  const { address, isReconnecting } = useAccount();
   const { data: deployedContract } = useLocalDeployedContractInfo({ contractName: "Cohort" });
 
   useEffect(() => {
+    if (!address) return;
     const fetchAdminCohorts = async () => {
       try {
         const validCohorts: Cohort[] = [];
@@ -75,6 +76,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
   }, [deployedContract, cohorts, address]);
 
   useEffect(() => {
+    if (!address) return;
     const fetchBuilderCohorts = async () => {
       try {
         const validCohorts: Cohort[] = [];
@@ -160,7 +162,6 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
     combinedCohorts,
     isLoading:
       isLoadingCohorts ||
-      isConnecting ||
       isReconnecting ||
       !address ||
       (filter === "admin" ? isLoadingAdmin : filter === "builder" ? isLoadingBuilder : false),

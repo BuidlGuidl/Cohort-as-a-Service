@@ -39,7 +39,7 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
     eventName: "CohortCreated",
     fromBlock: deployBlock,
     blockData: true,
-    watch: true,
+    watch: false,
     receiptData: true,
     chainId: chains.baseSepolia.id,
   });
@@ -49,7 +49,7 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
     eventName: "CohortCreated",
     fromBlock: deployBlock,
     blockData: true,
-    watch: true,
+    watch: false,
     receiptData: true,
     chainId: chains.mainnet.id,
   });
@@ -59,7 +59,7 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
     eventName: "CohortCreated",
     fromBlock: deployBlock,
     blockData: true,
-    watch: true,
+    watch: false,
     receiptData: true,
     chainId: chains.optimism.id,
   });
@@ -69,7 +69,7 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
     eventName: "CohortCreated",
     fromBlock: deployBlock,
     blockData: true,
-    watch: true,
+    watch: false,
     receiptData: true,
     chainId: chains.arbitrum.id,
   });
@@ -79,7 +79,7 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
     eventName: "CohortCreated",
     fromBlock: deployBlock,
     blockData: true,
-    watch: true,
+    watch: false,
     receiptData: true,
     chainId: chains.polygon.id,
   });
@@ -89,7 +89,7 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
     eventName: "CohortCreated",
     fromBlock: deployBlock,
     blockData: true,
-    watch: true,
+    watch: false,
     receiptData: true,
     chainId: chains.scroll.id,
   });
@@ -99,7 +99,7 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
     eventName: "CohortCreated",
     fromBlock: deployBlock,
     blockData: true,
-    watch: true,
+    watch: false,
     receiptData: true,
     chainId: chains.base.id,
   });
@@ -109,7 +109,7 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
     eventName: "CohortCreated",
     fromBlock: deployBlock,
     blockData: true,
-    watch: true,
+    watch: false,
     receiptData: true,
     chainId: chains.optimismSepolia.id,
   });
@@ -137,10 +137,6 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
       opSepoliaEvents,
     ],
   );
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   useEffect(() => {
     setIsMounted(true);

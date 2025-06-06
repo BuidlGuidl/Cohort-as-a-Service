@@ -5,7 +5,6 @@ import { useLocalDeployedContractInfo } from "./useLocalDeployedContractInfo";
 import axios from "axios";
 import { Abi, erc20Abi, formatEther, formatUnits } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
-import { notification } from "~~/utils/scaffold-eth";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
 export type BuilderStreamInfo = {
@@ -529,7 +528,7 @@ export const useCohortData = (cohortAddress: string) => {
       console.error("Error fetching cohort data:", e);
 
       setError("Failed to fetch cohort data");
-      notification.error("Failed to fetch cohort data");
+      // notification.error("Failed to fetch cohort data");
     } finally {
       setIsLoading(false);
     }
