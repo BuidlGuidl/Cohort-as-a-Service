@@ -1,7 +1,5 @@
-// packages/nextjs/services/ponder/client.ts
 import axios from "axios";
 
-// Use environment variable or default to local development
 const PONDER_API_URL = process.env.NEXT_PUBLIC_PONDER_API_URL || "http://localhost:42069";
 
 export const ponderClient = axios.create({
@@ -11,7 +9,6 @@ export const ponderClient = axios.create({
   },
 });
 
-// Types for Ponder API responses
 export interface PonderCohort {
   id: string;
   address: string;

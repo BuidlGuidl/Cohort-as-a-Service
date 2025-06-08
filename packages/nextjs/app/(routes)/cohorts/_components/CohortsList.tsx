@@ -1,21 +1,18 @@
 import { CohortCard } from "./CohortCard";
 import { CohortLoadingCard } from "./CohortLoadingCard";
-import { AllowedChainIds } from "~~/utils/scaffold-eth/networks.js";
+import { PonderCohort } from "~~/services/ponder/client";
+import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
-type Cohort = {
-  chainId: AllowedChainIds;
-  cohortAddress?: string;
-  owner?: string;
-  name?: string;
-  createdAt: any;
-  chainName?: string;
+// Extend PonderCohort type to include role
+type CohortWithRole = PonderCohort & {
   role?: "ADMIN" | "BUILDER";
 };
 
 interface CohortsListProps {
-  items: Cohort[];
+  items: CohortWithRole[];
   loading: boolean;
 }
+
 const CohortsList = ({ items, loading }: CohortsListProps) => {
   if (loading) {
     return (
@@ -32,11 +29,11 @@ const CohortsList = ({ items, loading }: CohortsListProps) => {
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {items.map(item => (
           <CohortCard
-            key={item?.address}
-            cohortAddress={item.address}
-            chainId={item.chainId}
+            key={item.address}
+            address={item.address}
+            chainId={item.chainId as AllowedChainIds}
             createdAt={item.createdAt}
-            owner={item.primaryAdmin}
+            primaryAdmin={item.primaryAdmin}
             name={item.name}
             chainName={item.chainName}
             role={item.role}
