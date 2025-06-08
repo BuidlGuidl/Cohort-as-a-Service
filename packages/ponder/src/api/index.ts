@@ -1,6 +1,6 @@
 // packages/ponder/src/api/index.ts
 import { Hono } from "hono";
-// import { cors } from "hono/cors";
+import { cors } from "hono/cors";
 import { db } from "ponder:api";
 import {
   cohort,
@@ -10,12 +10,21 @@ import {
   withdrawRequest,
   cohortState,
 } from "ponder:schema";
-import { eq, and, desc, like, or, sql } from "@ponder/core";
+import { sql } from "@ponder/core";
 
 const app = new Hono();
 
 // Enable CORS for frontend
-app.use("/*");
+app.use("/*", cors());
+
+// Helper function to serialize BigInt values
+const serializeBigInt = (obj: any): any => {
+  return JSON.parse(
+    JSON.stringify(obj, (key, value) =>
+      typeof value === "bigint" ? value.toString() : value
+    )
+  );
+};
 
 // Get all cohorts across all chains
 app.get("/cohorts", async (c) => {
@@ -23,116 +32,105 @@ app.get("/cohorts", async (c) => {
   const cohortName = c.req.query("cohort");
   const userAddress = c.req.query("address");
 
-  let conditions = [];
+  try {
+    let query = db.select().from(cohort);
 
-  if (chainId) {
-    conditions.push(eq(cohort.chainId, Number(chainId)));
+    // Apply filters if provided
+    if (chainId) {
+      query = query.where(sql`${cohort.chainId} = ${Number(chainId)}`);
+    }
+
+    if (cohortName) {
+      query = query.where(sql`${cohort.name} LIKE ${"%" + cohortName + "%"}`);
+    }
+
+    const cohorts = await query.orderBy(sql`${cohort.createdAt} DESC`);
+
+    // If user address is provided, get their role in each cohort
+    if (userAddress) {
+      const normalizedAddress = userAddress.toLowerCase();
+
+      // Get admin roles
+      const adminRoles = await db
+        .select()
+        .from(admin)
+        .where(sql`${admin.adminAddress} = ${normalizedAddress}`)
+        .where(sql`${admin.isActive} = true`);
+
+      // Get builder roles
+      const builderRoles = await db
+        .select()
+        .from(builder)
+        .where(sql`${builder.builderAddress} = ${normalizedAddress}`)
+        .where(sql`${builder.isActive} = true`);
+
+      // Enhance cohorts with user roles
+      const cohortsWithRoles = cohorts.map((cohort) => {
+        const isAdmin = adminRoles.some(
+          (a) => a.cohortAddress === cohort.address
+        );
+        const isBuilder = builderRoles.some(
+          (b) => b.cohortAddress === cohort.address
+        );
+
+        return {
+          ...cohort,
+          role: isAdmin ? "ADMIN" : isBuilder ? "BUILDER" : null,
+        };
+      });
+
+      return c.json({ cohorts: serializeBigInt(cohortsWithRoles) });
+    }
+
+    return c.json({ cohorts: serializeBigInt(cohorts) });
+  } catch (error) {
+    console.error("Error fetching cohorts:", error);
+    return c.json({ error: `Failed to fetch cohorts ${error}` }, 500);
   }
-
-  if (cohortName) {
-    conditions.push(like(cohort.name, `%${cohortName}%`));
-  }
-
-  let query = db.select().from(cohort);
-
-  if (conditions.length > 0) {
-    query = query.where(and(...conditions));
-  }
-
-  const cohorts = await query.orderBy(desc(cohort.createdAt));
-
-  // If user address is provided, get their role in each cohort
-  if (userAddress) {
-    const normalizedAddress = userAddress.toLowerCase();
-
-    // Get admin roles
-    const adminRoles = await db
-      .select()
-      .from(admin)
-      .where(
-        and(
-          eq(admin.adminAddress, normalizedAddress as `0x${string}`),
-          eq(admin.isActive, true)
-        )
-      );
-
-    // Get builder roles
-    const builderRoles = await db
-      .select()
-      .from(builder)
-      .where(
-        and(
-          eq(builder.builderAddress, normalizedAddress as `0x${string}`),
-          eq(builder.isActive, true)
-        )
-      );
-
-    // Enhance cohorts with user roles
-    const cohortsWithRoles = cohorts.map((cohort) => {
-      const isAdmin = adminRoles.some(
-        (a) => a.cohortAddress === cohort.address
-      );
-      const isBuilder = builderRoles.some(
-        (b) => b.cohortAddress === cohort.address
-      );
-
-      return {
-        ...cohort,
-        role: isAdmin ? "ADMIN" : isBuilder ? "BUILDER" : null,
-      };
-    });
-
-    return c.json({ cohorts: cohortsWithRoles });
-  }
-
-  return c.json({ cohorts });
 });
 
 // Get cohort data with builders and admins
 app.get("/cohort/:address", async (c) => {
   const address = c.req.param("address").toLowerCase();
 
-  const [cohortData, builders, admins, state] = await Promise.all([
-    db
-      .select()
-      .from(cohort)
-      .where(eq(cohort.address, address as `0x${string}`))
-      .limit(1),
-    db
-      .select()
-      .from(builder)
-      .where(
-        and(
-          eq(builder.cohortAddress, address as `0x${string}`),
-          eq(builder.isActive, true)
-        )
-      ),
-    db
-      .select()
-      .from(admin)
-      .where(
-        and(
-          eq(admin.cohortAddress, address as `0x${string}`),
-          eq(admin.isActive, true)
-        )
-      ),
-    db
-      .select()
-      .from(cohortState)
-      .where(eq(cohortState.cohortAddress, address as `0x${string}`))
-      .limit(1),
-  ]);
+  try {
+    const [cohortData, builders, admins, state] = await Promise.all([
+      db
+        .select()
+        .from(cohort)
+        .where(sql`${cohort.address} = ${address}`)
+        .limit(1),
+      db
+        .select()
+        .from(builder)
+        .where(sql`${builder.cohortAddress} = ${address}`)
+        .where(sql`${builder.isActive} = true`),
+      db
+        .select()
+        .from(admin)
+        .where(sql`${admin.cohortAddress} = ${address}`)
+        .where(sql`${admin.isActive} = true`),
+      db
+        .select()
+        .from(cohortState)
+        .where(sql`${cohortState.cohortAddress} = ${address}`)
+        .limit(1),
+    ]);
 
-  if (cohortData.length === 0) {
-    return c.json({ error: "Cohort not found" }, 404);
+    if (cohortData.length === 0) {
+      return c.json({ error: "Cohort not found" }, 404);
+    }
+
+    return c.json({
+      cohort: serializeBigInt(cohortData[0]),
+      builders: serializeBigInt(builders),
+      admins: serializeBigInt(admins),
+      state: state[0] ? serializeBigInt(state[0]) : null,
+    });
+  } catch (error) {
+    console.error("Error fetching cohort data:", error);
+    return c.json({ error: "Failed to fetch cohort data" }, 500);
   }
-
-  return c.json({
-    cohort: cohortData[0],
-    builders,
-    admins,
-    state: state[0] || null,
-  });
 });
 
 // Get withdraw events and requests
@@ -140,117 +138,119 @@ app.get("/cohort/:address/withdrawals", async (c) => {
   const address = c.req.param("address").toLowerCase();
   const builderAddress = c.req.query("builder")?.toLowerCase();
 
-  let eventsConditions = [
-    eq(withdrawEvent.cohortAddress, address as `0x${string}`),
-  ];
-  let requestsConditions = [
-    eq(withdrawRequest.cohortAddress, address as `0x${string}`),
-  ];
-
-  if (builderAddress) {
-    eventsConditions.push(
-      eq(withdrawEvent.builderAddress, builderAddress as `0x${string}`)
-    );
-    requestsConditions.push(
-      eq(withdrawRequest.builderAddress, builderAddress as `0x${string}`)
-    );
-  }
-
-  const [events, requests] = await Promise.all([
-    db
+  try {
+    let eventsQuery = db
       .select()
       .from(withdrawEvent)
-      .where(and(...eventsConditions))
-      .orderBy(desc(withdrawEvent.timestamp)),
-    db
+      .where(sql`${withdrawEvent.cohortAddress} = ${address}`);
+
+    let requestsQuery = db
       .select()
       .from(withdrawRequest)
-      .where(and(...requestsConditions))
-      .orderBy(desc(withdrawRequest.requestTime)),
-  ]);
+      .where(sql`${withdrawRequest.cohortAddress} = ${address}`);
 
-  return c.json({ events, requests });
+    if (builderAddress) {
+      eventsQuery = eventsQuery.where(
+        sql`${withdrawEvent.builderAddress} = ${builderAddress}`
+      );
+      requestsQuery = requestsQuery.where(
+        sql`${withdrawRequest.builderAddress} = ${builderAddress}`
+      );
+    }
+
+    const [events, requests] = await Promise.all([
+      eventsQuery.orderBy(sql`${withdrawEvent.timestamp} DESC`),
+      requestsQuery.orderBy(sql`${withdrawRequest.requestTime} DESC`),
+    ]);
+
+    return c.json({
+      events: serializeBigInt(events),
+      requests: serializeBigInt(requests),
+    });
+  } catch (error) {
+    console.error("Error fetching withdrawals:", error);
+    return c.json({ error: "Failed to fetch withdrawals" }, 500);
+  }
 });
 
 // Get user's cohorts (where they are admin or builder)
 app.get("/user/:address/cohorts", async (c) => {
   const userAddress = c.req.param("address").toLowerCase();
 
-  // Get cohorts where user is admin
-  const adminCohorts = await db
-    .select({
-      cohort: cohort,
-      role: sql<string>`'ADMIN'`,
-    })
-    .from(cohort)
-    .innerJoin(admin, eq(admin.cohortAddress, cohort.address))
-    .where(
-      and(
-        eq(admin.adminAddress, userAddress as `0x${string}`),
-        eq(admin.isActive, true)
-      )
+  try {
+    // Get cohorts where user is admin
+    const adminCohorts = await db
+      .select({
+        cohort: cohort,
+        role: sql<string>`'ADMIN'`,
+      })
+      .from(cohort)
+      .innerJoin(admin, sql`${admin.cohortAddress} = ${cohort.address}`)
+      .where(sql`${admin.adminAddress} = ${userAddress}`)
+      .where(sql`${admin.isActive} = true`);
+
+    // Get cohorts where user is builder
+    const builderCohorts = await db
+      .select({
+        cohort: cohort,
+        role: sql<string>`'BUILDER'`,
+      })
+      .from(cohort)
+      .innerJoin(builder, sql`${builder.cohortAddress} = ${cohort.address}`)
+      .where(sql`${builder.builderAddress} = ${userAddress}`)
+      .where(sql`${builder.isActive} = true`);
+
+    // Combine and sort by creation date
+    const allCohorts = [...adminCohorts, ...builderCohorts].sort(
+      (a, b) => Number(b.cohort.createdAt) - Number(a.cohort.createdAt)
     );
 
-  // Get cohorts where user is builder
-  const builderCohorts = await db
-    .select({
-      cohort: cohort,
-      role: sql<string>`'BUILDER'`,
-    })
-    .from(cohort)
-    .innerJoin(builder, eq(builder.cohortAddress, cohort.address))
-    .where(
-      and(
-        eq(builder.builderAddress, userAddress as `0x${string}`),
-        eq(builder.isActive, true)
-      )
-    );
-
-  // Combine and sort by creation date
-  const allCohorts = [...adminCohorts, ...builderCohorts].sort(
-    (a, b) => Number(b.cohort.createdAt) - Number(a.cohort.createdAt)
-  );
-
-  return c.json({ cohorts: allCohorts });
+    return c.json({ cohorts: serializeBigInt(allCohorts) });
+  } catch (error) {
+    console.error("Error fetching user cohorts:", error);
+    return c.json({ error: "Failed to fetch user cohorts" }, 500);
+  }
 });
 
 // Get pending withdrawal requests for admin
 app.get("/admin/:address/pending-requests", async (c) => {
   const adminAddress = c.req.param("address").toLowerCase();
 
-  // First get all cohorts where user is admin
-  const adminCohorts = await db
-    .select()
-    .from(admin)
-    .where(
-      and(
-        eq(admin.adminAddress, adminAddress as `0x${string}`),
-        eq(admin.isActive, true)
+  try {
+    // First get all cohorts where user is admin
+    const adminCohorts = await db
+      .select()
+      .from(admin)
+      .where(sql`${admin.adminAddress} = ${adminAddress}`)
+      .where(sql`${admin.isActive} = true`);
+
+    const cohortAddresses = adminCohorts.map((a) => a.cohortAddress);
+
+    if (cohortAddresses.length === 0) {
+      return c.json({ requests: [] });
+    }
+
+    // Get all pending requests for those cohorts
+    const pendingRequests = await db
+      .select()
+      .from(withdrawRequest)
+      .where(sql`${withdrawRequest.status} = 'pending'`)
+      .where(
+        sql`${withdrawRequest.cohortAddress} IN (${sql.join(
+          cohortAddresses,
+          sql`, `
+        )})`
       )
-    );
+      .orderBy(sql`${withdrawRequest.requestTime} DESC`);
 
-  const cohortAddresses = adminCohorts.map((a) => a.cohortAddress);
-
-  if (cohortAddresses.length === 0) {
-    return c.json({ requests: [] });
+    return c.json({ requests: serializeBigInt(pendingRequests) });
+  } catch (error) {
+    console.error("Error fetching pending requests:", error);
+    return c.json({ error: "Failed to fetch pending requests" }, 500);
   }
-
-  // Get all pending requests for those cohorts
-  const pendingRequests = await db
-    .select()
-    .from(withdrawRequest)
-    .where(
-      and(
-        sql`${withdrawRequest.cohortAddress} IN ${cohortAddresses}`,
-        eq(withdrawRequest.status, "pending")
-      )
-    )
-    .orderBy(desc(withdrawRequest.requestTime));
-
-  return c.json({ requests: pendingRequests });
 });
 
-// // Health check endpoint
+// Health check endpoint
 // app.get("/health", async (c) => {
 //   return c.json({ status: "ok", timestamp: Date.now() });
 // });

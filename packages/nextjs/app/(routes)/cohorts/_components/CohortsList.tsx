@@ -32,11 +32,11 @@ const CohortsList = ({ items, loading }: CohortsListProps) => {
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {items.map(item => (
           <CohortCard
-            key={item?.cohortAddress}
-            cohortAddress={item.cohortAddress}
+            key={item?.address}
+            cohortAddress={item.address}
             chainId={item.chainId}
             createdAt={item.createdAt}
-            owner={item.owner}
+            owner={item.primaryAdmin}
             name={item.name}
             chainName={item.chainName}
             role={item.role}

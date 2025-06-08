@@ -7,7 +7,6 @@ import {
   withdrawRequest,
   cohortState,
 } from "ponder:schema";
-import { eq } from "drizzle-orm";
 
 // Index AddBuilder events
 ponder.on("Cohort:AddBuilder", async ({ event, context }) => {
@@ -28,12 +27,9 @@ ponder.on("Cohort:AddBuilder", async ({ event, context }) => {
       isActive: true,
     })
     .onConflictDoUpdate({
-      target: builder.id,
-      set: {
-        cap,
-        isActive: true,
-        blockNumber: event.block.number,
-      },
+      cap,
+      isActive: true,
+      blockNumber: event.block.number,
     });
 });
 
@@ -42,30 +38,21 @@ ponder.on("Cohort:UpdateBuilder", async ({ event, context }) => {
   const builderAddress = event.args.to;
   const newCap = event.args.amount;
   const cohortAddress = event.log.address.toLowerCase();
+  const builderId = `${cohortAddress}-${builderAddress.toLowerCase()}`;
 
   if (newCap === 0n) {
     // Builder removed
-    await context.db
-      .update(builder)
-      .set({
-        cap: newCap,
-        isActive: false,
-        blockNumber: event.block.number,
-      })
-      .where(
-        eq(builder.id, `${cohortAddress}-${builderAddress.toLowerCase()}`)
-      );
+    await context.db.update(builder, { id: builderId }).set({
+      cap: newCap,
+      isActive: false,
+      blockNumber: event.block.number,
+    });
   } else {
     // Builder updated
-    await context.db
-      .update(builder)
-      .set({
-        cap: newCap,
-        blockNumber: event.block.number,
-      })
-      .where(
-        eq(builder.id, `${cohortAddress}-${builderAddress.toLowerCase()}`)
-      );
+    await context.db.update(builder, { id: builderId }).set({
+      cap: newCap,
+      blockNumber: event.block.number,
+    });
   }
 });
 
@@ -85,11 +72,8 @@ ponder.on("Cohort:AdminAdded", async ({ event, context }) => {
       isActive: true,
     })
     .onConflictDoUpdate({
-      target: admin.id,
-      set: {
-        isActive: true,
-        blockNumber: event.block.number,
-      },
+      isActive: true,
+      blockNumber: event.block.number,
     });
 });
 
@@ -97,14 +81,12 @@ ponder.on("Cohort:AdminAdded", async ({ event, context }) => {
 ponder.on("Cohort:AdminRemoved", async ({ event, context }) => {
   const adminAddress = event.args.to;
   const cohortAddress = event.log.address.toLowerCase();
+  const adminId = `${cohortAddress}-${adminAddress.toLowerCase()}`;
 
-  await context.db
-    .update(admin)
-    .set({
-      isActive: false,
-      blockNumber: event.block.number,
-    })
-    .where(eq(admin.id, `${cohortAddress}-${adminAddress.toLowerCase()}`));
+  await context.db.update(admin, { id: adminId }).set({
+    isActive: false,
+    blockNumber: event.block.number,
+  });
 });
 
 // Index Withdraw events
@@ -147,57 +129,36 @@ ponder.on("Cohort:WithdrawRequested", async ({ event, context }) => {
 ponder.on("Cohort:WithdrawApproved", async ({ event, context }) => {
   const { builder: builderAddress, requestId } = event.args;
   const cohortAddress = event.log.address.toLowerCase();
+  const requestIdStr = `${cohortAddress}-${builderAddress.toLowerCase()}-${requestId}`;
 
-  await context.db
-    .update(withdrawRequest)
-    .set({
-      status: "approved",
-      lastUpdated: event.block.timestamp,
-    })
-    .where(
-      eq(
-        withdrawRequest.id,
-        `${cohortAddress}-${builderAddress.toLowerCase()}-${requestId}`
-      )
-    );
+  await context.db.update(withdrawRequest, { id: requestIdStr }).set({
+    status: "approved",
+    lastUpdated: event.block.timestamp,
+  });
 });
 
 // Update request status on rejection
 ponder.on("Cohort:WithdrawRejected", async ({ event, context }) => {
   const { builder: builderAddress, requestId } = event.args;
   const cohortAddress = event.log.address.toLowerCase();
+  const requestIdStr = `${cohortAddress}-${builderAddress.toLowerCase()}-${requestId}`;
 
-  await context.db
-    .update(withdrawRequest)
-    .set({
-      status: "rejected",
-      lastUpdated: event.block.timestamp,
-    })
-    .where(
-      eq(
-        withdrawRequest.id,
-        `${cohortAddress}-${builderAddress.toLowerCase()}-${requestId}`
-      )
-    );
+  await context.db.update(withdrawRequest, { id: requestIdStr }).set({
+    status: "rejected",
+    lastUpdated: event.block.timestamp,
+  });
 });
 
 // Update request status on completion
 ponder.on("Cohort:WithdrawCompleted", async ({ event, context }) => {
   const { builder: builderAddress, requestId } = event.args;
   const cohortAddress = event.log.address.toLowerCase();
+  const requestIdStr = `${cohortAddress}-${builderAddress.toLowerCase()}-${requestId}`;
 
-  await context.db
-    .update(withdrawRequest)
-    .set({
-      status: "completed",
-      lastUpdated: event.block.timestamp,
-    })
-    .where(
-      eq(
-        withdrawRequest.id,
-        `${cohortAddress}-${builderAddress.toLowerCase()}-${requestId}`
-      )
-    );
+  await context.db.update(withdrawRequest, { id: requestIdStr }).set({
+    status: "completed",
+    lastUpdated: event.block.timestamp,
+  });
 });
 
 // Index ContractLocked events
@@ -205,13 +166,26 @@ ponder.on("Cohort:ContractLocked", async ({ event, context }) => {
   const locked = event.args.locked;
   const cohortAddress = event.log.address.toLowerCase();
 
+  // Try to update existing state or create new one if it doesn't exist
   await context.db
-    .update(cohortState)
-    .set({
+    .insert(cohortState)
+    .values({
+      id: cohortAddress,
+      cohortAddress: cohortAddress as `0x${string}`,
+      chainId: context.chain.id,
+      isERC20: false,
+      isONETIME: false,
+      tokenAddress: null,
+      cycle: 0n,
       locked,
+      requireApprovalForWithdrawals: false,
+      allowApplications: false,
       lastUpdated: event.block.timestamp,
     })
-    .where(eq(cohortState.id, cohortAddress));
+    .onConflictDoUpdate({
+      locked,
+      lastUpdated: event.block.timestamp,
+    });
 });
 
 // Index ApprovalRequirementChanged events
@@ -223,12 +197,24 @@ ponder.on("Cohort:ApprovalRequirementChanged", async ({ event, context }) => {
   // If builder is zero address, it's a contract-wide setting
   if (builderAddress === "0x0000000000000000000000000000000000000000") {
     await context.db
-      .update(cohortState)
-      .set({
+      .insert(cohortState)
+      .values({
+        id: cohortAddress,
+        cohortAddress: cohortAddress as `0x${string}`,
+        chainId: context.chain.id,
+        isERC20: false,
+        isONETIME: false,
+        tokenAddress: null,
+        cycle: 0n,
+        locked: false,
         requireApprovalForWithdrawals: requiresApproval,
+        allowApplications: false,
         lastUpdated: event.block.timestamp,
       })
-      .where(eq(cohortState.id, cohortAddress));
+      .onConflictDoUpdate({
+        requireApprovalForWithdrawals: requiresApproval,
+        lastUpdated: event.block.timestamp,
+      });
   }
 });
 
@@ -238,10 +224,22 @@ ponder.on("Cohort:AllowApplicationsChanged", async ({ event, context }) => {
   const cohortAddress = event.log.address.toLowerCase();
 
   await context.db
-    .update(cohortState)
-    .set({
+    .insert(cohortState)
+    .values({
+      id: cohortAddress,
+      cohortAddress: cohortAddress as `0x${string}`,
+      chainId: context.chain.id,
+      isERC20: false,
+      isONETIME: false,
+      tokenAddress: null,
+      cycle: 0n,
+      locked: false,
+      requireApprovalForWithdrawals: false,
       allowApplications,
       lastUpdated: event.block.timestamp,
     })
-    .where(eq(cohortState.id, cohortAddress));
+    .onConflictDoUpdate({
+      allowApplications,
+      lastUpdated: event.block.timestamp,
+    });
 });

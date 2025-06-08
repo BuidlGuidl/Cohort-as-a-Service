@@ -7,8 +7,18 @@ import { CohortAbi } from "./abis/Cohort";
 import { chainConfigs } from "./src/config/chains";
 
 const CohortCreated = parseAbiItem(
-  "event CohortCreated(address indexed cohortAddress, address indexed primaryAdmin, string name, string description)"
+  "event CohortCreated(address indexed cohortAddress, address indexed primaryAdmin, string name, string description)",
 );
+
+// Get start blocks from deployment data
+const startBlocks = {
+  arbitrum: 334807569,
+  base: 29993331,
+  baseSepolia: 25502670,
+  optimism: 135588597,
+  optimismSepolia: 26518673,
+  sepolia: 7746495,
+};
 
 export default createConfig({
   ordering: "multichain",
@@ -16,25 +26,20 @@ export default createConfig({
   contracts: {
     CohortFactory: {
       abi: CohortFactoryAbi,
-      startBlock: "latest",
+      startBlock: startBlocks,
       chain: chainConfigs.cohortFactoryContracts,
     },
     Cohort: {
       abi: CohortAbi,
       address: factory({
-        address: Object.values(chainConfigs.cohortFactoryContracts).map(
-          (config) => config.address
-        ),
+        address: Object.values(chainConfigs.cohortFactoryContracts).map((config) => config.address),
         event: CohortCreated,
         parameter: "cohortAddress",
       }),
-      chain: Object.keys(chainConfigs.cohortFactoryContracts).reduce(
-        (acc, chainName) => {
-          acc[chainName] = {};
-          return acc;
-        },
-        {} as any
-      ),
+      chain: Object.keys(chainConfigs.cohortFactoryContracts).reduce((acc, chainName) => {
+        acc[chainName] = {};
+        return acc;
+      }, {} as any),
     },
   },
 });

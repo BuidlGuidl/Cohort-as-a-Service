@@ -1,16 +1,10 @@
+// packages/nextjs/hooks/useCohortData.ts
 import { useEffect, useState } from "react";
-import { useCohortEventHistory } from "./useCohortEventHistory";
-import { useCohorts } from "./useCohorts";
 import { useLocalDeployedContractInfo } from "./useLocalDeployedContractInfo";
-import axios from "axios";
-import { Abi, erc20Abi, formatEther, formatUnits } from "viem";
+import { erc20Abi, formatEther, formatUnits } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
+import { PonderAdmin, PonderBuilder, PonderCohort, PonderCohortState, ponderClient } from "~~/services/ponder/client";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
-
-export type BuilderStreamInfo = {
-  cap: bigint;
-  last: bigint;
-};
 
 export type CohortData = {
   name: string;
@@ -47,519 +41,205 @@ export type CohortData = {
 };
 
 export const useCohortData = (cohortAddress: string) => {
-  const [chainId, setChainId] = useState<AllowedChainIds | undefined>(undefined);
   const { address } = useAccount();
   const publicClient = usePublicClient();
-
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<CohortData | null>(null);
-  const [builders, setBuilders] = useState<string[]>([]);
-  const [admins, setAdmins] = useState<string[]>([]);
-
-  const { cohorts, isLoading: isLoadingCohorts } = useCohorts({});
-
-  useEffect(() => {
-    const fetchChainId = async () => {
-      if (!cohortAddress) return;
-
-      try {
-        const response = await axios.get(`/api/cohort/${cohortAddress}`);
-        const chainId = response.data?.cohort.chainId;
-        setChainId(chainId);
-      } catch (error) {
-        console.error("Error fetching chain ID:", error);
-      }
-    };
-
-    fetchChainId();
-  }, [cohortAddress]);
 
   const { data: deployedContract } = useLocalDeployedContractInfo({
     contractName: "Cohort",
   });
 
-  const { data: ApprovalRequirementChanged } = useCohortEventHistory({
-    contractName: "Cohort",
-    eventName: "ApprovalRequirementChanged",
-    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
-    watch: true,
-    contractAddress: cohortAddress,
-    chainId,
-  });
-
-  const { data: UpdatedBuilderEvents } = useCohortEventHistory({
-    contractName: "Cohort",
-    eventName: "UpdateBuilder",
-    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
-    watch: true,
-    contractAddress: cohortAddress,
-    chainId,
-  });
-
-  const { data: withdrawn } = useCohortEventHistory({
-    contractName: "Cohort",
-    eventName: "Withdraw",
-    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
-    watch: true,
-    contractAddress: cohortAddress,
-    chainId,
-  });
-
-  const { data: adminRemoved } = useCohortEventHistory({
-    contractName: "Cohort",
-    eventName: "AdminRemoved",
-    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
-    watch: true,
-    contractAddress: cohortAddress,
-    chainId,
-  });
-
-  const { data: cohortLocked } = useCohortEventHistory({
-    contractName: "Cohort",
-    eventName: "ContractLocked",
-    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
-    watch: true,
-    contractAddress: cohortAddress,
-    chainId,
-  });
-
-  const { data: allowApplicationsChanged } = useCohortEventHistory({
-    contractName: "Cohort",
-    eventName: "AllowApplicationsChanged",
-    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
-    watch: true,
-    contractAddress: cohortAddress,
-    chainId,
-  });
-
-  const { data: erc20Funding } = useCohortEventHistory({
-    contractName: "Cohort",
-    eventName: "ERC20FundsReceived",
-    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
-    watch: true,
-    contractAddress: cohortAddress,
-    chainId,
-  });
-
-  const {
-    data: builderAdded,
-    isLoading: isLoadingBuilders,
-    refetch: buildersRefetch,
-  } = useCohortEventHistory({
-    contractName: "Cohort",
-    eventName: "AddBuilder",
-    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
-    blockData: true,
-    watch: true,
-    receiptData: true,
-    contractAddress: cohortAddress,
-    chainId,
-  });
-
-  const {
-    data: adminAdded,
-    isLoading: isLoadingAdmins,
-    refetch: adminsRefetch,
-  } = useCohortEventHistory({
-    contractName: "Cohort",
-    eventName: "AdminAdded",
-    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
-    blockData: true,
-    watch: true,
-    receiptData: true,
-    contractAddress: cohortAddress,
-    chainId,
-  });
-
   useEffect(() => {
-    if (builderAdded && builderAdded.length > 0) {
-      for (let i = 0; i < builderAdded.length; i++) {
-        if (!builderAdded[i].args) {
-          buildersRefetch()
-            .then(() => {})
-            .catch(() => {
-              console.error("Error refreshing builderAdded events");
-            });
-        }
-      }
-    }
-  }, [builderAdded, buildersRefetch]);
+    const fetchCohortData = async () => {
+      if (!cohortAddress || !deployedContract?.abi || !publicClient) return;
 
-  useEffect(() => {
-    if (adminAdded && adminAdded.length > 0) {
-      for (let i = 0; i < adminAdded.length; i++) {
-        if (!adminAdded[i].args) {
-          adminsRefetch()
-            .then(() => {})
-            .catch(() => {
-              console.error("Error refreshing adminAdded events");
-            });
-        }
-      }
-    }
-  }, [adminAdded, adminsRefetch]);
-
-  useEffect(() => {
-    if (builderAdded && builderAdded.length > 0) {
-      for (let i = 0; i < builderAdded.length; i++) {
-        if (!builderAdded[i].args) {
-          return;
-        }
-      }
-    }
-
-    if (!publicClient) return;
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const addedBuilders = builderAdded?.map(builder => builder?.args[0]);
-
-    const validateBuilder = async (builder: string) => {
-      if (!cohortAddress) return false;
+      setIsLoading(true);
+      setError(null);
 
       try {
-        const builderIndex = await publicClient.readContract({
-          address: cohortAddress,
-          abi: deployedContract?.abi as Abi,
-          functionName: "builderIndex",
-          args: [builder],
-        });
+        const response = await ponderClient.get<{
+          cohort: PonderCohort;
+          builders: PonderBuilder[];
+          admins: PonderAdmin[];
+          state: PonderCohortState | null;
+        }>(`/cohort/${cohortAddress.toLowerCase()}`);
 
-        const fetchedBuilder = await publicClient.readContract({
-          address: cohortAddress,
-          abi: deployedContract?.abi as Abi,
-          functionName: "activeBuilders",
-          args: [builderIndex],
-        });
+        const { cohort, builders, admins, state } = response.data;
 
-        return fetchedBuilder === builder;
-      } catch (error) {
-        console.error("Error validating builder:", error);
-        return false;
-      }
-    };
+        const [isERC20, isONETIME, cycle, tokenAddress, locked, requiresApproval, allowApplications] =
+          await Promise.all([
+            publicClient.readContract({
+              address: cohortAddress as `0x${string}`,
+              abi: deployedContract.abi,
+              functionName: "isERC20",
+            }),
+            publicClient.readContract({
+              address: cohortAddress as `0x${string}`,
+              abi: deployedContract.abi,
+              functionName: "isONETIME",
+            }),
+            publicClient.readContract({
+              address: cohortAddress as `0x${string}`,
+              abi: deployedContract.abi,
+              functionName: "cycle",
+            }),
+            publicClient.readContract({
+              address: cohortAddress as `0x${string}`,
+              abi: deployedContract.abi,
+              functionName: "tokenAddress",
+            }),
+            publicClient.readContract({
+              address: cohortAddress as `0x${string}`,
+              abi: deployedContract.abi,
+              functionName: "locked",
+            }),
+            publicClient.readContract({
+              address: cohortAddress as `0x${string}`,
+              abi: deployedContract.abi,
+              functionName: "requireApprovalForWithdrawals",
+            }),
+            publicClient.readContract({
+              address: cohortAddress as `0x${string}`,
+              abi: deployedContract.abi,
+              functionName: "allowApplications",
+            }),
+          ]);
 
-    const validateBuilders = async () => {
-      const validBuilders: string[] = [];
-      if (addedBuilders) {
-        for (let i = addedBuilders.length - 1; i >= 0; i--) {
-          const isValid = await validateBuilder(addedBuilders[i]);
-          if (isValid) {
-            validBuilders.push(addedBuilders[i]);
+        // Get token info if ERC20
+        let tokenSymbol = null;
+        let tokenDecimals = 18;
+        if (isERC20 && tokenAddress) {
+          tokenSymbol = await publicClient.readContract({
+            address: tokenAddress as `0x${string}`,
+            abi: erc20Abi,
+            functionName: "symbol",
+          });
+          tokenDecimals = await publicClient.readContract({
+            address: tokenAddress as `0x${string}`,
+            abi: erc20Abi,
+            functionName: "decimals",
+          });
+        }
+
+        // Get balance
+        let balance = 0;
+        if (isERC20 && tokenAddress) {
+          const tokenBalance = await publicClient.readContract({
+            address: tokenAddress as `0x${string}`,
+            abi: erc20Abi,
+            functionName: "balanceOf",
+            args: [cohortAddress as `0x${string}`],
+          });
+          balance = parseFloat(formatUnits(tokenBalance as bigint, tokenDecimals));
+        } else {
+          const ethBalance = await publicClient.getBalance({
+            address: cohortAddress as `0x${string}`,
+          });
+          balance = parseFloat(formatEther(ethBalance || BigInt(0)));
+        }
+
+        const activeBuilders = builders.filter(b => b.isActive).map(b => b.builderAddress);
+
+        const builderStreams = new Map();
+
+        for (const builder of builders.filter(b => b.isActive && b.cohortAddress == cohort.address)) {
+          try {
+            const unlockedAmount = await publicClient.readContract({
+              address: cohortAddress as `0x${string}`,
+              abi: deployedContract.abi,
+              functionName: "unlockedBuilderAmount",
+              args: [builder.builderAddress],
+            });
+
+            const requiresApproval = await publicClient.readContract({
+              address: cohortAddress as `0x${string}`,
+              abi: deployedContract.abi,
+              functionName: "requiresApproval",
+              args: [builder.builderAddress],
+            });
+
+            builderStreams.set(builder.builderAddress, {
+              builderAddress: builder.builderAddress,
+              cap: parseFloat(
+                isERC20 ? formatUnits(BigInt(builder.cap), tokenDecimals) : formatEther(BigInt(builder.cap)),
+              ),
+              last: Number(builder.last),
+              unlockedAmount: parseFloat(
+                isERC20 ? formatUnits(unlockedAmount as bigint, tokenDecimals) : formatEther(unlockedAmount as bigint),
+              ),
+              requiresApproval: requiresApproval as boolean,
+            });
+          } catch (e) {
+            console.error(`Error fetching data for builder ${builder.builderAddress}:`, e);
           }
         }
-      }
-      setBuilders(validBuilders);
-    };
 
-    validateBuilders();
-  }, [isLoadingBuilders, deployedContract, builderAdded, buildersRefetch, cohortAddress, chainId, publicClient]);
+        // Check user status
+        const isAdmin = address ? admins.some(a => a.adminAddress.toLowerCase() === address.toLowerCase()) : false;
+        const isBuilder = address ? activeBuilders.includes(address.toLowerCase()) : false;
 
-  useEffect(() => {
-    if (adminAdded && adminAdded.length > 0) {
-      for (let i = 0; i < adminAdded.length; i++) {
-        if (!adminAdded[i].args) {
-          return;
-        }
-      }
-    }
+        let connectedAddressRequiresApproval = false;
+        let oneTimeAlreadyWithdrawn = false;
 
-    if (!publicClient) return;
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const addedAdmins = Array.from(new Set(adminAdded?.map(admin => admin?.args[0])));
-    const validateAdmin = async (admin: string) => {
-      if (!cohortAddress) return false;
-
-      try {
-        const isAdmin = await publicClient.readContract({
-          address: cohortAddress,
-          abi: deployedContract?.abi as Abi,
-          functionName: "isAdmin",
-          args: [admin],
-        });
-        return isAdmin;
-      } catch (error) {
-        console.error("Error validating admin:", error);
-        return false;
-      }
-    };
-
-    const validateAdmins = async () => {
-      const validAdmins: string[] = [];
-      if (addedAdmins) {
-        for (let i = addedAdmins.length - 1; i >= 0; i--) {
-          const isValid = await validateAdmin(addedAdmins[i]);
-          if (isValid) {
-            validAdmins.push(addedAdmins[i]);
-          }
-        }
-      }
-      setAdmins(validAdmins);
-    };
-
-    validateAdmins();
-  }, [isLoadingAdmins, deployedContract, adminAdded, cohortAddress, adminRemoved, chainId, publicClient]);
-
-  const fetchCohortData = async () => {
-    if (!cohortAddress || !deployedContract?.abi) return;
-
-    const chainName = cohorts.find(
-      cohort => cohort.cohortAddress?.toLowerCase() === cohortAddress.toLowerCase(),
-    )?.chainName;
-    const chainId = cohorts.find(
-      cohort => cohort.cohortAddress?.toLowerCase() === cohortAddress.toLowerCase(),
-    )?.chainId;
-
-    if (!chainId || !chainName || !publicClient) {
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const [
-        name,
-        description,
-        isERC20,
-        isONETIME,
-        cycle,
-        tokenAddress,
-        primaryAdmin,
-        locked,
-        requiresApproval,
-        allowApplications,
-      ] = await Promise.all([
-        publicClient.readContract({
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "name",
-        }),
-        publicClient.readContract({
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "description",
-        }),
-        publicClient.readContract({
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "isERC20",
-        }),
-        publicClient.readContract({
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "isONETIME",
-        }),
-        publicClient.readContract({
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "cycle",
-        }),
-        publicClient.readContract({
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "tokenAddress",
-        }),
-        publicClient.readContract({
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "primaryAdmin",
-        }),
-        publicClient.readContract({
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "locked",
-        }),
-        publicClient.readContract({
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "requireApprovalForWithdrawals",
-        }),
-        publicClient.readContract({
-          address: cohortAddress,
-          abi: deployedContract.abi,
-          functionName: "allowApplications",
-        }),
-      ]);
-
-      let tokenSymbol = null;
-      if (isERC20 && tokenAddress) {
-        tokenSymbol = await publicClient.readContract({
-          address: tokenAddress,
-          abi: erc20Abi,
-          functionName: "symbol",
-        });
-      }
-
-      // Get balance (ETH or ERC20)
-      let balance = 0;
-      let tokenDecimals = 0;
-      if (isERC20 && tokenAddress) {
-        const tokenBalance = await publicClient.readContract({
-          address: tokenAddress,
-          abi: erc20Abi,
-          functionName: "balanceOf",
-          args: [cohortAddress],
-        });
-
-        const decimals = await publicClient.readContract({
-          address: tokenAddress,
-          abi: erc20Abi,
-          functionName: "decimals",
-        });
-
-        tokenDecimals = decimals || 18;
-
-        balance = parseFloat(formatUnits(tokenBalance, decimals));
-      } else {
-        const ethBalance = await publicClient.getBalance({
-          address: cohortAddress,
-        });
-        balance = parseFloat(formatEther(ethBalance || BigInt(0)));
-      }
-
-      // Get builder stream data
-      const builderStreams = new Map();
-
-      // Fetch all builders data in bulk
-      const buildersData = await publicClient.readContract({
-        address: cohortAddress,
-        abi: deployedContract.abi,
-        functionName: "allBuildersData",
-        args: [builders],
-      });
-
-      // Get available amounts for each builder
-      for (let i = 0; i < builders.length; i++) {
-        const builder = builders[i];
-        const streamInfo = buildersData[i];
-
-        let unlockedAmount = 0;
-        let requiresApproval = false;
-        try {
-          const available = await publicClient.readContract({
-            address: cohortAddress,
-            abi: deployedContract.abi,
-            functionName: "unlockedBuilderAmount",
-            args: [builder],
-          });
-          unlockedAmount = parseFloat(isERC20 ? formatUnits(available, tokenDecimals) : formatEther(available));
-
-          requiresApproval = await publicClient.readContract({
-            address: cohortAddress,
-            abi: deployedContract.abi,
-            functionName: "requiresApproval",
-            args: [builder],
-          });
-        } catch (e) {
-          console.error(`Error fetching available amount for ${builder}:`, e);
-        }
-
-        builderStreams.set(builder, {
-          builderAddress: builder,
-          cap: parseFloat(isERC20 ? formatUnits(streamInfo.cap, tokenDecimals) : formatEther(streamInfo.cap)),
-          last: Number(streamInfo.last),
-          unlockedAmount,
-          requiresApproval,
-        });
-      }
-
-      // Check if current user is admin
-
-      const isAdmin = address
-        ? await publicClient.readContract({
-            address: cohortAddress,
-            abi: deployedContract.abi,
-            functionName: "isAdmin",
-            args: [address],
-          })
-        : false;
-
-      const connectedAddressRequiresApproval = address
-        ? await publicClient.readContract({
-            address: cohortAddress,
+        if (address) {
+          connectedAddressRequiresApproval = (await publicClient.readContract({
+            address: cohortAddress as `0x${string}`,
             abi: deployedContract.abi,
             functionName: "requiresApproval",
             args: [address],
-          })
-        : false;
+          })) as boolean;
 
-      const isBuilder = address ? builders.includes(address) : false;
+          if (isBuilder && isONETIME) {
+            const builderStreamInfo = (await publicClient.readContract({
+              address: cohortAddress as `0x${string}`,
+              abi: deployedContract.abi,
+              functionName: "streamingBuilders",
+              args: [address],
+            })) as [bigint, bigint];
+            oneTimeAlreadyWithdrawn = Number(builderStreamInfo[1]) !== 2 ** 256 - 1;
+          }
+        }
 
-      const builderStreamInfo = address
-        ? await publicClient.readContract({
-            address: cohortAddress,
-            abi: deployedContract.abi,
-            functionName: "streamingBuilders",
-            args: [address],
-          })
-        : [0, 0];
+        setData({
+          name: cohort.name,
+          description: cohort.description,
+          isERC20: isERC20 as boolean,
+          isONETIME: isONETIME as boolean,
+          cycle: Number(cycle as bigint) / (60 * 60 * 24),
+          tokenAddress: tokenAddress as string | null,
+          tokenSymbol,
+          tokenDecimals,
+          primaryAdmin: cohort.primaryAdmin,
+          locked: state?.locked || (locked as boolean),
+          requiresApproval: state?.requireApprovalForWithdrawals || (requiresApproval as boolean),
+          allowApplications: state?.allowApplications || (allowApplications as boolean),
+          balance,
+          activeBuilders,
+          builderStreams,
+          isAdmin,
+          isBuilder,
+          oneTimeAlreadyWithdrawn,
+          chainName: cohort.chainName,
+          chainId: cohort.chainId as AllowedChainIds,
+          admins: admins.map(a => a.adminAddress),
+          connectedAddressRequiresApproval,
+        });
+      } catch (e) {
+        console.error("Error fetching cohort data:", e);
+        setError("Failed to fetch cohort data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-      const oneTimeAlreadyWithdrawn = isONETIME ? Number(builderStreamInfo[1]) != 2 ** 256 - 1 : false;
-
-      setData({
-        name,
-        description,
-        isERC20,
-        isONETIME,
-        cycle: Number(cycle) / (60 * 60 * 24),
-        tokenAddress,
-        tokenSymbol,
-        tokenDecimals,
-        primaryAdmin,
-        locked,
-        requiresApproval,
-        allowApplications,
-        balance,
-        activeBuilders: builders,
-        builderStreams,
-        isAdmin,
-        isBuilder: isBuilder,
-        oneTimeAlreadyWithdrawn: oneTimeAlreadyWithdrawn,
-        chainName,
-        chainId,
-        admins,
-        connectedAddressRequiresApproval,
-      });
-    } catch (e) {
-      console.error("Error fetching cohort data:", e);
-
-      setError("Failed to fetch cohort data");
-      // notification.error("Failed to fetch cohort data");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
     fetchCohortData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    cohortAddress,
-    address,
-    deployedContract,
-    builders,
-    isLoadingCohorts,
-    admins,
-    isLoadingAdmins,
-    isLoadingBuilders,
-    UpdatedBuilderEvents,
-    ApprovalRequirementChanged,
-    withdrawn,
-    erc20Funding,
-    cohortLocked,
-    allowApplicationsChanged,
-  ]);
+  }, [cohortAddress, address, deployedContract, publicClient]);
 
   return {
     ...data,
-    isLoading: isLoading || isLoadingBuilders || isLoadingAdmins || isLoadingCohorts,
-    isLoadingAdmins: isLoadingAdmins || isLoadingCohorts,
-    isLoadingBuilders: isLoadingBuilders || isLoadingCohorts,
+    isLoading,
     error,
-    // refetch: fetchCohortData,
   };
 };

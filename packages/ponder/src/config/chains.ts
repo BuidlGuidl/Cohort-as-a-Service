@@ -15,10 +15,6 @@ export const chainConfigs = {
       id: 84532,
       rpc: process.env.PONDER_RPC_URL_84532,
     },
-    localhost: {
-      id: 31337,
-      rpc: process.env.PONDER_RPC_URL_31337,
-    },
     optimism: {
       id: 10,
       rpc: process.env.PONDER_RPC_URL_10,
@@ -35,24 +31,27 @@ export const chainConfigs = {
   cohortFactoryContracts: {
     arbitrum: {
       address: "0x1536a46Eae1F905005653F044Fe91dd67992e36b" as `0x${string}`,
+      startBlock: 334807569,
     },
     base: {
       address: "0x738c6EE8Ce83959E2A2fF6E082d6CA5508AFe400" as `0x${string}`,
+      startBlock: 29993331,
     },
     baseSepolia: {
       address: "0x495EC6dF84F3f520B54b502d93eCCde1Aa6f3f44" as `0x${string}`,
-    },
-    localhost: {
-      address: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512" as `0x${string}`,
+      startBlock: 25502670,
     },
     optimism: {
       address: "0xF9a964E6F482d77C3F62754957706Fafc7F27d55" as `0x${string}`,
+      startBlock: 135588597,
     },
     optimismSepolia: {
       address: "0xcd35264b9Be6EC2f837D37e1D0ae03cb594FE864" as `0x${string}`,
+      startBlock: 26518673,
     },
     sepolia: {
       address: "0x630d9e93B2f3d6F41D6Af0c1D70eB21663fd1674" as `0x${string}`,
+      startBlock: 7746495,
     },
-  },
+  }, // Clean up trailing commas
 };

@@ -35,7 +35,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
   const { data: deployedContract } = useLocalDeployedContractInfo({ contractName: "Cohort" });
 
   useEffect(() => {
-    if (!address) return;
+    if (!address || cohorts.length < 1 || !deployedContract) return;
     const fetchAdminCohorts = async () => {
       try {
         const validCohorts: Cohort[] = [];
@@ -43,7 +43,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
         for (const cohort of cohorts) {
           try {
             const isAdmin = await readContract(wagmiConfig, {
-              address: cohort.cohortAddress as `0x${string}`,
+              address: cohort.address as `0x${string}`,
               abi: deployedContract?.abi as Abi,
               functionName: "isAdmin",
               args: [address],
@@ -57,7 +57,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
               });
             }
           } catch (error) {
-            console.error(`Error checking admin status for cohort ${cohort.cohortAddress}:`, error);
+            console.error(`Error checking admin status for cohort ${cohort.address}:`, error);
             continue;
           }
         }
@@ -73,10 +73,11 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
 
     setIsLoadingAdmin(true);
     fetchAdminCohorts();
+    setIsLoadingAdmin(false);
   }, [deployedContract, cohorts, address]);
 
   useEffect(() => {
-    if (!address) return;
+    if (!address || cohorts.length < 1 || !deployedContract) return;
     const fetchBuilderCohorts = async () => {
       try {
         const validCohorts: Cohort[] = [];
@@ -84,7 +85,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
         for (const cohort of cohorts) {
           try {
             const builderIndex = await readContract(wagmiConfig, {
-              address: cohort.cohortAddress as `0x${string}`,
+              address: cohort.address as `0x${string}`,
               abi: deployedContract?.abi as Abi,
               functionName: "builderIndex",
               args: [address],
@@ -93,7 +94,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
 
             const builder = builderIndex
               ? await readContract(wagmiConfig, {
-                  address: cohort.cohortAddress as `0x${string}`,
+                  address: cohort.address as `0x${string}`,
                   abi: deployedContract?.abi as Abi,
                   functionName: "activeBuilders",
                   args: [builderIndex],
@@ -108,7 +109,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
               });
             }
           } catch (error) {
-            console.error(`Error checking builder status for cohort ${cohort.cohortAddress}:`, error);
+            console.error(`Error checking builder status for cohort ${cohort.address}:`, error);
             continue;
           }
         }
@@ -124,18 +125,19 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
 
     setIsLoadingBuilder(true);
     fetchBuilderCohorts();
+    setIsLoadingBuilder(false);
   }, [deployedContract, cohorts, address]);
 
   useEffect(() => {
     const cohortMap = new Map<string, Cohort>();
 
     adminCohorts.forEach(cohort => {
-      const key = `${cohort.chainId}-${cohort.cohortAddress}`;
+      const key = `${cohort.chainId}-${cohort.address}`;
       cohortMap.set(key, { ...cohort, role: "ADMIN" });
     });
 
     builderCohorts.forEach(cohort => {
-      const key = `${cohort.chainId}-${cohort.cohortAddress}`;
+      const key = `${cohort.chainId}-${cohort.address}`;
       if (!cohortMap.has(key)) {
         cohortMap.set(key, { ...cohort, role: "BUILDER" });
       }
@@ -160,10 +162,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
     adminCohorts,
     builderCohorts,
     combinedCohorts,
-    isLoading:
-      isLoadingCohorts ||
-      isReconnecting ||
-      !address ||
-      (filter === "admin" ? isLoadingAdmin : filter === "builder" ? isLoadingBuilder : false),
+    isLoading: isLoadingCohorts || isReconnecting || !address || isLoadingAdmin || isLoadingBuilder,
+    // (filter === "admin" ? isLoadingAdmin : filter === "builder" ? isLoadingBuilder : false),
   };
 };
