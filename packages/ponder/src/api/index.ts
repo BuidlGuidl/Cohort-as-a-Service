@@ -13,7 +13,14 @@ import { sql } from "@ponder/core";
 
 const app = new Hono();
 
-app.use("/*", cors());
+app.use(
+  "/*",
+  cors({
+    origin: "*",
+    allowHeaders: ["Content-Type", "Authorization"],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  })
+);
 
 const serializeBigInt = (obj: any): any => {
   return JSON.parse(
