@@ -53,8 +53,10 @@ export const useCohortData = (cohortAddress: string) => {
 
   useEffect(() => {
     const fetchCohortData = async () => {
-      if (!cohortAddress || !deployedContract?.abi || !publicClient) return;
-
+      if (!cohortAddress || !deployedContract?.abi || !publicClient || !address) {
+        setIsLoading(false);
+        return;
+      }
       setIsLoading(true);
       setError(null);
 
@@ -68,71 +70,19 @@ export const useCohortData = (cohortAddress: string) => {
 
         const { cohort, builders, admins, state } = response.data;
 
-        const [isERC20, isONETIME, cycle, tokenAddress, locked, requiresApproval, allowApplications] =
-          await Promise.all([
-            publicClient.readContract({
-              address: cohortAddress as `0x${string}`,
-              abi: deployedContract.abi,
-              functionName: "isERC20",
-            }),
-            publicClient.readContract({
-              address: cohortAddress as `0x${string}`,
-              abi: deployedContract.abi,
-              functionName: "isONETIME",
-            }),
-            publicClient.readContract({
-              address: cohortAddress as `0x${string}`,
-              abi: deployedContract.abi,
-              functionName: "cycle",
-            }),
-            publicClient.readContract({
-              address: cohortAddress as `0x${string}`,
-              abi: deployedContract.abi,
-              functionName: "tokenAddress",
-            }),
-            publicClient.readContract({
-              address: cohortAddress as `0x${string}`,
-              abi: deployedContract.abi,
-              functionName: "locked",
-            }),
-            publicClient.readContract({
-              address: cohortAddress as `0x${string}`,
-              abi: deployedContract.abi,
-              functionName: "requireApprovalForWithdrawals",
-            }),
-            publicClient.readContract({
-              address: cohortAddress as `0x${string}`,
-              abi: deployedContract.abi,
-              functionName: "allowApplications",
-            }),
-          ]);
-
-        // Get token info if ERC20
-        let tokenSymbol = null;
-        let tokenDecimals = 18;
-        if (isERC20 && tokenAddress) {
-          tokenSymbol = await publicClient.readContract({
-            address: tokenAddress as `0x${string}`,
-            abi: erc20Abi,
-            functionName: "symbol",
-          });
-          tokenDecimals = await publicClient.readContract({
-            address: tokenAddress as `0x${string}`,
-            abi: erc20Abi,
-            functionName: "decimals",
-          });
-        }
-
-        // Get balance
         let balance = 0;
-        if (isERC20 && tokenAddress) {
+        if (
+          state?.isERC20 &&
+          state?.tokenAddress &&
+          state?.tokenAddress != "0x0000000000000000000000000000000000000000"
+        ) {
           const tokenBalance = await publicClient.readContract({
-            address: tokenAddress as `0x${string}`,
+            address: state?.tokenAddress as `0x${string}`,
             abi: erc20Abi,
             functionName: "balanceOf",
             args: [cohortAddress as `0x${string}`],
           });
-          balance = parseFloat(formatUnits(tokenBalance as bigint, tokenDecimals));
+          balance = parseFloat(formatUnits(tokenBalance as bigint, state?.tokenDecimals ?? 18));
         } else {
           const ethBalance = await publicClient.getBalance({
             address: cohortAddress as `0x${string}`,
@@ -153,21 +103,20 @@ export const useCohortData = (cohortAddress: string) => {
               args: [builder.builderAddress],
             });
 
-            const requiresApproval = await publicClient.readContract({
-              address: cohortAddress as `0x${string}`,
-              abi: deployedContract.abi,
-              functionName: "requiresApproval",
-              args: [builder.builderAddress],
-            });
+            const requiresApproval = builder.requiresApproval;
 
             builderStreams.set(builder.builderAddress, {
               builderAddress: builder.builderAddress,
               cap: parseFloat(
-                isERC20 ? formatUnits(BigInt(builder.cap), tokenDecimals) : formatEther(BigInt(builder.cap)),
+                state?.isERC20
+                  ? formatUnits(BigInt(builder.cap), state?.tokenDecimals ?? 18)
+                  : formatEther(BigInt(builder.cap)),
               ),
               last: Number(builder.last),
               unlockedAmount: parseFloat(
-                isERC20 ? formatUnits(unlockedAmount as bigint, tokenDecimals) : formatEther(unlockedAmount as bigint),
+                state?.isERC20
+                  ? formatUnits(unlockedAmount as bigint, state?.tokenDecimals ?? 18)
+                  : formatEther(unlockedAmount as bigint),
               ),
               requiresApproval: requiresApproval as boolean,
             });
@@ -176,45 +125,36 @@ export const useCohortData = (cohortAddress: string) => {
           }
         }
 
-        // Check user status
         const isAdmin = address ? admins.some(a => a.adminAddress.toLowerCase() === address.toLowerCase()) : false;
-        const isBuilder = address ? activeBuilders.includes(address.toLowerCase()) : false;
+        const isBuilder = address ? activeBuilders.includes(address.toLowerCase() as `0x${string}`) : false;
 
         let connectedAddressRequiresApproval = false;
         let oneTimeAlreadyWithdrawn = false;
 
         if (address) {
-          connectedAddressRequiresApproval = (await publicClient.readContract({
-            address: cohortAddress as `0x${string}`,
-            abi: deployedContract.abi,
-            functionName: "requiresApproval",
-            args: [address],
-          })) as boolean;
+          const builder = builders.find(
+            b => b.isActive && b.cohortAddress == cohort.address && b.builderAddress == address,
+          );
+          connectedAddressRequiresApproval = builder?.requiresApproval ?? false;
 
-          if (isBuilder && isONETIME) {
-            const builderStreamInfo = (await publicClient.readContract({
-              address: cohortAddress as `0x${string}`,
-              abi: deployedContract.abi,
-              functionName: "streamingBuilders",
-              args: [address],
-            })) as [bigint, bigint];
-            oneTimeAlreadyWithdrawn = Number(builderStreamInfo[1]) !== 2 ** 256 - 1;
+          if (isBuilder && state?.isONETIME) {
+            oneTimeAlreadyWithdrawn = Number(builder?.last) !== 2 ** 256 - 1;
           }
         }
 
         setData({
           name: cohort.name,
           description: cohort.description,
-          isERC20: isERC20 as boolean,
-          isONETIME: isONETIME as boolean,
-          cycle: Number(cycle as bigint) / (60 * 60 * 24),
-          tokenAddress: tokenAddress as string | null,
-          tokenSymbol,
-          tokenDecimals,
+          isERC20: state?.isERC20 as boolean,
+          isONETIME: state?.isONETIME as boolean,
+          cycle: Number(state?.cycle ?? 0n) / (60 * 60 * 24),
+          tokenAddress: state?.tokenAddress as string | null,
+          tokenSymbol: state?.tokenSymbol ?? null,
+          tokenDecimals: state?.tokenDecimals ?? 18,
           primaryAdmin: cohort.primaryAdmin,
-          locked: state?.locked || (locked as boolean),
-          requiresApproval: state?.requireApprovalForWithdrawals || (requiresApproval as boolean),
-          allowApplications: state?.allowApplications || (allowApplications as boolean),
+          locked: !!state?.locked,
+          requiresApproval: !!state?.requireApprovalForWithdrawals,
+          allowApplications: !!state?.allowApplications,
           balance,
           activeBuilders,
           builderStreams,
@@ -235,7 +175,8 @@ export const useCohortData = (cohortAddress: string) => {
     };
 
     fetchCohortData();
-  }, [cohortAddress, address, deployedContract, publicClient]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cohortAddress, deployedContract, address, publicClient]);
 
   return {
     ...data,

@@ -1,9 +1,7 @@
-// packages/ponder/ponder.schema.ts
 import { onchainTable } from "ponder";
 
-// CohortFactory events
 export const cohort = onchainTable("cohort", (t) => ({
-  id: t.text().primaryKey(), // chainId-address
+  id: t.text().primaryKey(),
   address: t.hex().notNull(),
   chainId: t.integer().notNull(),
   chainName: t.text().notNull(),
@@ -15,20 +13,20 @@ export const cohort = onchainTable("cohort", (t) => ({
   blockNumber: t.bigint().notNull(),
 }));
 
-// Cohort contract events
 export const builder = onchainTable("builder", (t) => ({
-  id: t.text().primaryKey(), // cohortAddress-builderAddress
+  id: t.text().primaryKey(),
   cohortAddress: t.hex().notNull(),
   builderAddress: t.hex().notNull(),
   cap: t.bigint().notNull(),
   last: t.bigint().notNull(),
+  requiresApproval: t.boolean().notNull().default(false),
   addedAt: t.bigint().notNull(),
   blockNumber: t.bigint().notNull(),
   isActive: t.boolean().notNull().default(true),
 }));
 
 export const admin = onchainTable("admin", (t) => ({
-  id: t.text().primaryKey(), // cohortAddress-adminAddress
+  id: t.text().primaryKey(),
   cohortAddress: t.hex().notNull(),
   adminAddress: t.hex().notNull(),
   addedAt: t.bigint().notNull(),
@@ -37,7 +35,7 @@ export const admin = onchainTable("admin", (t) => ({
 }));
 
 export const withdrawEvent = onchainTable("withdraw_event", (t) => ({
-  id: t.text().primaryKey(), // transactionHash-logIndex
+  id: t.text().primaryKey(),
   cohortAddress: t.hex().notNull(),
   builderAddress: t.hex().notNull(),
   amount: t.bigint().notNull(),
@@ -48,7 +46,7 @@ export const withdrawEvent = onchainTable("withdraw_event", (t) => ({
 }));
 
 export const withdrawRequest = onchainTable("withdraw_request", (t) => ({
-  id: t.text().primaryKey(), // cohortAddress-builderAddress-requestId
+  id: t.text().primaryKey(),
   cohortAddress: t.hex().notNull(),
   builderAddress: t.hex().notNull(),
   requestId: t.bigint().notNull(),
@@ -61,7 +59,7 @@ export const withdrawRequest = onchainTable("withdraw_request", (t) => ({
 }));
 
 export const cohortState = onchainTable("cohort_state", (t) => ({
-  id: t.text().primaryKey(), // cohortAddress
+  id: t.text().primaryKey(),
   cohortAddress: t.hex().notNull(),
   chainId: t.integer().notNull(),
   isERC20: t.boolean().notNull(),
@@ -71,5 +69,7 @@ export const cohortState = onchainTable("cohort_state", (t) => ({
   locked: t.boolean().notNull().default(false),
   requireApprovalForWithdrawals: t.boolean().notNull().default(false),
   allowApplications: t.boolean().notNull().default(false),
+  tokenSymbol: t.text(),
+  tokenDecimals: t.integer().default(18),
   lastUpdated: t.bigint().notNull(),
 }));

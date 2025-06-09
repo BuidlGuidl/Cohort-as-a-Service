@@ -25,12 +25,13 @@ export interface PonderCohort {
 
 export interface PonderBuilder {
   id: string;
-  cohortAddress: string;
-  builderAddress: string;
-  cap: string;
-  last: string;
-  addedAt: string;
-  blockNumber: string;
+  cohortAddress: `0x${string}`;
+  builderAddress: `0x${string}`;
+  cap: bigint;
+  last: bigint;
+  requiresApproval: boolean;
+  addedAt: bigint;
+  blockNumber: bigint;
   isActive: boolean;
 }
 
@@ -45,16 +46,18 @@ export interface PonderAdmin {
 
 export interface PonderCohortState {
   id: string;
-  cohortAddress: string;
+  cohortAddress: `0x${string}`;
   chainId: number;
   isERC20: boolean;
   isONETIME: boolean;
-  tokenAddress: string | null;
-  cycle: string;
+  tokenAddress: `0x${string}` | null;
+  cycle: bigint;
   locked: boolean;
   requireApprovalForWithdrawals: boolean;
   allowApplications: boolean;
-  lastUpdated: string;
+  tokenSymbol: string | null;
+  tokenDecimals: number | null;
+  lastUpdated: bigint;
 }
 
 export interface PonderWithdrawEvent {

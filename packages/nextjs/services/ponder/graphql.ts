@@ -1,4 +1,3 @@
-// packages/nextjs/services/ponder/graphql.ts
 import { GraphQLClient } from "graphql-request";
 
 const PONDER_GRAPHQL_URL = process.env.NEXT_PUBLIC_PONDER_API_URL

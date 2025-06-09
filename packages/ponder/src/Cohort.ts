@@ -1,4 +1,3 @@
-// packages/ponder/src/Cohort.ts
 import { ponder } from "ponder:registry";
 import {
   builder,
@@ -8,7 +7,6 @@ import {
   cohortState,
 } from "ponder:schema";
 
-// Index AddBuilder events
 ponder.on("Cohort:AddBuilder", async ({ event, context }) => {
   const builderAddress = event.args.to;
   const cap = event.args.amount;
@@ -33,7 +31,6 @@ ponder.on("Cohort:AddBuilder", async ({ event, context }) => {
     });
 });
 
-// Index UpdateBuilder events
 ponder.on("Cohort:UpdateBuilder", async ({ event, context }) => {
   const builderAddress = event.args.to;
   const newCap = event.args.amount;
@@ -41,14 +38,12 @@ ponder.on("Cohort:UpdateBuilder", async ({ event, context }) => {
   const builderId = `${cohortAddress}-${builderAddress.toLowerCase()}`;
 
   if (newCap === 0n) {
-    // Builder removed
     await context.db.update(builder, { id: builderId }).set({
       cap: newCap,
       isActive: false,
       blockNumber: event.block.number,
     });
   } else {
-    // Builder updated
     await context.db.update(builder, { id: builderId }).set({
       cap: newCap,
       blockNumber: event.block.number,
@@ -56,7 +51,6 @@ ponder.on("Cohort:UpdateBuilder", async ({ event, context }) => {
   }
 });
 
-// Index AdminAdded events
 ponder.on("Cohort:AdminAdded", async ({ event, context }) => {
   const adminAddress = event.args.to;
   const cohortAddress = event.log.address.toLowerCase();
@@ -77,7 +71,6 @@ ponder.on("Cohort:AdminAdded", async ({ event, context }) => {
     });
 });
 
-// Index AdminRemoved events
 ponder.on("Cohort:AdminRemoved", async ({ event, context }) => {
   const adminAddress = event.args.to;
   const cohortAddress = event.log.address.toLowerCase();
@@ -89,7 +82,6 @@ ponder.on("Cohort:AdminRemoved", async ({ event, context }) => {
   });
 });
 
-// Index Withdraw events
 ponder.on("Cohort:Withdraw", async ({ event, context }) => {
   const { to: builderAddress, amount, reason } = event.args;
   const cohortAddress = event.log.address.toLowerCase();
@@ -106,7 +98,6 @@ ponder.on("Cohort:Withdraw", async ({ event, context }) => {
   });
 });
 
-// Index WithdrawRequested events
 ponder.on("Cohort:WithdrawRequested", async ({ event, context }) => {
   const { builder: builderAddress, requestId, amount, reason } = event.args;
   const cohortAddress = event.log.address.toLowerCase();
@@ -125,7 +116,6 @@ ponder.on("Cohort:WithdrawRequested", async ({ event, context }) => {
   });
 });
 
-// Update request status on approval
 ponder.on("Cohort:WithdrawApproved", async ({ event, context }) => {
   const { builder: builderAddress, requestId } = event.args;
   const cohortAddress = event.log.address.toLowerCase();
@@ -137,7 +127,6 @@ ponder.on("Cohort:WithdrawApproved", async ({ event, context }) => {
   });
 });
 
-// Update request status on rejection
 ponder.on("Cohort:WithdrawRejected", async ({ event, context }) => {
   const { builder: builderAddress, requestId } = event.args;
   const cohortAddress = event.log.address.toLowerCase();
@@ -149,7 +138,6 @@ ponder.on("Cohort:WithdrawRejected", async ({ event, context }) => {
   });
 });
 
-// Update request status on completion
 ponder.on("Cohort:WithdrawCompleted", async ({ event, context }) => {
   const { builder: builderAddress, requestId } = event.args;
   const cohortAddress = event.log.address.toLowerCase();
@@ -161,12 +149,10 @@ ponder.on("Cohort:WithdrawCompleted", async ({ event, context }) => {
   });
 });
 
-// Index ContractLocked events
 ponder.on("Cohort:ContractLocked", async ({ event, context }) => {
   const locked = event.args.locked;
   const cohortAddress = event.log.address.toLowerCase();
 
-  // Try to update existing state or create new one if it doesn't exist
   await context.db
     .insert(cohortState)
     .values({
@@ -188,13 +174,28 @@ ponder.on("Cohort:ContractLocked", async ({ event, context }) => {
     });
 });
 
-// Index ApprovalRequirementChanged events
 ponder.on("Cohort:ApprovalRequirementChanged", async ({ event, context }) => {
   const cohortAddress = event.log.address.toLowerCase();
   const builderAddress = event.args.builder;
   const requiresApproval = event.args.requiresApproval;
+  const builderId = `${cohortAddress}-${builderAddress.toLowerCase()}`;
 
-  // If builder is zero address, it's a contract-wide setting
+  if (builderAddress !== "0x0000000000000000000000000000000000000000") {
+    const dbBuilder = await context.db.find(builder, {
+      id: builderId,
+    });
+
+    if (dbBuilder) {
+      await context.db
+        .update(builder, {
+          id: builderId,
+        })
+        .set({
+          requiresApproval,
+        });
+    }
+  }
+
   if (builderAddress === "0x0000000000000000000000000000000000000000") {
     await context.db
       .insert(cohortState)
@@ -218,7 +219,6 @@ ponder.on("Cohort:ApprovalRequirementChanged", async ({ event, context }) => {
   }
 });
 
-// Index AllowApplicationsChanged events
 ponder.on("Cohort:AllowApplicationsChanged", async ({ event, context }) => {
   const allowApplications = event.args.allowApplications;
   const cohortAddress = event.log.address.toLowerCase();

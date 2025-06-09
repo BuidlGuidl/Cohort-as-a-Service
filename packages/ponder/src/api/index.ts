@@ -1,4 +1,3 @@
-// packages/ponder/src/api/index.ts
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { db } from "ponder:api";
@@ -14,10 +13,8 @@ import { sql } from "@ponder/core";
 
 const app = new Hono();
 
-// Enable CORS for frontend
 app.use("/*", cors());
 
-// Helper function to serialize BigInt values
 const serializeBigInt = (obj: any): any => {
   return JSON.parse(
     JSON.stringify(obj, (key, value) =>
@@ -26,7 +23,6 @@ const serializeBigInt = (obj: any): any => {
   );
 };
 
-// Get all cohorts across all chains
 app.get("/cohorts", async (c) => {
   const chainId = c.req.query("chainId");
   const cohortName = c.req.query("cohort");
@@ -35,7 +31,6 @@ app.get("/cohorts", async (c) => {
   try {
     let query = db.select().from(cohort);
 
-    // Apply filters if provided
     if (chainId) {
       query = query.where(sql`${cohort.chainId} = ${Number(chainId)}`);
     }
@@ -46,25 +41,21 @@ app.get("/cohorts", async (c) => {
 
     const cohorts = await query.orderBy(sql`${cohort.createdAt} DESC`);
 
-    // If user address is provided, get their role in each cohort
     if (userAddress) {
       const normalizedAddress = userAddress.toLowerCase();
 
-      // Get admin roles
       const adminRoles = await db
         .select()
         .from(admin)
         .where(sql`${admin.adminAddress} = ${normalizedAddress}`)
         .where(sql`${admin.isActive} = true`);
 
-      // Get builder roles
       const builderRoles = await db
         .select()
         .from(builder)
         .where(sql`${builder.builderAddress} = ${normalizedAddress}`)
         .where(sql`${builder.isActive} = true`);
 
-      // Enhance cohorts with user roles
       const cohortsWithRoles = cohorts.map((cohort) => {
         const isAdmin = adminRoles.some(
           (a) => a.cohortAddress === cohort.address
@@ -89,7 +80,6 @@ app.get("/cohorts", async (c) => {
   }
 });
 
-// Get cohort data with builders and admins
 app.get("/cohort/:address", async (c) => {
   const address = c.req.param("address").toLowerCase();
 
@@ -133,7 +123,6 @@ app.get("/cohort/:address", async (c) => {
   }
 });
 
-// Get withdraw events and requests
 app.get("/cohort/:address/withdrawals", async (c) => {
   const address = c.req.param("address").toLowerCase();
   const builderAddress = c.req.query("builder")?.toLowerCase();
@@ -173,12 +162,10 @@ app.get("/cohort/:address/withdrawals", async (c) => {
   }
 });
 
-// Get user's cohorts (where they are admin or builder)
 app.get("/user/:address/cohorts", async (c) => {
   const userAddress = c.req.param("address").toLowerCase();
 
   try {
-    // Get cohorts where user is admin
     const adminCohorts = await db
       .select({
         cohort: cohort,
@@ -189,7 +176,6 @@ app.get("/user/:address/cohorts", async (c) => {
       .where(sql`${admin.adminAddress} = ${userAddress}`)
       .where(sql`${admin.isActive} = true`);
 
-    // Get cohorts where user is builder
     const builderCohorts = await db
       .select({
         cohort: cohort,
@@ -200,7 +186,6 @@ app.get("/user/:address/cohorts", async (c) => {
       .where(sql`${builder.builderAddress} = ${userAddress}`)
       .where(sql`${builder.isActive} = true`);
 
-    // Combine and sort by creation date
     const allCohorts = [...adminCohorts, ...builderCohorts].sort(
       (a, b) => Number(b.cohort.createdAt) - Number(a.cohort.createdAt)
     );
@@ -212,12 +197,10 @@ app.get("/user/:address/cohorts", async (c) => {
   }
 });
 
-// Get pending withdrawal requests for admin
 app.get("/admin/:address/pending-requests", async (c) => {
   const adminAddress = c.req.param("address").toLowerCase();
 
   try {
-    // First get all cohorts where user is admin
     const adminCohorts = await db
       .select()
       .from(admin)
@@ -230,7 +213,6 @@ app.get("/admin/:address/pending-requests", async (c) => {
       return c.json({ requests: [] });
     }
 
-    // Get all pending requests for those cohorts
     const pendingRequests = await db
       .select()
       .from(withdrawRequest)
@@ -250,12 +232,6 @@ app.get("/admin/:address/pending-requests", async (c) => {
   }
 });
 
-// Health check endpoint
-// app.get("/health", async (c) => {
-//   return c.json({ status: "ok", timestamp: Date.now() });
-// });
-
-// GraphQL endpoint info
 app.get("/graphql-info", async (c) => {
   return c.json({
     message: "GraphQL endpoint available at /graphql",

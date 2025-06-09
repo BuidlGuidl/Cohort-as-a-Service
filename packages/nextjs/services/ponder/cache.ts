@@ -1,4 +1,3 @@
-// packages/nextjs/services/ponder/cache.ts
 import { LRUCache } from "lru-cache";
 
 // Create a simple in-memory cache

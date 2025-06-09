@@ -3,14 +3,12 @@ import { parseAbiItem } from "abitype";
 import { CohortFactoryAbi } from "./abis/CohortFactory";
 import { CohortAbi } from "./abis/Cohort";
 
-// Import generated chain configs
 import { chainConfigs } from "./src/config/chains";
 
 const CohortCreated = parseAbiItem(
-  "event CohortCreated(address indexed cohortAddress, address indexed primaryAdmin, string name, string description)",
+  "event CohortCreated(address indexed cohortAddress, address indexed primaryAdmin, string name, string description)"
 );
 
-// Get start blocks from deployment data
 const startBlocks = {
   arbitrum: 334807569,
   base: 29993331,
@@ -21,25 +19,34 @@ const startBlocks = {
 };
 
 export default createConfig({
+  database: {
+    kind: "postgres",
+    connectionString: process.env.DATABASE_URL,
+  },
   ordering: "multichain",
   chains: chainConfigs.chains,
   contracts: {
     CohortFactory: {
       abi: CohortFactoryAbi,
-      startBlock: startBlocks,
+      // startBlock: startBlocks,
       chain: chainConfigs.cohortFactoryContracts,
     },
     Cohort: {
       abi: CohortAbi,
       address: factory({
-        address: Object.values(chainConfigs.cohortFactoryContracts).map((config) => config.address),
+        address: Object.values(chainConfigs.cohortFactoryContracts).map(
+          (config) => config.address
+        ),
         event: CohortCreated,
         parameter: "cohortAddress",
       }),
-      chain: Object.keys(chainConfigs.cohortFactoryContracts).reduce((acc, chainName) => {
-        acc[chainName] = {};
-        return acc;
-      }, {} as any),
+      chain: Object.keys(chainConfigs.cohortFactoryContracts).reduce(
+        (acc, chainName) => {
+          acc[chainName] = {};
+          return acc;
+        },
+        {} as any
+      ),
     },
   },
 });
