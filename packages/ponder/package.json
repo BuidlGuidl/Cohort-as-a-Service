@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "ponder dev",
     "db": "ponder db",
-    "start": "ponder start",
+    "start": "ponder start --port ${PORT:-42069} --hostname 0.0.0.0",
     "serve": "ponder serve",
     "codegen": "ponder codegen",
     "check-types": "tsc --noEmit"
