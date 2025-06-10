@@ -5,9 +5,6 @@ export const usePonderSubscription = (topic: string, callback: (data: any) => vo
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // This is a placeholder - Ponder doesn't currently support WebSockets
-    // But when it does, you could implement it like this:
-
     const wsUrl = process.env.NEXT_PUBLIC_PONDER_WS_URL || "ws://localhost:42069/ws";
     const ws = new WebSocket(wsUrl);
 

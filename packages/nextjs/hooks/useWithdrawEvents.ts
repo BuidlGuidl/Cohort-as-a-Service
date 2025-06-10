@@ -1,230 +1,138 @@
 import { useEffect, useState } from "react";
-import { readContract } from "@wagmi/core";
-import { Abi } from "viem";
-import { useCohortEventHistory } from "~~/hooks/useCohortEventHistory";
-import { useLocalDeployedContractInfo } from "~~/hooks/useLocalDeployedContractInfo";
-import { wagmiConfig } from "~~/services/web3/wagmiConfig";
+import { ponderClient } from "~~/services/ponder/client";
+
+export type WithdrawEvent = {
+  id: string;
+  cohortAddress: string;
+  builderAddress: string;
+  amount: string;
+  reason: string;
+  timestamp: string;
+  transactionHash: string;
+  blockNumber: string;
+};
+
+export type WithdrawRequest = {
+  id: string;
+  cohortAddress: string;
+  builderAddress: string;
+  requestId: string;
+  amount: string;
+  reason: string;
+  status: "pending" | "approved" | "rejected" | "completed";
+  requestTime: string;
+  blockNumber: string;
+  lastUpdated: string;
+};
 
 export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string) => {
-  const [filteredWithdrawnEvents, setFilteredWithdrawnEvents] = useState<any[]>([]);
-  const [requestEvents, setRequestEvents] = useState<any[]>([]);
-  const [filteredRequestEvents, setFilteredRequestEvents] = useState<any[]>([]);
-  const [pendingRequestEvents, setPendingRequestEvents] = useState<any[]>([]);
-  const [approvedRequestEvents, setApprovedRequestEvents] = useState<any[]>([]);
-  const [rejectedRequestEvents, setRejectedRequestEvents] = useState<any[]>([]);
-  const [completedRequestEvents, setCompletedRequestEvents] = useState<any[]>([]);
+  const [withdrawnEvents, setWithdrawnEvents] = useState<WithdrawEvent[]>([]);
+  const [requestEvents, setRequestEvents] = useState<WithdrawRequest[]>([]);
+  const [filteredWithdrawnEvents, setFilteredWithdrawnEvents] = useState<WithdrawEvent[]>([]);
+  const [filteredRequestEvents, setFilteredRequestEvents] = useState<WithdrawRequest[]>([]);
+  const [pendingRequestEvents, setPendingRequestEvents] = useState<WithdrawRequest[]>([]);
+  const [approvedRequestEvents, setApprovedRequestEvents] = useState<WithdrawRequest[]>([]);
+  const [rejectedRequestEvents, setRejectedRequestEvents] = useState<WithdrawRequest[]>([]);
+  const [completedRequestEvents, setCompletedRequestEvents] = useState<WithdrawRequest[]>([]);
+  const [isLoadingWithdrawEvents, setIsLoadingWithdrawEvents] = useState(false);
+  const [isLoadingRequests, setIsLoadingRequests] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const { data: deployedContract } = useLocalDeployedContractInfo({
-    contractName: "Cohort",
-  });
+  const fetchWithdrawData = async (builderAddress?: string) => {
+    if (!cohortAddress) return;
 
-  const { data: requestApproved } = useCohortEventHistory({
-    contractName: "Cohort",
-    eventName: "WithdrawApproved",
-    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
-    watch: true,
-    contractAddress: cohortAddress,
-  });
+    setIsLoadingWithdrawEvents(true);
+    setIsLoadingRequests(true);
+    setError(null);
 
-  const { data: requestRejected } = useCohortEventHistory({
-    contractName: "Cohort",
-    eventName: "WithdrawRejected",
-    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
-    watch: true,
-    contractAddress: cohortAddress,
-  });
-
-  const { data: requestCompleted } = useCohortEventHistory({
-    contractName: "Cohort",
-    eventName: "WithdrawCompleted",
-    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
-    watch: true,
-    contractAddress: cohortAddress,
-  });
-
-  const {
-    data: withdrawn,
-    isLoading: isLoadingWithdrawEvents,
-    refetch: refetchWithdrawEvents,
-  } = useCohortEventHistory({
-    contractName: "Cohort",
-    eventName: "Withdraw",
-    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
-    blockData: true,
-    watch: true,
-    receiptData: true,
-    contractAddress: cohortAddress,
-  });
-
-  useEffect(() => {
-    if (withdrawn && withdrawn.length > 0) {
-      for (let i = 0; i < withdrawn.length; i++) {
-        if (!withdrawn[i].args) {
-          refetchWithdrawEvents();
-        }
-      }
-    }
-  }, [withdrawn, refetchWithdrawEvents, requestCompleted]);
-
-  const {
-    data: requests,
-    isLoading: isLoadingRequests,
-    refetch: refetchRequestEvents,
-  } = useCohortEventHistory({
-    contractName: "Cohort",
-    eventName: "WithdrawRequested",
-    fromBlock: BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0),
-    blockData: true,
-    watch: true,
-    receiptData: true,
-    contractAddress: cohortAddress,
-  });
-
-  useEffect(() => {
-    if (requests && requests.length > 0) {
-      for (let i = 0; i < requests.length; i++) {
-        if (!requests[i].args) {
-          refetchRequestEvents();
-        }
-      }
-    }
-  }, [requests, refetchRequestEvents, requestCompleted, requestApproved, requestRejected]);
-
-  useEffect(() => {
-    if (withdrawn && withdrawn.length > 0) {
-      for (let i = 0; i < withdrawn.length; i++) {
-        if (!withdrawn[0].args) {
-          return;
-        }
-      }
-    }
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const filtered = withdrawn?.filter(event => event.args && event.args[0] === selectedAddress);
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    setFilteredWithdrawnEvents(filtered || []);
-  }, [withdrawn, selectedAddress, requestCompleted]);
-
-  useEffect(() => {
-    if (requests && requests.length > 0) {
-      for (let i = 0; i < requests.length; i++) {
-        if (!requests[0].args) {
-          return;
-        }
-      }
-    }
-
-    const extendEventWithStatus = async (event: any) => {
-      try {
-        const WithdrawalRequest = (await readContract(wagmiConfig, {
-          address: cohortAddress,
-          abi: deployedContract?.abi as Abi,
-          functionName: "withdrawRequests",
-          args: [event.args.builder, event.args.requestId],
-        })) as any[];
-
-        return {
-          ...event,
-          completed: WithdrawalRequest[3],
-          approved: WithdrawalRequest[2],
-          rejected: !WithdrawalRequest[2] && WithdrawalRequest[3],
-          status: WithdrawalRequest[3]
-            ? WithdrawalRequest[2]
-              ? "Completed"
-              : "Rejected"
-            : WithdrawalRequest[2]
-              ? "Approved"
-              : "Pending",
-        };
-      } catch (e) {
-        console.log("Error extending event", e);
-        return {
-          ...event,
-          completed: false,
-          approved: false,
-          rejected: false,
-          status: "Pending",
-        };
-      }
-    };
-
-    const processEvents = async () => {
-      const pendingRequests: any[] = [];
-      const approvedRequests: any[] = [];
-      const processedEvents: any[] = [];
-      const rejectedEvents: any[] = [];
-      const completedEvents: any[] = [];
-
-      if (requests) {
-        for (let i = 0; i < requests.length; i++) {
-          const extendedEvent = await extendEventWithStatus(requests[i]);
-          processedEvents.push(extendedEvent);
-
-          // Sort events into pending and approved categories
-          if (!extendedEvent.completed) {
-            if (extendedEvent.approved) {
-              approvedRequests.push(extendedEvent);
-            } else {
-              pendingRequests.push(extendedEvent);
-            }
-          }
-          if (extendedEvent.completed) {
-            completedEvents.push(extendedEvent);
-          }
-
-          if (extendedEvent.rejected) {
-            rejectedEvents.push(extendedEvent);
-          }
-        }
+    try {
+      const params = new URLSearchParams();
+      if (builderAddress) {
+        params.append("builder", builderAddress);
       }
 
-      setRequestEvents(processedEvents);
-      setPendingRequestEvents(pendingRequests);
-      setApprovedRequestEvents(approvedRequests);
-      setRejectedRequestEvents(rejectedEvents);
-      setCompletedRequestEvents(completedEvents);
+      const queryString = params.toString();
+      const url = `/cohort/${cohortAddress.toLowerCase()}/withdrawals${queryString ? `?${queryString}` : ""}`;
 
-      // Filter for selected address
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      const filtered = processedEvents?.filter(event => event.args && event.args.builder === selectedAddress);
-      setFilteredRequestEvents(filtered || []);
-    };
+      const response = await ponderClient.get<{
+        events: WithdrawEvent[];
+        requests: WithdrawRequest[];
+      }>(url);
 
-    processEvents();
-  }, [
-    requests,
-    selectedAddress,
-    deployedContract?.abi,
-    cohortAddress,
-    requestCompleted,
-    requestApproved,
-    requestRejected,
-  ]);
+      const { events, requests } = response.data;
 
-  const filterEventsByAddress = (address: string) => {
-    if (!withdrawn) {
-      setFilteredWithdrawnEvents([]);
-    } else {
-      const filteredWithdrawn = withdrawn.filter((event: any) => event && event.args && event.args[0] === address);
-      setFilteredWithdrawnEvents(filteredWithdrawn);
-    }
+      setWithdrawnEvents(events);
+      setRequestEvents(requests);
 
-    if (!requestEvents) {
-      setFilteredRequestEvents([]);
-    } else {
-      const filteredRequests = requestEvents.filter(
-        (event: any) => event && event.args && event.args.builder === address,
+      const filteredEvents = events.filter(
+        event => event.builderAddress.toLowerCase() === selectedAddress.toLowerCase(),
+      );
+      setFilteredWithdrawnEvents(filteredEvents);
+
+      const filteredRequests = requests.filter(
+        request => request.builderAddress.toLowerCase() === selectedAddress.toLowerCase(),
       );
       setFilteredRequestEvents(filteredRequests);
+
+      const pending = requests.filter(req => req.status === "pending");
+      const approved = requests.filter(req => req.status === "approved");
+      const rejected = requests.filter(req => req.status === "rejected");
+      const completed = requests.filter(req => req.status === "completed");
+
+      setPendingRequestEvents(pending);
+      setApprovedRequestEvents(approved);
+      setRejectedRequestEvents(rejected);
+      setCompletedRequestEvents(completed);
+    } catch (e) {
+      console.error("Error fetching withdraw data:", e);
+      setError("Failed to fetch withdraw data");
+    } finally {
+      setIsLoadingWithdrawEvents(false);
+      setIsLoadingRequests(false);
     }
   };
 
+  useEffect(() => {
+    fetchWithdrawData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cohortAddress]);
+
+  useEffect(() => {
+    if (withdrawnEvents.length > 0 || requestEvents.length > 0) {
+      const filteredEvents = withdrawnEvents.filter(
+        event => event.builderAddress.toLowerCase() === selectedAddress.toLowerCase(),
+      );
+      setFilteredWithdrawnEvents(filteredEvents);
+
+      const filteredRequests = requestEvents.filter(
+        request => request.builderAddress.toLowerCase() === selectedAddress.toLowerCase(),
+      );
+      setFilteredRequestEvents(filteredRequests);
+    }
+  }, [selectedAddress, withdrawnEvents, requestEvents]);
+
+  const filterEventsByAddress = (address: string) => {
+    const filteredEvents = withdrawnEvents.filter(
+      event => event.builderAddress.toLowerCase() === address.toLowerCase(),
+    );
+    setFilteredWithdrawnEvents(filteredEvents);
+
+    const filteredRequests = requestEvents.filter(
+      request => request.builderAddress.toLowerCase() === address.toLowerCase(),
+    );
+    setFilteredRequestEvents(filteredRequests);
+  };
+
+  const refetchWithdrawEvents = () => {
+    fetchWithdrawData();
+  };
+
+  const refetchRequestEvents = () => {
+    fetchWithdrawData();
+  };
+
   return {
-    withdrawnEvents: withdrawn,
+    withdrawnEvents,
     requestEvents,
     filteredWithdrawnEvents,
     filteredRequestEvents,
@@ -234,6 +142,9 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
     rejectedRequestEvents,
     isLoadingWithdrawEvents,
     isLoadingRequests,
+    error,
     filterEventsByAddress,
+    refetchWithdrawEvents,
+    refetchRequestEvents,
   };
 };

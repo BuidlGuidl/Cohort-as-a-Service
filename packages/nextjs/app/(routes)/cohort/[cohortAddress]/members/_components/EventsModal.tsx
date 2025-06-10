@@ -2,9 +2,10 @@ import React from "react";
 import { ApproveWithdrawal } from "./ApproveWithdrawal";
 import { CompleteWithdrawal } from "./CompleteWithdrawal";
 import { RejectWithdrawal } from "./RejectWithdrawal";
-import { formatEther } from "viem";
+import { formatEther, formatUnits } from "viem";
 import { useAccount } from "wagmi";
 import { Address } from "~~/components/scaffold-eth";
+import { WithdrawEvent, WithdrawRequest } from "~~/hooks/useWithdrawEvents";
 
 interface EventsModalProps {
   isOpen: boolean;
@@ -14,8 +15,9 @@ interface EventsModalProps {
   setModalView: (view: "contributions" | "requests") => void;
   isERC20: boolean;
   tokenSymbol: string;
-  filteredWithdrawnEvents: any[];
-  filteredRequestEvents: any[];
+  tokenDecimals?: number;
+  filteredWithdrawnEvents: WithdrawEvent[];
+  filteredRequestEvents: WithdrawRequest[];
   isLoadingWithdrawEvents: boolean;
   isLoadingRequests: boolean;
   cohortAddress: string;
@@ -30,6 +32,7 @@ export const EventsModal: React.FC<EventsModalProps> = ({
   setModalView,
   isERC20,
   tokenSymbol,
+  tokenDecimals = 18,
   filteredWithdrawnEvents,
   filteredRequestEvents,
   isLoadingWithdrawEvents,
@@ -40,6 +43,30 @@ export const EventsModal: React.FC<EventsModalProps> = ({
   const { address } = useAccount();
 
   if (!isOpen) return null;
+
+  const formatAmount = (amount: string) => {
+    if (isERC20) {
+      return formatUnits(BigInt(amount), tokenDecimals);
+    }
+    return formatEther(BigInt(amount));
+  };
+
+  const formatDate = (timestamp: string) => {
+    return new Date(Number(timestamp) * 1000).toISOString().split("T")[0];
+  };
+
+  const getStatusBadgeClass = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "completed":
+        return "badge-success";
+      case "approved":
+        return "badge-info";
+      case "rejected":
+        return "badge-error";
+      default:
+        return "badge-warning";
+    }
+  };
 
   return (
     <>
@@ -85,17 +112,31 @@ export const EventsModal: React.FC<EventsModalProps> = ({
                 ) : filteredWithdrawnEvents?.length > 0 ? (
                   <div className="flex flex-col">
                     {filteredWithdrawnEvents?.map(event => (
-                      <div key={event.transactionHash} className="flex flex-col">
+                      <div key={event.id} className="flex flex-col">
                         <div>
                           <span className="font-bold">Date: </span>
-                          {new Date(Number(event.blockData.timestamp) * 1000).toISOString().split("T")[0]}
+                          {formatDate(event.timestamp)}
                         </div>
                         <div>
                           <span className="font-bold">Amount: </span>
                           {isERC20 ? tokenSymbol + " " : "Ξ"}
-                          {formatEther(event.args[1].toString())}
+                          {formatAmount(event.amount)}
                         </div>
-                        <div>{event.args[2]}</div>
+                        <div>
+                          <span className="font-bold">Reason: </span>
+                          {event.reason}
+                        </div>
+                        <div>
+                          <span className="font-bold">Transaction: </span>
+                          <a
+                            href={`https://etherscan.io/tx/${event.transactionHash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary underline"
+                          >
+                            {event.transactionHash.slice(0, 10)}...
+                          </a>
+                        </div>
                         <hr className="my-8" />
                       </div>
                     ))}
@@ -114,59 +155,52 @@ export const EventsModal: React.FC<EventsModalProps> = ({
                 ) : filteredRequestEvents?.length > 0 ? (
                   <div className="flex flex-col">
                     {filteredRequestEvents?.map(event => (
-                      <div key={event.transactionHash} className="flex flex-col">
+                      <div key={event.id} className="flex flex-col">
                         <div>
                           <span className="font-bold">Date: </span>
-                          {new Date(Number(event.blockData.timestamp) * 1000).toISOString().split("T")[0]}
+                          {formatDate(event.requestTime)}
                         </div>
                         <div>
                           <span className="font-bold">Amount: </span>
                           {isERC20 ? tokenSymbol + " " : "Ξ"}
-                          {formatEther(event.args.amount.toString())}
+                          {formatAmount(event.amount)}
                         </div>
                         <div>
                           <span className="font-bold">Reason: </span>
-                          {event.args.reason}
+                          {event.reason}
                         </div>
                         <div>
                           <span className="font-bold">Status: </span>
-                          <span
-                            className={`badge ${
-                              event.status === "Completed"
-                                ? "badge-success"
-                                : event.status === "Approved"
-                                  ? "badge-info"
-                                  : "badge-warning"
-                            }`}
-                          >
-                            {event.status}
+                          <span className={`badge ${getStatusBadgeClass(event.status)}`}>
+                            {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
                           </span>
                         </div>
-                        {isAdmin && event.status == "Pending" && (
+                        {isAdmin && event.status.toLowerCase() === "pending" && (
                           <div className="flex gap-2 mt-2">
                             <ApproveWithdrawal
                               cohortAddress={cohortAddress}
-                              builderAddress={event.args.builder}
-                              requestId={event.args.requestId}
+                              builderAddress={event.builderAddress}
+                              requestId={Number(event.requestId)}
                               onClose={onClose}
                             />
                             <RejectWithdrawal
                               cohortAddress={cohortAddress}
-                              builderAddress={event.args.builder}
-                              requestId={event.args.requestId}
+                              builderAddress={event.builderAddress}
+                              requestId={Number(event.requestId)}
                               onClose={onClose}
                             />
                           </div>
                         )}
-                        {address == event.args.builder && event.status === "Approved" && (
-                          <div className="flex gap-2 mt-2">
-                            <CompleteWithdrawal
-                              cohortAddress={cohortAddress}
-                              requestId={event.args.requestId}
-                              onClose={onClose}
-                            />
-                          </div>
-                        )}
+                        {address?.toLowerCase() === event.builderAddress.toLowerCase() &&
+                          event.status.toLowerCase() === "approved" && (
+                            <div className="flex gap-2 mt-2">
+                              <CompleteWithdrawal
+                                cohortAddress={cohortAddress}
+                                requestId={Number(event.requestId)}
+                                onClose={onClose}
+                              />
+                            </div>
+                          )}
                         <hr className="my-8" />
                       </div>
                     ))}

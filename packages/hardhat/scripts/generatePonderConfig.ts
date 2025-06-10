@@ -16,7 +16,6 @@ async function generatePonderConfig() {
   const ponderConfigPath = path.join(ponderPath, "src/config/chains.ts");
   const ponderAbisPath = path.join(ponderPath, "abis");
 
-  // Ensure directories exist
   if (!fs.existsSync(path.join(ponderPath, "src/config"))) {
     fs.mkdirSync(path.join(ponderPath, "src/config"), { recursive: true });
   }
@@ -27,7 +26,6 @@ async function generatePonderConfig() {
   const chains: Record<string, any> = {};
   const cohortFactoryContracts: Record<string, any> = {};
 
-  // Map chain IDs to names
   const chainIdToName: Record<string, string> = {
     "1": "mainnet",
     "137": "polygon",

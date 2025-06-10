@@ -53,7 +53,7 @@ export const useCohortData = (cohortAddress: string) => {
 
   useEffect(() => {
     const fetchCohortData = async () => {
-      if (!cohortAddress || !deployedContract?.abi || !publicClient || !address) {
+      if (!cohortAddress || !deployedContract?.abi || !publicClient) {
         setIsLoading(false);
         return;
       }
@@ -90,7 +90,9 @@ export const useCohortData = (cohortAddress: string) => {
           balance = parseFloat(formatEther(ethBalance || BigInt(0)));
         }
 
-        const activeBuilders = builders.filter(b => b.isActive).map(b => b.builderAddress);
+        const activeBuilders = builders
+          .filter(b => b.isActive && b.cohortAddress == cohortAddress)
+          .map(b => b.builderAddress);
 
         const builderStreams = new Map();
 
@@ -125,7 +127,12 @@ export const useCohortData = (cohortAddress: string) => {
           }
         }
 
-        const isAdmin = address ? admins.some(a => a.adminAddress.toLowerCase() === address.toLowerCase()) : false;
+        const isAdmin = address
+          ? admins.some(a => a.adminAddress.toLowerCase() === address.toLowerCase()) ||
+            cohort.primaryAdmin.toLowerCase() == address.toLowerCase()
+          : false;
+
+        console.log(admins);
         const isBuilder = address ? activeBuilders.includes(address.toLowerCase() as `0x${string}`) : false;
 
         let connectedAddressRequiresApproval = false;
@@ -163,7 +170,7 @@ export const useCohortData = (cohortAddress: string) => {
           oneTimeAlreadyWithdrawn,
           chainName: cohort.chainName,
           chainId: cohort.chainId as AllowedChainIds,
-          admins: admins.map(a => a.adminAddress),
+          admins: admins.filter(a => a.cohortAddress == cohortAddress).map(a => a.adminAddress),
           connectedAddressRequiresApproval,
         });
       } catch (e) {
