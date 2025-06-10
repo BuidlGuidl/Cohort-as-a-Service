@@ -32,10 +32,10 @@ export default createConfig({
   database: {
     kind: "postgres",
     connectionString: process.env.DATABASE_URL,
-    // poolConfig: {
-    //   max: 30,
-    //   ssl: true,
-    // },
+    poolConfig: {
+      max: 30,
+      ssl: true,
+    },
   },
   ordering: "multichain",
   chains: chainsWithApiKey,
