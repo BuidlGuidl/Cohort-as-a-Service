@@ -1,4 +1,3 @@
-// packages/hardhat/scripts/generatePonderConfig.ts
 import * as fs from "fs";
 import * as path from "path";
 import prettier from "prettier";
@@ -42,6 +41,19 @@ async function generatePonderConfig() {
     "11155111": "sepolia",
   };
 
+  const chainRpcUrls: Record<string, string> = {
+    mainnet: `https://eth-mainnet.g.alchemy.com/v2/`,
+    polygon: `https://polygon-mainnet.g.alchemy.com/v2/`,
+    arbitrum: `https://arb-mainnet.g.alchemy.com/v2/`,
+    optimism: `https://opt-mainnet.g.alchemy.com/v2/`,
+    base: `https://base-mainnet.g.alchemy.com/v2/`,
+    baseSepolia: `https://base-sepolia.g.alchemy.com/v2/`,
+    optimismSepolia: `https://opt-sepolia.g.alchemy.com/v2/`,
+    scroll: "https://rpc.scroll.io",
+    localhost: "http://localhost:8545",
+    sepolia: `https://eth-sepolia.g.alchemy.com/v2/`,
+  };
+
   if (!fs.existsSync(deploymentsDir)) {
     console.log("No deployments directory found. Run 'yarn deploy' first.");
     return;
@@ -63,7 +75,7 @@ async function generatePonderConfig() {
     // Add chain config (updated format for Ponder v1.0+)
     chains[chainName] = {
       id: Number(chainId),
-      rpc: `process.env.PONDER_RPC_URL_${chainId}`,
+      rpc: chainRpcUrls[chainName],
     };
 
     // Check for CohortFactory deployment
@@ -101,10 +113,7 @@ export const CohortAbi = ${JSON.stringify(artifact.abi, null, 2)} as const;`;
 // Updated for Ponder v1.0+ configuration format
 
 export const chainConfigs = {
-  chains: ${JSON.stringify(chains, null, 2).replace(
-    /"process\.env\.PONDER_RPC_URL_(\d+)"/g,
-    "process.env.PONDER_RPC_URL_$1",
-  )},
+  chains: ${JSON.stringify(chains, null, 2)},
   cohortFactoryContracts: ${JSON.stringify(cohortFactoryContracts, null, 2)
     .replace(/"address": "([^"]+)"/g, '"address": "$1" as `0x${string}`')
     .replace(/,\s*}/g, "}")},  // Clean up trailing commas
@@ -168,73 +177,6 @@ PONDER_RPC_URL_11155111=https://eth-sepolia.g.alchemy.com/v2/YOUR_KEY
     fs.writeFileSync(envPath, envContent);
     console.log(`📝 Created .env.local template at ${envPath}`);
   }
-
-  // Generate updated ponder.config.ts with proper startBlock handling
-  const mainConfigPath = path.join(ponderPath, "ponder.config.ts");
-  const mainConfigContent = `import { createConfig, factory } from "ponder";
-import { parseAbiItem } from "abitype";
-import { CohortFactoryAbi } from "./abis/CohortFactory";
-import { CohortAbi } from "./abis/Cohort";
-
-// Import generated chain configs
-import { chainConfigs } from "./src/config/chains";
-
-const CohortCreated = parseAbiItem(
-  "event CohortCreated(address indexed cohortAddress, address indexed primaryAdmin, string name, string description)"
-);
-
-// Get start blocks from deployment data
-const startBlocks = ${JSON.stringify(
-    Object.entries(cohortFactoryContracts).reduce(
-      (acc, [chainName, config]) => {
-        acc[chainName] = config.startBlock;
-        return acc;
-      },
-      {} as Record<string, number>,
-    ),
-    null,
-    2,
-  )};
-
-export default createConfig({
-  ordering: "multichain",
-  chains: chainConfigs.chains,
-  contracts: {
-    CohortFactory: {
-      abi: CohortFactoryAbi,
-      startBlock: startBlocks,
-      chain: chainConfigs.cohortFactoryContracts,
-    },
-    Cohort: {
-      abi: CohortAbi,
-      address: factory({
-        address: Object.values(chainConfigs.cohortFactoryContracts).map(
-          (config) => config.address
-        ),
-        event: CohortCreated,
-        parameter: "cohortAddress",
-      }),
-      chain: Object.keys(chainConfigs.cohortFactoryContracts).reduce(
-        (acc, chainName) => {
-          acc[chainName] = {};
-          return acc;
-        },
-        {} as any
-      ),
-    },
-  },
-});
-`;
-
-  const formattedMainConfig = await prettier.format(mainConfigContent, {
-    parser: "typescript",
-    printWidth: 100,
-    singleQuote: false,
-    trailingComma: "all",
-  });
-
-  fs.writeFileSync(mainConfigPath, formattedMainConfig);
-  console.log(`📝 Created ponder.config.ts at ${mainConfigPath}`);
 
   console.log(`✅ Generated Ponder config at ${ponderConfigPath}`);
   console.log(`✅ Copied ABIs to ${ponderAbisPath}`);

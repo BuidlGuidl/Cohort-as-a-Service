@@ -5,27 +5,27 @@ export const chainConfigs = {
   chains: {
     arbitrum: {
       id: 42161,
-      rpc: process.env.PONDER_RPC_URL_42161,
+      rpc: "https://arb-mainnet.g.alchemy.com/v2/",
     },
     base: {
       id: 8453,
-      rpc: process.env.PONDER_RPC_URL_8453,
+      rpc: "https://base-mainnet.g.alchemy.com/v2/",
     },
     baseSepolia: {
       id: 84532,
-      rpc: process.env.PONDER_RPC_URL_84532,
+      rpc: "https://base-sepolia.g.alchemy.com/v2/",
     },
     optimism: {
       id: 10,
-      rpc: process.env.PONDER_RPC_URL_10,
+      rpc: "https://opt-mainnet.g.alchemy.com/v2/",
     },
     optimismSepolia: {
       id: 11155420,
-      rpc: process.env.PONDER_RPC_URL_11155420,
+      rpc: "https://opt-sepolia.g.alchemy.com/v2/",
     },
     sepolia: {
       id: 11155111,
-      rpc: process.env.PONDER_RPC_URL_11155111,
+      rpc: "https://eth-sepolia.g.alchemy.com/v2/",
     },
   },
   cohortFactoryContracts: {

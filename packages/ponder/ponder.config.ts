@@ -9,26 +9,36 @@ const CohortCreated = parseAbiItem(
   "event CohortCreated(address indexed cohortAddress, address indexed primaryAdmin, string name, string description)"
 );
 
-const startBlocks = {
-  arbitrum: 334807569,
-  base: 29993331,
-  baseSepolia: 25502670,
-  optimism: 135588597,
-  optimismSepolia: 26518673,
-  sepolia: 7746495,
-};
+const providerKey =
+  process.env.ALCHEMY_API_KEY || "oKxs-03sij-U_N0iOlrSsZFr29-IqbuF";
+
+const chainsWithApiKey = Object.fromEntries(
+  Object.entries(chainConfigs.chains).map(([chainName, chainConfig]) => {
+    const updatedRpc = chainConfig.rpc.includes("g.alchemy.com")
+      ? chainConfig.rpc + providerKey
+      : chainConfig.rpc;
+
+    return [
+      chainName,
+      {
+        ...chainConfig,
+        rpc: updatedRpc,
+      },
+    ];
+  })
+);
 
 export default createConfig({
   database: {
     kind: "postgres",
     connectionString: process.env.DATABASE_URL,
-    poolConfig: {
-      max: 30, 
-      ssl: true,
-    },
+    // poolConfig: {
+    //   max: 30,
+    //   ssl: true,
+    // },
   },
   ordering: "multichain",
-  chains: chainConfigs.chains,
+  chains: chainsWithApiKey,
   contracts: {
     CohortFactory: {
       abi: CohortFactoryAbi,
@@ -46,10 +56,14 @@ export default createConfig({
       }),
       chain: Object.keys(chainConfigs.cohortFactoryContracts).reduce(
         (acc, chainName) => {
-          acc[chainName] = {};
+          const { startBlock } =
+            chainConfigs.cohortFactoryContracts[
+              chainName as keyof typeof chainConfigs.cohortFactoryContracts
+            ];
+          acc[chainName] = { startBlock };
           return acc;
         },
-        {} as any
+        {} as Record<string, { startBlock: number }>
       ),
     },
   },
