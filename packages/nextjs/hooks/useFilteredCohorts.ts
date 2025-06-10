@@ -98,7 +98,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
             });
 
             if (builderIndexResult && builderIndexResult !== 0n) {
-              const builderAddress = await readContract(wagmiConfig, {
+              const builderAddress: any = await readContract(wagmiConfig, {
                 address: cohort.address as `0x${string}`,
                 abi: deployedContract?.abi as Abi,
                 functionName: "activeBuilders",

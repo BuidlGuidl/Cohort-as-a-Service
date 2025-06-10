@@ -38,8 +38,6 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
     chainId,
     admins,
     connectedAddressRequiresApproval,
-    isLoadingBuilders,
-    isLoadingAdmins,
     isLoading,
     locked,
     requiresApproval,
@@ -110,7 +108,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
             userAddress={address}
             isERC20={isERC20 ?? false}
             tokenSymbol={tokenSymbol ?? ""}
-            isLoading={isLoadingBuilders}
+            isLoading={isLoading}
             pendingRequestEvents={pendingRequestEvents}
             completedRequestEvents={completedRequestEvents}
             rejectedRequestEvents={rejectedRequestEvents}
@@ -144,7 +142,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
           chainName={chainName}
           chainId={chainId}
           admins={admins ?? []}
-          isLoadingAdmins={isLoadingAdmins}
+          isLoadingAdmins={isLoading}
           isAdmin={isAdmin ?? false}
           connectedAddressRequiresApproval={connectedAddressRequiresApproval ?? false}
           tokenAddress={tokenAddress ?? ""}

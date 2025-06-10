@@ -37,13 +37,11 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     chainName,
     chainId,
     admins,
-    isLoadingAdmins,
     connectedAddressRequiresApproval,
     isLoading,
     locked,
     requiresApproval,
     builderStreams,
-    isLoadingBuilders,
     cycle,
     allowApplications,
   } = useCohortData(params.cohortAddress);
@@ -140,7 +138,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
             userAddress={address}
             isERC20={isERC20 ?? false}
             tokenSymbol={tokenSymbol ?? ""}
-            isLoading={isLoadingBuilders}
+            isLoading={isLoading}
             pendingRequestEvents={pendingRequestEvents}
             completedRequestEvents={completedRequestEvents}
             rejectedRequestEvents={rejectedRequestEvents}
@@ -176,7 +174,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         chainName={chainName}
         chainId={chainId}
         admins={admins ?? []}
-        isLoadingAdmins={isLoadingAdmins}
+        isLoadingAdmins={isLoading}
         isAdmin={isAdmin ?? false}
         connectedAddressRequiresApproval={connectedAddressRequiresApproval ?? false}
         tokenAddress={tokenAddress ?? ""}
