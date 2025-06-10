@@ -38,8 +38,8 @@ export const chainConfigs = {
       startBlock: 29993331,
     },
     baseSepolia: {
-      address: "0x495EC6dF84F3f520B54b502d93eCCde1Aa6f3f44" as `0x${string}`,
-      startBlock: 25502670,
+      address: "0x1D5d1625e35E873b917bc43c2D89cbB59b9F4eE9" as `0x${string}`,
+      startBlock: 26895617,
     },
     optimism: {
       address: "0xF9a964E6F482d77C3F62754957706Fafc7F27d55" as `0x${string}`,

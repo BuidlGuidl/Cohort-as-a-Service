@@ -132,7 +132,6 @@ export const useCohortData = (cohortAddress: string) => {
             cohort.primaryAdmin.toLowerCase() == address.toLowerCase()
           : false;
 
-        console.log(admins);
         const isBuilder = address ? activeBuilders.includes(address.toLowerCase() as `0x${string}`) : false;
 
         let connectedAddressRequiresApproval = false;
@@ -140,8 +139,12 @@ export const useCohortData = (cohortAddress: string) => {
 
         if (address) {
           const builder = builders.find(
-            b => b.isActive && b.cohortAddress == cohort.address && b.builderAddress == address,
+            b =>
+              b.isActive &&
+              b.cohortAddress.toLowerCase() == cohortAddress.toLowerCase() &&
+              b.builderAddress.toLowerCase() == address.toLowerCase(),
           );
+
           connectedAddressRequiresApproval = builder?.requiresApproval ?? false;
 
           if (isBuilder && state?.isONETIME) {
