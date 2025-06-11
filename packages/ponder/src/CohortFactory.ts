@@ -5,13 +5,13 @@ import { cohortState, cohort } from "../ponder.schema";
 
 ponder.on("CohortFactory:CohortCreated", async ({ event, context }) => {
   const { cohortAddress, primaryAdmin, name, description } = event.args;
-  const chainId = context.chain.id;
+  const chainId = context.network.chainId as number;
 
   await context.db.insert(cohort).values({
     id: `${chainId}-${cohortAddress.toLowerCase()}`,
     address: cohortAddress.toLowerCase() as `0x${string}`,
     chainId,
-    chainName: context.chain.name,
+    chainName: context.network.name,
     primaryAdmin: primaryAdmin.toLowerCase() as `0x${string}`,
     name,
     description,
@@ -89,7 +89,7 @@ ponder.on("CohortFactory:CohortCreated", async ({ event, context }) => {
   await context.db.insert(cohortState).values({
     id: cohortAddress.toLowerCase(),
     cohortAddress: cohortAddress.toLowerCase() as `0x${string}`,
-    chainId: context.chain.id,
+    chainId: context.network.chainId as number,
     isERC20,
     isONETIME,
     tokenAddress,

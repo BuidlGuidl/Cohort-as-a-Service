@@ -153,25 +153,10 @@ ponder.on("Cohort:ContractLocked", async ({ event, context }) => {
   const locked = event.args.locked;
   const cohortAddress = event.log.address.toLowerCase();
 
-  await context.db
-    .insert(cohortState)
-    .values({
-      id: cohortAddress,
-      cohortAddress: cohortAddress as `0x${string}`,
-      chainId: context.chain.id,
-      isERC20: false,
-      isONETIME: false,
-      tokenAddress: null,
-      cycle: 0n,
-      locked,
-      requireApprovalForWithdrawals: false,
-      allowApplications: false,
-      lastUpdated: event.block.timestamp,
-    })
-    .onConflictDoUpdate({
-      locked,
-      lastUpdated: event.block.timestamp,
-    });
+  await context.db.update(cohortState, { id: cohortAddress }).set({
+    locked,
+    lastUpdated: event.block.timestamp,
+  });
 });
 
 ponder.on("Cohort:ApprovalRequirementChanged", async ({ event, context }) => {
@@ -196,26 +181,11 @@ ponder.on("Cohort:ApprovalRequirementChanged", async ({ event, context }) => {
     }
   }
 
-  if (builderAddress === "0x0000000000000000000000000000000000000000") {
-    await context.db
-      .insert(cohortState)
-      .values({
-        id: cohortAddress,
-        cohortAddress: cohortAddress as `0x${string}`,
-        chainId: context.chain.id,
-        isERC20: false,
-        isONETIME: false,
-        tokenAddress: null,
-        cycle: 0n,
-        locked: false,
-        requireApprovalForWithdrawals: requiresApproval,
-        allowApplications: false,
-        lastUpdated: event.block.timestamp,
-      })
-      .onConflictDoUpdate({
-        requireApprovalForWithdrawals: requiresApproval,
-        lastUpdated: event.block.timestamp,
-      });
+  if (builderAddress.toLowerCase() === cohortAddress) {
+    await context.db.update(cohortState, { id: cohortAddress }).set({
+      requireApprovalForWithdrawals: requiresApproval,
+      lastUpdated: event.block.timestamp,
+    });
   }
 });
 
@@ -223,23 +193,8 @@ ponder.on("Cohort:AllowApplicationsChanged", async ({ event, context }) => {
   const allowApplications = event.args.allowApplications;
   const cohortAddress = event.log.address.toLowerCase();
 
-  await context.db
-    .insert(cohortState)
-    .values({
-      id: cohortAddress,
-      cohortAddress: cohortAddress as `0x${string}`,
-      chainId: context.chain.id,
-      isERC20: false,
-      isONETIME: false,
-      tokenAddress: null,
-      cycle: 0n,
-      locked: false,
-      requireApprovalForWithdrawals: false,
-      allowApplications,
-      lastUpdated: event.block.timestamp,
-    })
-    .onConflictDoUpdate({
-      allowApplications,
-      lastUpdated: event.block.timestamp,
-    });
+  await context.db.update(cohortState, { id: cohortAddress }).set({
+    allowApplications,
+    lastUpdated: event.block.timestamp,
+  });
 });

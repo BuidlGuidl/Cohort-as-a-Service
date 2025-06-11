@@ -1,3 +1,4 @@
+// packages/ponder/ponder.schema.ts
 import { onchainTable } from "ponder";
 
 export const cohort = onchainTable("cohort", (t) => ({
@@ -52,7 +53,7 @@ export const withdrawRequest = onchainTable("withdraw_request", (t) => ({
   requestId: t.bigint().notNull(),
   amount: t.bigint().notNull(),
   reason: t.text().notNull(),
-  status: t.text().notNull(), // "pending", "approved", "rejected", "completed"
+  status: t.text().notNull(),
   requestTime: t.bigint().notNull(),
   blockNumber: t.bigint().notNull(),
   lastUpdated: t.bigint().notNull(),

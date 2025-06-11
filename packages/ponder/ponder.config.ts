@@ -2,6 +2,7 @@ import { createConfig, factory } from "ponder";
 import { parseAbiItem } from "abitype";
 import { CohortFactoryAbi } from "./abis/CohortFactory";
 import { CohortAbi } from "./abis/Cohort";
+import { http } from "viem";
 
 import { chainConfigs } from "./src/config/chains";
 
@@ -14,15 +15,15 @@ const providerKey =
 
 const chainsWithApiKey = Object.fromEntries(
   Object.entries(chainConfigs.chains).map(([chainName, chainConfig]) => {
-    const updatedRpc = chainConfig.rpc.includes("g.alchemy.com")
-      ? chainConfig.rpc + providerKey
-      : chainConfig.rpc;
+    const updatedRpc = chainConfig.transport.includes("g.alchemy.com")
+      ? chainConfig.transport + providerKey
+      : chainConfig.transport;
 
     return [
       chainName,
       {
         ...chainConfig,
-        rpc: updatedRpc,
+        transport: http(updatedRpc),
       },
     ];
   })
@@ -32,18 +33,12 @@ export default createConfig({
   database: {
     kind: "postgres",
     connectionString: process.env.DATABASE_URL,
-    poolConfig: {
-      max: 30,
-      ssl: true,
-    },
   },
-  ordering: "multichain",
-  chains: chainsWithApiKey,
+  networks: chainsWithApiKey,
   contracts: {
     CohortFactory: {
       abi: CohortFactoryAbi,
-      // startBlock: startBlocks,
-      chain: chainConfigs.cohortFactoryContracts,
+      network: chainConfigs.cohortFactoryContracts,
     },
     Cohort: {
       abi: CohortAbi,
@@ -54,7 +49,7 @@ export default createConfig({
         event: CohortCreated,
         parameter: "cohortAddress",
       }),
-      chain: Object.keys(chainConfigs.cohortFactoryContracts).reduce(
+      network: Object.keys(chainConfigs.cohortFactoryContracts).reduce(
         (acc, chainName) => {
           const { startBlock } =
             chainConfigs.cohortFactoryContracts[

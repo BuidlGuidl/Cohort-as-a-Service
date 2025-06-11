@@ -1,23 +1,30 @@
 {
   "name": "@se-2/ponder",
   "private": true,
-  "version": "0.1.0",
+  "type": "module",
   "scripts": {
     "dev": "ponder dev",
+    "start": "ponder start",
     "db": "ponder db",
-    "start": "ponder start --port ${PORT:-42069} --hostname 0.0.0.0",
-    "serve": "ponder serve",
     "codegen": "ponder codegen",
-    "check-types": "tsc --noEmit"
+    "serve": "ponder serve",
+    "lint": "eslint .",
+    "typecheck": "tsc"
   },
   "dependencies": {
-    "@ponder/core": "^0.7.17",
-    "hono": "^4.7.11",
-    "ponder": "^0.11.10",
-    "viem": "^2.21.32"
+    "drizzle-kit": "0.22.8",
+    "hono": "^4.5.0",
+    "ponder": "^0.8.15",
+    "telegraf": "^4.16.3",
+    "viem": "^2.21.3"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
+    "@types/node": "^20.10.0",
+    "eslint": "^8.54.0",
+    "eslint-config-ponder": "^0.8.15",
+    "typescript": "^5.3.2"
+  },
+  "engines": {
+    "node": ">=18.14"
   }
 }

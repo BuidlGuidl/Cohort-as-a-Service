@@ -4,28 +4,28 @@
 export const chainConfigs = {
   chains: {
     arbitrum: {
-      id: 42161,
-      rpc: "https://arb-mainnet.g.alchemy.com/v2/",
+      chainId: 42161,
+      transport: "https://arb-mainnet.g.alchemy.com/v2/",
     },
     base: {
-      id: 8453,
-      rpc: "https://base-mainnet.g.alchemy.com/v2/",
+      chainId: 8453,
+      transport: "https://base-mainnet.g.alchemy.com/v2/",
     },
     baseSepolia: {
-      id: 84532,
-      rpc: "https://base-sepolia.g.alchemy.com/v2/",
+      chainId: 84532,
+      transport: "https://base-sepolia.g.alchemy.com/v2/",
     },
     optimism: {
-      id: 10,
-      rpc: "https://opt-mainnet.g.alchemy.com/v2/",
+      chainId: 10,
+      transport: "https://opt-mainnet.g.alchemy.com/v2/",
     },
     optimismSepolia: {
-      id: 11155420,
-      rpc: "https://opt-sepolia.g.alchemy.com/v2/",
+      chainId: 11155420,
+      transport: "https://opt-sepolia.g.alchemy.com/v2/",
     },
     sepolia: {
-      id: 11155111,
-      rpc: "https://eth-sepolia.g.alchemy.com/v2/",
+      chainId: 11155111,
+      transport: "https://eth-sepolia.g.alchemy.com/v2/",
     },
   },
   cohortFactoryContracts: {
