@@ -20,7 +20,7 @@ interface useFilteredCohortsProps {
 }
 
 export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohortsProps) => {
-  const { cohorts, isLoading: isLoadingCohorts } = useCohorts({ chainId, cohort });
+  const { data: cohorts, isLoading: isLoadingCohorts } = useCohorts({ chainId, cohort });
   const [adminCohorts, setAdminCohorts] = useState<CohortWithRole[]>([]);
   const [builderCohorts, setBuilderCohorts] = useState<CohortWithRole[]>([]);
   const [combinedCohorts, setCombinedCohorts] = useState<CohortWithRole[]>([]);
@@ -31,6 +31,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
   const { data: deployedContract } = useLocalDeployedContractInfo({ contractName: "Cohort" });
 
   useEffect(() => {
+    if (!cohorts) return;
     if (!address || cohorts.length < 1 || !deployedContract) {
       setIsLoadingAdmin(false);
       setIsLoadingBuilder(false);
@@ -77,6 +78,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
   }, [deployedContract, cohorts, address]);
 
   useEffect(() => {
+    if (!cohorts) return;
     if (!address || cohorts.length < 1 || !deployedContract) {
       setIsLoadingBuilder(false);
       return;

@@ -8,7 +8,7 @@ import { Application, Builder, Cohort } from "@prisma/client";
 import axios from "axios";
 import { useAccount } from "wagmi";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
-import { useCohortData } from "~~/hooks/useCohortData";
+import { CohortData, useCohortData } from "~~/hooks/useCohortData";
 import { useWithdrawEvents } from "~~/hooks/useWithdrawEvents";
 
 export interface BuilderStream {
@@ -23,6 +23,7 @@ type CohortWithBuilder = Cohort & {
 };
 
 const Page = ({ params }: { params: { cohortAddress: string } }) => {
+  const { data, isLoading } = useCohortData(params.cohortAddress);
   const {
     name,
     primaryAdmin,
@@ -38,12 +39,11 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
     chainId,
     admins,
     connectedAddressRequiresApproval,
-    isLoading,
     locked,
     requiresApproval,
     cycle,
     allowApplications,
-  } = useCohortData(params.cohortAddress);
+  } = data as CohortData;
 
   const [selectedAddress, setSelectedAddress] = useState("");
   const [modalView, setModalView] = useState<"contributions" | "requests">("contributions");

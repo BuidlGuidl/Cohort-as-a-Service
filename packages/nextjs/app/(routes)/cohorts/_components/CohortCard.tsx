@@ -7,10 +7,10 @@ import { AllowedChainIds, ChainWithAttributes } from "~~/utils/scaffold-eth";
 
 interface CohortCardProps {
   name?: string;
-  address?: string; // Changed from cohortAddress
+  address?: string;
   chainId?: AllowedChainIds;
-  createdAt: string; // Changed from any to string
-  primaryAdmin?: string; // Changed from owner
+  createdAt: string;
+  primaryAdmin?: string;
   chainName?: string;
   role?: "ADMIN" | "BUILDER";
 }

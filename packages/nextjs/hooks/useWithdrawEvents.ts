@@ -1,7 +1,11 @@
-import { useEffect, useState } from "react";
-import { ponderClient } from "~~/services/ponder/client";
+import { useLocalDeployedContractInfo } from "./useLocalDeployedContractInfo";
+import { useQuery } from "@tanstack/react-query";
+import { readContract } from "@wagmi/core";
+import { gql, request } from "graphql-request";
+import { Abi } from "viem";
+import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 
-export type WithdrawEvent = {
+type WithdrawalEvent = {
   id: string;
   cohortAddress: string;
   builderAddress: string;
@@ -9,131 +13,185 @@ export type WithdrawEvent = {
   reason: string;
   timestamp: string;
   transactionHash: string;
-  blockNumber: string;
+  blockNumber: number;
 };
 
-export type WithdrawRequest = {
+export interface WithdrawEventResponse {
+  withdrawEvents: {
+    items: WithdrawalEvent[];
+  };
+}
+
+type WithdrawalRequest = {
   id: string;
   cohortAddress: string;
   builderAddress: string;
   requestId: string;
   amount: string;
   reason: string;
-  status: "pending" | "approved" | "rejected" | "completed";
+  status: string;
   requestTime: string;
-  blockNumber: string;
+  blockNumber: number;
   lastUpdated: string;
 };
 
-export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string) => {
-  const [withdrawnEvents, setWithdrawnEvents] = useState<WithdrawEvent[]>([]);
-  const [requestEvents, setRequestEvents] = useState<WithdrawRequest[]>([]);
-  const [filteredWithdrawnEvents, setFilteredWithdrawnEvents] = useState<WithdrawEvent[]>([]);
-  const [filteredRequestEvents, setFilteredRequestEvents] = useState<WithdrawRequest[]>([]);
-  const [pendingRequestEvents, setPendingRequestEvents] = useState<WithdrawRequest[]>([]);
-  const [approvedRequestEvents, setApprovedRequestEvents] = useState<WithdrawRequest[]>([]);
-  const [rejectedRequestEvents, setRejectedRequestEvents] = useState<WithdrawRequest[]>([]);
-  const [completedRequestEvents, setCompletedRequestEvents] = useState<WithdrawRequest[]>([]);
-  const [isLoadingWithdrawEvents, setIsLoadingWithdrawEvents] = useState(false);
-  const [isLoadingRequests, setIsLoadingRequests] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export interface WithdrawRequestResponse {
+  withdrawRequests: {
+    items: WithdrawalRequest[];
+  };
+}
 
-  const fetchWithdrawData = async (builderAddress?: string) => {
-    if (!cohortAddress) return;
+const graphqlEndpoint = process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069";
 
-    setIsLoadingWithdrawEvents(true);
-    setIsLoadingRequests(true);
-    setError(null);
-
-    try {
-      const params = new URLSearchParams();
-      if (builderAddress) {
-        params.append("builder", builderAddress);
+const WITHDRAW_EVENTS_QUERY = gql`
+  query WithdrawEvents($cohortAddress: String!) {
+    withdrawEvents(where: { cohortAddress: $cohortAddress }) {
+      items {
+        id
+        cohortAddress
+        builderAddress
+        amount
+        reason
+        timestamp
+        transactionHash
+        blockNumber
       }
-
-      const queryString = params.toString();
-      const url = `/cohort/${cohortAddress.toLowerCase()}/withdrawals${queryString ? `?${queryString}` : ""}`;
-
-      const response = await ponderClient.get<{
-        events: WithdrawEvent[];
-        requests: WithdrawRequest[];
-      }>(url);
-
-      const { events, requests } = response.data;
-
-      setWithdrawnEvents(events);
-      setRequestEvents(requests);
-
-      const filteredEvents = events.filter(
-        event => event.builderAddress.toLowerCase() === selectedAddress.toLowerCase(),
-      );
-      setFilteredWithdrawnEvents(filteredEvents);
-
-      const filteredRequests = requests.filter(
-        request => request.builderAddress.toLowerCase() === selectedAddress.toLowerCase(),
-      );
-      setFilteredRequestEvents(filteredRequests);
-
-      const pending = requests.filter(req => req.status === "pending");
-      const approved = requests.filter(req => req.status === "approved");
-      const rejected = requests.filter(req => req.status === "rejected");
-      const completed = requests.filter(req => req.status === "completed");
-
-      setPendingRequestEvents(pending);
-      setApprovedRequestEvents(approved);
-      setRejectedRequestEvents(rejected);
-      setCompletedRequestEvents(completed);
-    } catch (e) {
-      console.error("Error fetching withdraw data:", e);
-      setError("Failed to fetch withdraw data");
-    } finally {
-      setIsLoadingWithdrawEvents(false);
-      setIsLoadingRequests(false);
     }
+  }
+`;
+
+const WITHDRAW_REQUESTS_QUERY = gql`
+  query WithdrawRequests($cohortAddress: String!) {
+    withdrawRequests(where: { cohortAddress: $cohortAddress }) {
+      items {
+        id
+        cohortAddress
+        builderAddress
+        requestId
+        amount
+        reason
+        status
+        requestTime
+        blockNumber
+        lastUpdated
+      }
+    }
+  }
+`;
+
+export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string) => {
+  const { data: deployedContract } = useLocalDeployedContractInfo({
+    contractName: "Cohort",
+  });
+
+  const { data: withdrawEvents, isLoading: isLoadingWithdrawEvents } = useQuery({
+    queryKey: ["withdraw_events", cohortAddress],
+    queryFn: async () => {
+      const res = await request<WithdrawEventResponse>(graphqlEndpoint, WITHDRAW_EVENTS_QUERY, {
+        cohortAddress: cohortAddress.toLowerCase(),
+      });
+
+      return res.withdrawEvents.items;
+    },
+    enabled: !!cohortAddress,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    retry: 1,
+  });
+
+  const { data: withdrawRequests, isLoading: isLoadingRequests } = useQuery({
+    queryKey: ["withdraw_requests", cohortAddress],
+    queryFn: async () => {
+      const res = await request<WithdrawRequestResponse>(graphqlEndpoint, WITHDRAW_REQUESTS_QUERY, {
+        cohortAddress: cohortAddress.toLowerCase(),
+      });
+      return res.withdrawRequests.items;
+    },
+    enabled: !!cohortAddress,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    retry: 1,
+  });
+
+  const processRequests = async (requests: any[]) => {
+    const processedEvents = await Promise.all(
+      requests.map(async event => {
+        try {
+          const res = (await readContract(wagmiConfig, {
+            address: cohortAddress as `0x${string}`,
+            abi: deployedContract?.abi as Abi,
+            functionName: "withdrawRequests",
+            args: [event.builderAddress, BigInt(event.requestId)],
+          })) as any[];
+
+          const completed = res[3];
+          const approved = res[2];
+          const rejected = !res[2] && res[3];
+
+          return {
+            ...event,
+            completed,
+            approved,
+            rejected,
+            status: completed ? (approved ? "Completed" : "Rejected") : approved ? "Approved" : "Pending",
+            args: {
+              builder: event.builderAddress,
+              requestId: BigInt(event.requestId),
+            },
+          };
+        } catch (err) {
+          return {
+            ...event,
+            completed: false,
+            approved: false,
+            rejected: false,
+            status: "Pending",
+            args: {
+              builder: event.builderAddress,
+              requestId: BigInt(event.requestId),
+            },
+          };
+        }
+      }),
+    );
+
+    return processedEvents;
   };
 
-  useEffect(() => {
-    fetchWithdrawData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cohortAddress]);
+  const { data: enrichedRequests = [] } = useQuery({
+    queryKey: ["enriched_withdraw_requests", cohortAddress, withdrawRequests],
+    queryFn: () => processRequests(withdrawRequests || []),
+    enabled: !!withdrawRequests && !!deployedContract?.abi,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    retry: 1,
+  });
 
-  useEffect(() => {
-    if (withdrawnEvents.length > 0 || requestEvents.length > 0) {
-      const filteredEvents = withdrawnEvents.filter(
-        event => event.builderAddress.toLowerCase() === selectedAddress.toLowerCase(),
-      );
-      setFilteredWithdrawnEvents(filteredEvents);
+  const filteredWithdrawnEvents = (withdrawEvents || []).filter(
+    event => event.builderAddress.toLowerCase() === selectedAddress.toLowerCase(),
+  );
 
-      const filteredRequests = requestEvents.filter(
-        request => request.builderAddress.toLowerCase() === selectedAddress.toLowerCase(),
-      );
-      setFilteredRequestEvents(filteredRequests);
-    }
-  }, [selectedAddress, withdrawnEvents, requestEvents]);
+  const filteredRequestEvents = enrichedRequests.filter(
+    event => event.builderAddress.toLowerCase() === selectedAddress.toLowerCase(),
+  );
+
+  const pendingRequestEvents = enrichedRequests.filter(r => r.status === "Pending");
+  const approvedRequestEvents = enrichedRequests.filter(r => r.status === "Approved");
+  const rejectedRequestEvents = enrichedRequests.filter(r => r.status === "Rejected");
+  const completedRequestEvents = enrichedRequests.filter(r => r.status === "Completed");
 
   const filterEventsByAddress = (address: string) => {
-    const filteredEvents = withdrawnEvents.filter(
-      event => event.builderAddress.toLowerCase() === address.toLowerCase(),
-    );
-    setFilteredWithdrawnEvents(filteredEvents);
-
-    const filteredRequests = requestEvents.filter(
-      request => request.builderAddress.toLowerCase() === address.toLowerCase(),
-    );
-    setFilteredRequestEvents(filteredRequests);
-  };
-
-  const refetchWithdrawEvents = () => {
-    fetchWithdrawData();
-  };
-
-  const refetchRequestEvents = () => {
-    fetchWithdrawData();
+    return {
+      filteredWithdrawnEvents:
+        withdrawEvents?.filter(event => event.builderAddress.toLowerCase() === address.toLowerCase()) || [],
+      filteredRequestEvents:
+        enrichedRequests.filter(event => event.builderAddress.toLowerCase() === address.toLowerCase()) || [],
+    };
   };
 
   return {
-    withdrawnEvents,
-    requestEvents,
+    withdrawnEvents: withdrawEvents || [],
+    requestEvents: enrichedRequests,
     filteredWithdrawnEvents,
     filteredRequestEvents,
     pendingRequestEvents,
@@ -142,9 +200,6 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
     rejectedRequestEvents,
     isLoadingWithdrawEvents,
     isLoadingRequests,
-    error,
     filterEventsByAddress,
-    refetchWithdrawEvents,
-    refetchRequestEvents,
   };
 };

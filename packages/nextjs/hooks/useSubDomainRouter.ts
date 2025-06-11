@@ -10,11 +10,9 @@ export const useSubdomainRouter = () => {
     const host = window.location.host;
     const protocol = window.location.protocol;
 
-    // Check if we're on a cohort subdomain
     const cohortMatch = host.match(/^(0x[a-fA-F0-9]{40})\./i);
 
     if (cohortMatch) {
-      // Extract the main domain (remove the cohort subdomain)
       const mainDomain = host.replace(/^0x[a-fA-F0-9]{40}\./i, "");
       return `${protocol}//${mainDomain}`;
     }
@@ -36,8 +34,6 @@ export const useSubdomainRouter = () => {
 
   const pushWithinCohort = useCallback(
     (path: string) => {
-      // If we're on a subdomain, stay on it
-      // If we're on main domain, use regular routing
       router.push(path);
     },
     [router],

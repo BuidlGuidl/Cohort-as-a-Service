@@ -1,6 +1,5 @@
 "use client";
 
-// app/cohort/[cohortAddress]/page.tsx
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

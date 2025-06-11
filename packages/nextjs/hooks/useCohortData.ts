@@ -1,10 +1,15 @@
-// packages/nextjs/hooks/useCohortData.ts
-import { useEffect, useState } from "react";
 import { useLocalDeployedContractInfo } from "./useLocalDeployedContractInfo";
-import { erc20Abi, formatEther, formatUnits } from "viem";
+import { useQuery } from "@tanstack/react-query";
+import { gql, request } from "graphql-request";
+import { formatEther, formatUnits } from "viem";
+import { erc20Abi } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
-import { PonderAdmin, PonderBuilder, PonderCohort, PonderCohortState, ponderClient } from "~~/services/ponder/client";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
+
+export type BuilderStreamInfo = {
+  cap: bigint;
+  last: bigint;
+};
 
 export type CohortData = {
   name: string;
@@ -40,157 +45,344 @@ export type CohortData = {
   connectedAddressRequiresApproval: boolean;
 };
 
+interface CohortStateResponse {
+  cohorts: {
+    items: {
+      id: string;
+      address: string;
+      chainId: number;
+      chainName: string;
+      primaryAdmin: string;
+      name: string;
+      description: string;
+      createdAt: string;
+      transactionHash: string;
+      blockNumber: string;
+    }[];
+  };
+  cohortState: {
+    id: string;
+    cohortAddress: string;
+    chainId: number;
+    isERC20: boolean;
+    isONETIME: boolean;
+    tokenAddress: string | null;
+    cycle: string;
+    locked: boolean;
+    requireApprovalForWithdrawals: boolean;
+    allowApplications: boolean;
+    tokenSymbol: string | null;
+    tokenDecimals: number;
+    lastUpdated: string;
+  };
+  builders: {
+    items: {
+      id: string;
+      cohortAddress: string;
+      builderAddress: string;
+      cap: string;
+      last: string;
+      requiresApproval: boolean;
+      addedAt: string;
+      blockNumber: string;
+      isActive: boolean;
+    }[];
+  };
+  admins: {
+    items: {
+      id: string;
+      cohortAddress: string;
+      adminAddress: string;
+      addedAt: string;
+      blockNumber: string;
+      isActive: boolean;
+    }[];
+  };
+  withdrawEvents: {
+    items: {
+      id: string;
+      cohortAddress: string;
+      builderAddress: string;
+      amount: string;
+      reason: string;
+      timestamp: string;
+      transactionHash: string;
+      blockNumber: string;
+    }[];
+  };
+}
+
+const fetchCohortData = async (cohortAddress: string) => {
+  const query = gql`
+    query GetCohortData($cohortAddress: String!) {
+      cohorts(where: { address: $cohortAddress }) {
+        items {
+          id
+          address
+          chainId
+          chainName
+          primaryAdmin
+          name
+          description
+          createdAt
+          transactionHash
+          blockNumber
+        }
+      }
+      cohortState(id: $cohortAddress) {
+        id
+        cohortAddress
+        chainId
+        isERC20
+        isONETIME
+        tokenAddress
+        cycle
+        locked
+        requireApprovalForWithdrawals
+        allowApplications
+        tokenSymbol
+        tokenDecimals
+        lastUpdated
+      }
+      builders(where: { cohortAddress: $cohortAddress, isActive: true }) {
+        items {
+          id
+          cohortAddress
+          builderAddress
+          cap
+          last
+          requiresApproval
+          addedAt
+          blockNumber
+          isActive
+        }
+      }
+      admins(where: { cohortAddress: $cohortAddress, isActive: true }) {
+        items {
+          id
+          cohortAddress
+          adminAddress
+          addedAt
+          blockNumber
+          isActive
+        }
+      }
+      withdrawEvents(where: { cohortAddress: $cohortAddress }) {
+        items {
+          id
+          cohortAddress
+          builderAddress
+          amount
+          reason
+          timestamp
+          transactionHash
+          blockNumber
+        }
+      }
+    }
+  `;
+
+  const variables = {
+    cohortAddress: cohortAddress.toLowerCase(),
+  };
+
+  const data = await request<CohortStateResponse>(
+    process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069",
+    query,
+    variables,
+  );
+
+  return data;
+};
+
+const defaultCohortData: CohortData = {
+  name: "",
+  description: "",
+  isERC20: false,
+  isONETIME: false,
+  cycle: 0,
+  tokenAddress: null,
+  tokenSymbol: null,
+  tokenDecimals: 18,
+  primaryAdmin: "",
+  locked: false,
+  requiresApproval: false,
+  allowApplications: false,
+  balance: 0,
+  activeBuilders: [],
+  builderStreams: new Map(),
+  isAdmin: false,
+  isBuilder: false,
+  oneTimeAlreadyWithdrawn: false,
+  chainName: "",
+  chainId: undefined,
+  admins: [],
+  connectedAddressRequiresApproval: false,
+};
+
 export const useCohortData = (cohortAddress: string) => {
   const { address } = useAccount();
   const publicClient = usePublicClient();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<CohortData | null>(null);
-
   const { data: deployedContract } = useLocalDeployedContractInfo({
     contractName: "Cohort",
   });
 
-  useEffect(() => {
-    const fetchCohortData = async () => {
-      if (!cohortAddress || !deployedContract?.abi || !publicClient) {
-        setIsLoading(false);
-        return;
+  const query = useQuery<CohortData>({
+    queryKey: ["cohortData", cohortAddress, address],
+    queryFn: async (): Promise<CohortData> => {
+      const response = await fetchCohortData(cohortAddress);
+
+      if (!response.cohorts?.items?.length || !response.cohortState) {
+        throw new Error("Cohort not found");
       }
-      setIsLoading(true);
-      setError(null);
 
-      try {
-        const response = await ponderClient.get<{
-          cohort: PonderCohort;
-          builders: PonderBuilder[];
-          admins: PonderAdmin[];
-          state: PonderCohortState | null;
-        }>(`/cohort/${cohortAddress.toLowerCase()}`);
+      const cohort = response.cohorts.items[0];
+      const cohortState = response.cohortState;
+      const builders = response.builders?.items || [];
+      const admins = response.admins?.items || [];
+      const withdrawEvents = response.withdrawEvents?.items || [];
 
-        const { cohort, builders, admins, state } = response.data;
+      const chainId = cohort.chainId as AllowedChainIds;
 
-        let balance = 0;
-        if (
-          state?.isERC20 &&
-          state?.tokenAddress &&
-          state?.tokenAddress != "0x0000000000000000000000000000000000000000"
-        ) {
-          const tokenBalance = await publicClient.readContract({
-            address: state?.tokenAddress as `0x${string}`,
-            abi: erc20Abi,
-            functionName: "balanceOf",
-            args: [cohortAddress as `0x${string}`],
-          });
-          balance = parseFloat(formatUnits(tokenBalance as bigint, state?.tokenDecimals ?? 18));
-        } else {
-          const ethBalance = await publicClient.getBalance({
-            address: cohortAddress as `0x${string}`,
-          });
-          balance = parseFloat(formatEther(ethBalance || BigInt(0)));
-        }
+      if (!deployedContract) {
+        throw new Error(`No deployed contract found for chain ${chainId}`);
+      }
 
-        const activeBuilders = builders
-          .filter(b => b.isActive && b.cohortAddress == cohortAddress)
-          .map(b => b.builderAddress);
+      const buildersAddresses = builders.map(builder => builder.builderAddress);
 
-        const builderStreams = new Map();
+      const adminAddresses = admins.map(admin => admin.adminAddress);
 
-        for (const builder of builders.filter(b => b.isActive && b.cohortAddress == cohort.address)) {
+      const builderStreams = new Map();
+
+      const unlockedAmountsPromises = builders.map(async builder => {
+        const cap = parseFloat(
+          cohortState.isERC20
+            ? formatUnits(BigInt(builder.cap), cohortState.tokenDecimals || 18)
+            : formatEther(BigInt(builder.cap)),
+        );
+
+        let unlockedAmount = 0;
+
+        if (publicClient) {
           try {
-            const unlockedAmount = await publicClient.readContract({
+            const available = await publicClient.readContract({
               address: cohortAddress as `0x${string}`,
               abi: deployedContract.abi,
               functionName: "unlockedBuilderAmount",
-              args: [builder.builderAddress],
+              args: [builder.builderAddress as `0x${string}`],
             });
 
-            const requiresApproval = builder.requiresApproval;
-
-            builderStreams.set(builder.builderAddress, {
-              builderAddress: builder.builderAddress,
-              cap: parseFloat(
-                state?.isERC20
-                  ? formatUnits(BigInt(builder.cap), state?.tokenDecimals ?? 18)
-                  : formatEther(BigInt(builder.cap)),
-              ),
-              last: Number(builder.last),
-              unlockedAmount: parseFloat(
-                state?.isERC20
-                  ? formatUnits(unlockedAmount as bigint, state?.tokenDecimals ?? 18)
-                  : formatEther(unlockedAmount as bigint),
-              ),
-              requiresApproval: requiresApproval as boolean,
-            });
-          } catch (e) {
-            console.error(`Error fetching data for builder ${builder.builderAddress}:`, e);
+            unlockedAmount = parseFloat(
+              cohortState.isERC20
+                ? formatUnits(available as bigint, cohortState.tokenDecimals || 18)
+                : formatEther(available as bigint),
+            );
+          } catch (error) {
+            console.warn(`Failed to fetch unlocked amount for ${builder.builderAddress}:`, error);
+            unlockedAmount = 0;
           }
         }
 
-        const isAdmin = address
-          ? admins.some(a => a.adminAddress.toLowerCase() === address.toLowerCase()) ||
-            cohort.primaryAdmin.toLowerCase() == address.toLowerCase()
+        return {
+          builderAddress: builder.builderAddress,
+          cap,
+          last: parseInt(builder.last),
+          unlockedAmount,
+          requiresApproval: builder.requiresApproval || false,
+        };
+      });
+
+      const builderStreamData = await Promise.all(unlockedAmountsPromises);
+
+      builderStreamData.forEach(streamData => {
+        builderStreams.set(streamData.builderAddress, streamData);
+      });
+
+      const isAdmin = address
+        ? cohort.primaryAdmin.toLowerCase() === address.toLowerCase() ||
+          adminAddresses.some(admin => admin.toLowerCase() === address.toLowerCase())
+        : false;
+
+      const isBuilder = address
+        ? buildersAddresses.some(builder => builder.toLowerCase() === address.toLowerCase())
+        : false;
+
+      const userBuilder = builders.find(builder => builder.builderAddress.toLowerCase() === address?.toLowerCase());
+      const connectedAddressRequiresApproval = userBuilder?.requiresApproval || false;
+
+      const oneTimeAlreadyWithdrawn =
+        cohortState.isONETIME && address
+          ? withdrawEvents.some(event => event.builderAddress.toLowerCase() === address.toLowerCase())
           : false;
 
-        const isBuilder = address ? activeBuilders.includes(address.toLowerCase() as `0x${string}`) : false;
+      let balance = 0;
+      let tokenDecimals = cohortState.tokenDecimals || 18;
 
-        let connectedAddressRequiresApproval = false;
-        let oneTimeAlreadyWithdrawn = false;
+      if (publicClient) {
+        try {
+          if (cohortState.isERC20 && cohortState.tokenAddress) {
+            const tokenBalance = await publicClient.readContract({
+              address: cohortState.tokenAddress as `0x${string}`,
+              abi: erc20Abi,
+              functionName: "balanceOf",
+              args: [cohortAddress as `0x${string}`],
+            });
 
-        if (address) {
-          const builder = builders.find(
-            b =>
-              b.isActive &&
-              b.cohortAddress.toLowerCase() == cohortAddress.toLowerCase() &&
-              b.builderAddress.toLowerCase() == address.toLowerCase(),
-          );
+            const decimals = await publicClient.readContract({
+              address: cohortState.tokenAddress as `0x${string}`,
+              abi: erc20Abi,
+              functionName: "decimals",
+            });
 
-          connectedAddressRequiresApproval = builder?.requiresApproval ?? false;
-
-          if (isBuilder && state?.isONETIME) {
-            oneTimeAlreadyWithdrawn = Number(builder?.last) !== 2 ** 256 - 1;
+            tokenDecimals = decimals || 18;
+            balance = parseFloat(formatUnits(tokenBalance as bigint, decimals));
+          } else {
+            const ethBalance = await publicClient.getBalance({
+              address: cohortAddress as `0x${string}`,
+            });
+            balance = parseFloat(formatEther(ethBalance || BigInt(0)));
           }
+        } catch (error) {
+          console.warn(`Failed to fetch balance for cohort ${cohortAddress}:`, error);
+          balance = 0;
         }
-
-        setData({
-          name: cohort.name,
-          description: cohort.description,
-          isERC20: state?.isERC20 as boolean,
-          isONETIME: state?.isONETIME as boolean,
-          cycle: Number(state?.cycle ?? 0n) / (60 * 60 * 24),
-          tokenAddress: state?.tokenAddress as string | null,
-          tokenSymbol: state?.tokenSymbol ?? null,
-          tokenDecimals: state?.tokenDecimals ?? 18,
-          primaryAdmin: cohort.primaryAdmin,
-          locked: !!state?.locked,
-          requiresApproval: !!state?.requireApprovalForWithdrawals,
-          allowApplications: !!state?.allowApplications,
-          balance,
-          activeBuilders,
-          builderStreams,
-          isAdmin,
-          isBuilder,
-          oneTimeAlreadyWithdrawn,
-          chainName: cohort.chainName,
-          chainId: cohort.chainId as AllowedChainIds,
-          admins: admins.filter(a => a.cohortAddress == cohortAddress).map(a => a.adminAddress),
-          connectedAddressRequiresApproval,
-        });
-      } catch (e) {
-        console.error("Error fetching cohort data:", e);
-        setError("Failed to fetch cohort data");
-      } finally {
-        setIsLoading(false);
       }
-    };
 
-    fetchCohortData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cohortAddress, deployedContract, address, publicClient]);
+      return {
+        name: cohort.name,
+        description: cohort.description,
+        isERC20: cohortState.isERC20,
+        isONETIME: cohortState.isONETIME,
+        cycle: parseInt(cohortState.cycle) / (60 * 60 * 24),
+        tokenAddress: cohortState.tokenAddress,
+        tokenSymbol: cohortState.tokenSymbol,
+        tokenDecimals,
+        primaryAdmin: cohort.primaryAdmin,
+        locked: cohortState.locked,
+        requiresApproval: cohortState.requireApprovalForWithdrawals,
+        allowApplications: cohortState.allowApplications,
+        balance,
+        activeBuilders: buildersAddresses,
+        builderStreams,
+        isAdmin,
+        isBuilder,
+        oneTimeAlreadyWithdrawn,
+        chainName: cohort.chainName,
+        chainId: cohort.chainId as AllowedChainIds,
+        admins: adminAddresses,
+        connectedAddressRequiresApproval,
+      };
+    },
+    enabled: !!cohortAddress && !!publicClient,
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    retry: 3,
+  });
 
   return {
-    ...data,
-    isLoading,
-    error,
+    ...defaultCohortData,
+    ...query.data,
+    isLoading: query.isLoading,
+    error: query.error?.message || null,
   };
 };

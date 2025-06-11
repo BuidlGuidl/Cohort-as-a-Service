@@ -3,7 +3,6 @@ import { CohortLoadingCard } from "./CohortLoadingCard";
 import { PonderCohort } from "~~/services/ponder/client";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
-// Extend PonderCohort type to include role
 type CohortWithRole = PonderCohort & {
   role?: "ADMIN" | "BUILDER";
 };

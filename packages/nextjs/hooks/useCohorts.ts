@@ -1,49 +1,172 @@
-// packages/nextjs/hooks/useCohorts.ts
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { gql, request } from "graphql-request";
 import { useAccount } from "wagmi";
-import { PonderCohort, ponderClient } from "~~/services/ponder/client";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
+
+export type PonderCohort = {
+  id: string;
+  address: string;
+  chainId: number;
+  chainName: string;
+  primaryAdmin: string;
+  name: string;
+  description: string;
+  createdAt: string;
+  transactionHash: string;
+  blockNumber: string;
+};
 
 interface useCohortsProps {
   chainId?: AllowedChainIds;
   cohort?: string;
 }
 
-export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
-  const [cohorts, setCohorts] = useState<PonderCohort[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+type GraphQLCohortsResponse = {
+  cohorts: {
+    items: {
+      id: string;
+      address: string;
+      chainId: number;
+      chainName: string;
+      primaryAdmin: string;
+      name: string;
+      description: string;
+      createdAt: string;
+      transactionHash: string;
+      blockNumber: string;
+    }[];
+  };
+  builders?: {
+    items: {
+      cohortAddress: string;
+      builderAddress: string;
+      isActive: boolean;
+    }[];
+  };
+  admins?: {
+    items: {
+      cohortAddress: string;
+      adminAddress: string;
+      isActive: boolean;
+    }[];
+  };
+};
+
+const fetchCohorts = async (chainId?: AllowedChainIds, cohort?: string, address?: string) => {
+  const whereConditions: string[] = [];
+
+  if (chainId) {
+    whereConditions.push(`chainId: ${chainId}`);
+  }
+
+  if (cohort) {
+    whereConditions.push(`address: "${cohort.toLowerCase()}"`);
+  }
+
+  const cohortsWhere = whereConditions.length > 0 ? `where: { ${whereConditions.join(", ")} }` : "";
+
+  let query: string;
+
+  if (address) {
+    query = gql`
+      query GetCohorts {
+        cohorts${cohortsWhere ? `(${cohortsWhere})` : ""} {
+          items {
+            id
+            address
+            chainId
+            chainName
+            primaryAdmin
+            name
+            description
+            createdAt
+            transactionHash
+            blockNumber
+          }
+        }
+        builders(where: { builderAddress: "${address.toLowerCase()}", isActive: true }) {
+          items {
+            cohortAddress
+            builderAddress
+            isActive
+          }
+        }
+        admins(where: { adminAddress: "${address.toLowerCase()}", isActive: true }) {
+          items {
+            cohortAddress
+            adminAddress
+            isActive
+          }
+        }
+      }
+    `;
+  } else {
+    query = gql`
+      query GetCohorts {
+        cohorts${cohortsWhere ? `(${cohortsWhere})` : ""} {
+          items {
+            id
+            address
+            chainId
+            chainName
+            primaryAdmin
+            name
+            description
+            createdAt
+            transactionHash
+            blockNumber
+          }
+        }
+      }
+    `;
+  }
+
+  const data = await request<GraphQLCohortsResponse>(
+    process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069",
+    query,
+  );
+
+  return data;
+};
+
+export const useCohorts = ({ chainId, cohort }: useCohortsProps = {}) => {
   const { address } = useAccount();
 
-  useEffect(() => {
-    const fetchCohorts = async () => {
-      setIsLoading(true);
-      setError(null);
+  return useQuery<PonderCohort[]>({
+    queryKey: ["cohorts", chainId, cohort, address],
+    queryFn: async (): Promise<PonderCohort[]> => {
+      const response = await fetchCohorts(chainId, cohort, address);
 
-      try {
-        const params = new URLSearchParams();
-        if (chainId) params.append("chainId", chainId.toString());
-        if (cohort) params.append("cohort", cohort);
-        if (address) params.append("address", address);
+      let filteredCohorts = response.cohorts.items;
 
-        const response = await ponderClient.get<{ cohorts: PonderCohort[] }>(`/cohorts?${params.toString()}`);
+      if (address && (response.builders || response.admins)) {
+        const userCohortAddresses = new Set<string>();
 
-        setCohorts(response.data.cohorts);
-      } catch (err) {
-        console.error("Error fetching cohorts from Ponder:", err);
-        setError(err instanceof Error ? err.message : "Failed to fetch cohorts");
-        setCohorts([]);
-      } finally {
-        setIsLoading(false);
+        filteredCohorts.forEach(cohort => {
+          if (cohort.primaryAdmin.toLowerCase() === address.toLowerCase()) {
+            userCohortAddresses.add(cohort.address.toLowerCase());
+          }
+        });
+
+        response.admins?.items.forEach(admin => {
+          userCohortAddresses.add(admin.cohortAddress.toLowerCase());
+        });
+
+        response.builders?.items.forEach(builder => {
+          userCohortAddresses.add(builder.cohortAddress.toLowerCase());
+        });
+
+        filteredCohorts = filteredCohorts.filter(cohort => userCohortAddresses.has(cohort.address.toLowerCase()));
       }
-    };
 
-    fetchCohorts();
-  }, [chainId, cohort, address]);
-
-  return {
-    cohorts,
-    isLoading,
-    error,
-  };
+      return filteredCohorts.map(cohort => ({
+        ...cohort,
+        createdAt: cohort.createdAt,
+        blockNumber: cohort.blockNumber,
+      }));
+    },
+    enabled: true,
+    staleTime: 30_000, 
+    retry: 3,
+  });
 };
