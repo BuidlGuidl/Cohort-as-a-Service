@@ -8,7 +8,7 @@ import { Application, Builder, Cohort } from "@prisma/client";
 import axios from "axios";
 import { useAccount } from "wagmi";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
-import { CohortData, useCohortData } from "~~/hooks/useCohortData";
+import { useCohortData } from "~~/hooks/useCohortData";
 import { useWithdrawEvents } from "~~/hooks/useWithdrawEvents";
 
 export interface BuilderStream {
@@ -27,10 +27,8 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
     isAdmin,
     isERC20,
     tokenAddress,
-    description,
     primaryAdmin,
     isBuilder,
-    oneTimeAlreadyWithdrawn,
     tokenSymbol,
     tokenDecimals,
     balance,
