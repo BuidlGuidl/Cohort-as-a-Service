@@ -5,7 +5,7 @@ import { gql, request } from "graphql-request";
 import { Abi } from "viem";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 
-type WithdrawalEvent = {
+export type WithdrawalEvent = {
   id: string;
   cohortAddress: string;
   builderAddress: string;
@@ -22,7 +22,7 @@ export interface WithdrawEventResponse {
   };
 }
 
-type WithdrawalRequest = {
+export type WithdrawalRequest = {
   id: string;
   cohortAddress: string;
   builderAddress: string;

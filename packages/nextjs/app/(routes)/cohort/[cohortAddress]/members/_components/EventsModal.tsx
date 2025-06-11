@@ -5,7 +5,7 @@ import { RejectWithdrawal } from "./RejectWithdrawal";
 import { formatEther, formatUnits } from "viem";
 import { useAccount } from "wagmi";
 import { Address } from "~~/components/scaffold-eth";
-import { WithdrawEvent, WithdrawRequest } from "~~/hooks/useWithdrawEvents";
+import { WithdrawalEvent, WithdrawalRequest } from "~~/hooks/useWithdrawEvents";
 
 interface EventsModalProps {
   isOpen: boolean;
@@ -16,8 +16,8 @@ interface EventsModalProps {
   isERC20: boolean;
   tokenSymbol: string;
   tokenDecimals?: number;
-  filteredWithdrawnEvents: WithdrawEvent[];
-  filteredRequestEvents: WithdrawRequest[];
+  filteredWithdrawnEvents: WithdrawalEvent[];
+  filteredRequestEvents: WithdrawalRequest[];
   isLoadingWithdrawEvents: boolean;
   isLoadingRequests: boolean;
   cohortAddress: string;
