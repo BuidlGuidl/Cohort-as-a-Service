@@ -23,27 +23,29 @@ type CohortWithBuilder = Cohort & {
 };
 
 const Page = ({ params }: { params: { cohortAddress: string } }) => {
-  const { data, isLoading } = useCohortData(params.cohortAddress);
   const {
-    name,
-    primaryAdmin,
-    builderStreams,
-    isBuilder,
     isAdmin,
-    tokenAddress,
     isERC20,
+    tokenAddress,
+    description,
+    primaryAdmin,
+    isBuilder,
+    oneTimeAlreadyWithdrawn,
     tokenSymbol,
     tokenDecimals,
     balance,
+    name,
     chainName,
     chainId,
     admins,
     connectedAddressRequiresApproval,
+    isLoading,
     locked,
     requiresApproval,
+    builderStreams,
     cycle,
     allowApplications,
-  } = data as CohortData;
+  } = useCohortData(params.cohortAddress);
 
   const [selectedAddress, setSelectedAddress] = useState("");
   const [modalView, setModalView] = useState<"contributions" | "requests">("contributions");
