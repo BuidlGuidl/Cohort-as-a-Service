@@ -1,9 +1,9 @@
 import { CohortCard } from "./CohortCard";
 import { CohortLoadingCard } from "./CohortLoadingCard";
-import { PonderCohort } from "~~/services/ponder/client";
+import { Cohort } from "~~/hooks/useCohorts";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
-type CohortWithRole = PonderCohort & {
+type CohortWithRole = Cohort & {
   role?: "ADMIN" | "BUILDER";
 };
 

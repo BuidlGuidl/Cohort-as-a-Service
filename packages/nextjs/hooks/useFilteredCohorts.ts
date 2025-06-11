@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import { useCohorts } from "./useCohorts";
+import { Cohort } from "./useCohorts";
 import { useLocalDeployedContractInfo } from "./useLocalDeployedContractInfo";
 import { readContract } from "@wagmi/core";
 import { Abi } from "abitype";
 import { useAccount } from "wagmi";
-import { PonderCohort } from "~~/services/ponder/client";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
-// Extend PonderCohort type to include role
-type CohortWithRole = PonderCohort & {
+type CohortWithRole = Cohort & {
   role?: "ADMIN" | "BUILDER";
 };
 

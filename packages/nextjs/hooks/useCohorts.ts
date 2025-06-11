@@ -3,7 +3,7 @@ import { gql, request } from "graphql-request";
 import { useAccount } from "wagmi";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
-export type PonderCohort = {
+export type Cohort = {
   id: string;
   address: string;
   chainId: number;
@@ -132,9 +132,9 @@ const fetchCohorts = async (chainId?: AllowedChainIds, cohort?: string, address?
 export const useCohorts = ({ chainId, cohort }: useCohortsProps = {}) => {
   const { address } = useAccount();
 
-  return useQuery<PonderCohort[]>({
+  return useQuery<Cohort[]>({
     queryKey: ["cohorts", chainId, cohort, address],
-    queryFn: async (): Promise<PonderCohort[]> => {
+    queryFn: async (): Promise<Cohort[]> => {
       const response = await fetchCohorts(chainId, cohort, address);
 
       let filteredCohorts = response.cohorts.items;
