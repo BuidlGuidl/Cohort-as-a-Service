@@ -28,14 +28,16 @@ export const AdminsList = ({ cohortAddress, admins, isLoading }: AdminListProps)
         </>
       ) : (
         <>
-          {admins.length === 0 && <p>No admin</p>}
-
-          {admins.map((admin, index) => (
-            <div className="flex gap-4 mt-2 w-full" key={index}>
-              <Address address={admin} />
-              <AdminActions cohortAddress={cohortAddress} adminAddress={admin} />
-            </div>
-          ))}
+          {admins.length === 0 ? (
+            <p>No admin</p>
+          ) : (
+            admins.map((admin, index) => (
+              <div className="flex gap-4 mt-2 w-full" key={index}>
+                <Address address={admin} />
+                <AdminActions cohortAddress={cohortAddress} adminAddress={admin} />
+              </div>
+            ))
+          )}
         </>
       )}
     </div>

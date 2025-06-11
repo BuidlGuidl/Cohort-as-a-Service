@@ -162,8 +162,6 @@ export const useCohortEventHistory = <
   useEffect(() => {
     const shouldSkipEffect = !blockNumber || !watch || isFirstRender;
     if (shouldSkipEffect) {
-      // skipping on first render, since on first render we should call queryFn with
-      // fromBlock value, not blockNumber
       if (isFirstRender) setIsFirstRender(false);
       return;
     }

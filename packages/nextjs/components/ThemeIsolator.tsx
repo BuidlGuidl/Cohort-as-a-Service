@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Theme, applyTheme, defaultTheme } from "~~/components/ThemeCustomizer";
 
@@ -10,23 +10,18 @@ import { Theme, applyTheme, defaultTheme } from "~~/components/ThemeCustomizer";
  */
 export const ThemeIsolator = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
-  const [cohortAddress, setCohortAddress] = useState<string | null>(null);
-
-  console.log(cohortAddress);
 
   useEffect(() => {
     const cohortAddressMatch = pathname.match(/\/cohort\/([^\/]+)/);
 
     if (cohortAddressMatch && cohortAddressMatch[1]) {
       const address = cohortAddressMatch[1];
-      setCohortAddress(address);
 
       document.documentElement.setAttribute("data-cohort-theme", address);
 
       fetchTheme(address);
     } else {
       document.documentElement.removeAttribute("data-cohort-theme");
-      setCohortAddress(null);
 
       resetTheme();
     }

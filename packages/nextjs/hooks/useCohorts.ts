@@ -1,208 +1,172 @@
-import { useEffect, useMemo, useState } from "react";
-import { useScaffoldEventHistory } from "./scaffold-eth";
-import { isAddress } from "viem";
-import * as chains from "viem/chains";
+import { useQuery } from "@tanstack/react-query";
+import { gql, request } from "graphql-request";
+import { useAccount } from "wagmi";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
+
+export type Cohort = {
+  id: string;
+  address: string;
+  chainId: number;
+  chainName: string;
+  primaryAdmin: string;
+  name: string;
+  description: string;
+  createdAt: string;
+  transactionHash: string;
+  blockNumber: string;
+};
 
 interface useCohortsProps {
   chainId?: AllowedChainIds;
   cohort?: string;
 }
 
-type Cohort = {
-  chainId: AllowedChainIds;
-  chainName: string;
-  cohortAddress: string | undefined;
-  owner: string | undefined;
-  name: string | undefined;
-  createdAt: any;
+type GraphQLCohortsResponse = {
+  cohorts: {
+    items: {
+      id: string;
+      address: string;
+      chainId: number;
+      chainName: string;
+      primaryAdmin: string;
+      name: string;
+      description: string;
+      createdAt: string;
+      transactionHash: string;
+      blockNumber: string;
+    }[];
+  };
+  builders?: {
+    items: {
+      cohortAddress: string;
+      builderAddress: string;
+      isActive: boolean;
+    }[];
+  };
+  admins?: {
+    items: {
+      cohortAddress: string;
+      adminAddress: string;
+      isActive: boolean;
+    }[];
+  };
 };
 
-export const useCohorts = ({ chainId, cohort }: useCohortsProps) => {
-  const deployBlock = BigInt(Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK) || 0);
-  const [isMounted, setIsMounted] = useState(false);
-  const [cohorts, setCohorts] = useState<Cohort[]>([]);
-  const [isLoadingState, setIsloading] = useState(true);
+const fetchCohorts = async (chainId?: AllowedChainIds, cohort?: string, address?: string) => {
+  const whereConditions: string[] = [];
 
-  // const hardhatEvents = useScaffoldEventHistory({
-  //   contractName: "CohortFactory",
-  //   eventName: "CohortCreated",
-  //   fromBlock: deployBlock,
-  //   blockData: true,
-  //   watch: true,
-  //   receiptData: true,
-  //   chainId: chains.hardhat.id,
-  // });
+  if (chainId) {
+    whereConditions.push(`chainId: ${chainId}`);
+  }
 
-  const baseSepoliaEvents = useScaffoldEventHistory({
-    contractName: "CohortFactory",
-    eventName: "CohortCreated",
-    fromBlock: deployBlock,
-    blockData: true,
-    watch: true,
-    receiptData: true,
-    chainId: chains.baseSepolia.id,
-  });
+  if (cohort) {
+    whereConditions.push(`address: "${cohort.toLowerCase()}"`);
+  }
 
-  const mainnetEvents = useScaffoldEventHistory({
-    contractName: "CohortFactory",
-    eventName: "CohortCreated",
-    fromBlock: deployBlock,
-    blockData: true,
-    watch: true,
-    receiptData: true,
-    chainId: chains.mainnet.id,
-  });
+  const cohortsWhere = whereConditions.length > 0 ? `where: { ${whereConditions.join(", ")} }` : "";
 
-  const optimismEvents = useScaffoldEventHistory({
-    contractName: "CohortFactory",
-    eventName: "CohortCreated",
-    fromBlock: deployBlock,
-    blockData: true,
-    watch: true,
-    receiptData: true,
-    chainId: chains.optimism.id,
-  });
+  let query: string;
 
-  const arbitrumEvents = useScaffoldEventHistory({
-    contractName: "CohortFactory",
-    eventName: "CohortCreated",
-    fromBlock: deployBlock,
-    blockData: true,
-    watch: true,
-    receiptData: true,
-    chainId: chains.arbitrum.id,
-  });
+  if (address) {
+    query = gql`
+      query GetCohorts {
+        cohorts${cohortsWhere ? `(${cohortsWhere})` : ""} {
+          items {
+            id
+            address
+            chainId
+            chainName
+            primaryAdmin
+            name
+            description
+            createdAt
+            transactionHash
+            blockNumber
+          }
+        }
+        builders(where: { builderAddress: "${address.toLowerCase()}", isActive: true }) {
+          items {
+            cohortAddress
+            builderAddress
+            isActive
+          }
+        }
+        admins(where: { adminAddress: "${address.toLowerCase()}", isActive: true }) {
+          items {
+            cohortAddress
+            adminAddress
+            isActive
+          }
+        }
+      }
+    `;
+  } else {
+    query = gql`
+      query GetCohorts {
+        cohorts${cohortsWhere ? `(${cohortsWhere})` : ""} {
+          items {
+            id
+            address
+            chainId
+            chainName
+            primaryAdmin
+            name
+            description
+            createdAt
+            transactionHash
+            blockNumber
+          }
+        }
+      }
+    `;
+  }
 
-  const polygonEvents = useScaffoldEventHistory({
-    contractName: "CohortFactory",
-    eventName: "CohortCreated",
-    fromBlock: deployBlock,
-    blockData: true,
-    watch: true,
-    receiptData: true,
-    chainId: chains.polygon.id,
-  });
-
-  const scrollEvents = useScaffoldEventHistory({
-    contractName: "CohortFactory",
-    eventName: "CohortCreated",
-    fromBlock: deployBlock,
-    blockData: true,
-    watch: true,
-    receiptData: true,
-    chainId: chains.scroll.id,
-  });
-
-  const baseEvents = useScaffoldEventHistory({
-    contractName: "CohortFactory",
-    eventName: "CohortCreated",
-    fromBlock: deployBlock,
-    blockData: true,
-    watch: true,
-    receiptData: true,
-    chainId: chains.base.id,
-  });
-
-  const opSepoliaEvents = useScaffoldEventHistory({
-    contractName: "CohortFactory",
-    eventName: "CohortCreated",
-    fromBlock: deployBlock,
-    blockData: true,
-    watch: true,
-    receiptData: true,
-    chainId: chains.optimismSepolia.id,
-  });
-
-  const allChainEvents = useMemo(
-    () => [
-      // { chainId: chains.hardhat.id, chainName: "Hardhat", ...hardhatEvents },
-      { chainId: chains.baseSepolia.id, chainName: "Base Sepolia", ...baseSepoliaEvents },
-      { chainId: chains.mainnet.id, chainName: "Ethereum", ...mainnetEvents },
-      { chainId: chains.optimism.id, chainName: "Optimism", ...optimismEvents },
-      { chainId: chains.arbitrum.id, chainName: "Arbitrum", ...arbitrumEvents },
-      { chainId: chains.polygon.id, chainName: "Polygon", ...polygonEvents },
-      { chainId: chains.scroll.id, chainName: "Scroll", ...scrollEvents },
-      { chainId: chains.base.id, chainName: "Base", ...baseEvents },
-      { chainId: chains.optimismSepolia.id, chainName: "Optimism Sepolia", ...opSepoliaEvents },
-    ],
-    [
-      baseSepoliaEvents,
-      mainnetEvents,
-      optimismEvents,
-      arbitrumEvents,
-      polygonEvents,
-      scrollEvents,
-      baseEvents,
-      opSepoliaEvents,
-    ],
+  const data = await request<GraphQLCohortsResponse>(
+    process.env.NEXT_PUBLIC_PONDER_URL || "http://localhost:42069",
+    query,
   );
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  return data;
+};
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+export const useCohorts = ({ chainId, cohort }: useCohortsProps = {}) => {
+  const { address } = useAccount();
 
-  const creationEvents = useMemo(() => {
-    if (!isMounted) return [];
+  return useQuery<Cohort[]>({
+    queryKey: ["cohorts", chainId, cohort, address],
+    queryFn: async (): Promise<Cohort[]> => {
+      const response = await fetchCohorts(chainId, cohort, address);
 
-    return allChainEvents
-      .flatMap(({ chainId, chainName, data }) =>
-        (data || []).map(event => ({
-          chainId,
-          chainName,
-          cohortAddress: event.args?.cohortAddress,
-          owner: event.args?.primaryAdmin,
-          name: event.args?.name,
-          // @ts-ignore
-          createdAt: event.blockData?.timestamp,
-        })),
-      )
-      .filter(event => event.cohortAddress)
-      .sort((a, b) => Number(b.createdAt) - Number(a.createdAt));
-  }, [allChainEvents, isMounted]);
+      let filteredCohorts = response.cohorts.items;
 
-  useEffect(() => {
-    allChainEvents.forEach(({ data, refetch }) => {
-      if (data && data.length > 0 && !data[0].args) {
-        refetch();
-      }
-    });
-  }, [allChainEvents]);
+      if (address && (response.builders || response.admins)) {
+        const userCohortAddresses = new Set<string>();
 
-  useEffect(() => {
-    let filteredCohorts = creationEvents;
+        filteredCohorts.forEach(cohort => {
+          if (cohort.primaryAdmin.toLowerCase() === address.toLowerCase()) {
+            userCohortAddresses.add(cohort.address.toLowerCase());
+          }
+        });
 
-    if (isMounted) {
-      if (chainId) {
-        filteredCohorts = filteredCohorts.filter(event => event.chainId.toString() === chainId.toString());
+        response.admins?.items.forEach(admin => {
+          userCohortAddresses.add(admin.cohortAddress.toLowerCase());
+        });
+
+        response.builders?.items.forEach(builder => {
+          userCohortAddresses.add(builder.cohortAddress.toLowerCase());
+        });
+
+        filteredCohorts = filteredCohorts.filter(cohort => userCohortAddresses.has(cohort.address.toLowerCase()));
       }
 
-      if (cohort) {
-        const searchTerm = cohort.toLowerCase();
-        const isCohortAddress = isAddress(cohort);
-
-        filteredCohorts = filteredCohorts.filter(event =>
-          isCohortAddress
-            ? event.cohortAddress?.toLowerCase().includes(searchTerm)
-            : event.name?.toLowerCase().includes(searchTerm),
-        );
-      }
-    }
-
-    setCohorts(filteredCohorts);
-
-    if (isMounted && !allChainEvents.some(({ isLoading }) => isLoading)) {
-      setIsloading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMounted, chainId, cohort, ...allChainEvents.map(e => e.data)]);
-
-  return {
-    cohorts: cohorts,
-    isLoading: !isMounted || allChainEvents.some(({ isLoading }) => isLoading) || isLoadingState,
-  };
+      return filteredCohorts.map(cohort => ({
+        ...cohort,
+        createdAt: cohort.createdAt,
+        blockNumber: cohort.blockNumber,
+      }));
+    },
+    enabled: true,
+    staleTime: 30_000, 
+    retry: 3,
+  });
 };

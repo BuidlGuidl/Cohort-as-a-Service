@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { recoverMessageAddress } from "viem";
 import db from "~~/lib/db";
 
-// POST: Add multiple builders to a cohort
 export async function POST(req: NextRequest, { params }: { params: { address: string } }) {
   try {
     const { builderAddresses, signature, message, builderGithubUsernames } = await req.json();
