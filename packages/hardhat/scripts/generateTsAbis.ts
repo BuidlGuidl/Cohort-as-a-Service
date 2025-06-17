@@ -44,7 +44,6 @@ function getActualSourcesForContract(sources: Record<string, any>, contractName:
 
       if (match) {
         const inheritancePart = match[2];
-        // Split the inherited contracts by commas to get the list of inherited contracts
         const inheritedContracts = inheritancePart.split(",").map(contract => `${contract.trim()}.sol`);
 
         return inheritedContracts;

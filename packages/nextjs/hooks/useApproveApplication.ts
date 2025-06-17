@@ -1,4 +1,3 @@
-// hooks/useApproveApplication.ts
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTargetNetwork } from "./scaffold-eth";
@@ -104,7 +103,6 @@ export const useApproveApplication = ({
       if (signature && isSignatureSuccess && isSuccess && contractSuccess) {
         const message = `Approve application ${applicationId} for cohort ${cohortAddress}`;
         try {
-          // First, update application status to approved
           await axios.patch(`/api/cohort/${cohortAddress}/admin/application/${applicationId}`, {
             status: "APPROVED",
             message,
@@ -112,7 +110,6 @@ export const useApproveApplication = ({
             note,
           });
 
-          // Then, add the builder to the database
           await axios.post(`/api/cohort/${cohortAddress}/builder`, {
             builderAddresses: [builderAddress],
             builderGithubUsernames: githubUsername ? [githubUsername] : undefined,

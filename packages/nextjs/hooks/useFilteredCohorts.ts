@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useCohorts } from "./useCohorts";
+import { Cohort } from "./useCohorts";
 import { useLocalDeployedContractInfo } from "./useLocalDeployedContractInfo";
 import { readContract } from "@wagmi/core";
 import { Abi } from "abitype";
@@ -7,13 +8,7 @@ import { useAccount } from "wagmi";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
-type Cohort = {
-  chainId: AllowedChainIds;
-  chainName: string;
-  cohortAddress: string | undefined;
-  owner: string | undefined;
-  name: string | undefined;
-  createdAt: any;
+type CohortWithRole = Cohort & {
   role?: "ADMIN" | "BUILDER";
 };
 
@@ -24,29 +19,37 @@ interface useFilteredCohortsProps {
 }
 
 export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohortsProps) => {
-  const { cohorts, isLoading: isLoadingCohorts } = useCohorts({ chainId, cohort });
-  const [adminCohorts, setAdminCohorts] = useState<Cohort[]>([]);
-  const [builderCohorts, setBuilderCohorts] = useState<Cohort[]>([]);
-  const [combinedCohorts, setCombinedCohorts] = useState<Cohort[]>([]);
+  const { data: cohorts, isLoading: isLoadingCohorts } = useCohorts({ chainId, cohort });
+  const [adminCohorts, setAdminCohorts] = useState<CohortWithRole[]>([]);
+  const [builderCohorts, setBuilderCohorts] = useState<CohortWithRole[]>([]);
+  const [combinedCohorts, setCombinedCohorts] = useState<CohortWithRole[]>([]);
   const [isLoadingAdmin, setIsLoadingAdmin] = useState(true);
   const [isLoadingBuilder, setIsLoadingBuilder] = useState(true);
 
-  const { address, isConnecting, isReconnecting } = useAccount();
+  const { address, isReconnecting } = useAccount();
   const { data: deployedContract } = useLocalDeployedContractInfo({ contractName: "Cohort" });
 
   useEffect(() => {
+    if (!cohorts) return;
+    if (!address || cohorts.length < 1 || !deployedContract) {
+      setIsLoadingAdmin(false);
+      setIsLoadingBuilder(false);
+      return;
+    }
+
     const fetchAdminCohorts = async () => {
+      setIsLoadingAdmin(true);
       try {
-        const validCohorts: Cohort[] = [];
+        const validCohorts: CohortWithRole[] = [];
 
         for (const cohort of cohorts) {
           try {
             const isAdmin = await readContract(wagmiConfig, {
-              address: cohort.cohortAddress as `0x${string}`,
+              address: cohort.address as `0x${string}`,
               abi: deployedContract?.abi as Abi,
               functionName: "isAdmin",
               args: [address],
-              chainId: cohort.chainId,
+              chainId: cohort.chainId as AllowedChainIds,
             });
 
             if (isAdmin) {
@@ -56,7 +59,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
               });
             }
           } catch (error) {
-            console.error(`Error checking admin status for cohort ${cohort.cohortAddress}:`, error);
+            console.error(`Error checking admin status for cohort ${cohort.address}:`, error);
             continue;
           }
         }
@@ -65,48 +68,54 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
       } catch (error) {
         console.error("Error fetching admin cohorts:", error);
         setAdminCohorts([]);
+      } finally {
+        setIsLoadingAdmin(false);
       }
-
-      setIsLoadingAdmin(false);
     };
 
-    setIsLoadingAdmin(true);
     fetchAdminCohorts();
   }, [deployedContract, cohorts, address]);
 
   useEffect(() => {
+    if (!cohorts) return;
+    if (!address || cohorts.length < 1 || !deployedContract) {
+      setIsLoadingBuilder(false);
+      return;
+    }
+
     const fetchBuilderCohorts = async () => {
+      setIsLoadingBuilder(true);
       try {
-        const validCohorts: Cohort[] = [];
+        const validCohorts: CohortWithRole[] = [];
 
         for (const cohort of cohorts) {
           try {
-            const builderIndex = await readContract(wagmiConfig, {
-              address: cohort.cohortAddress as `0x${string}`,
+            const builderIndexResult = await readContract(wagmiConfig, {
+              address: cohort.address as `0x${string}`,
               abi: deployedContract?.abi as Abi,
               functionName: "builderIndex",
               args: [address],
-              chainId: cohort.chainId,
+              chainId: cohort.chainId as AllowedChainIds,
             });
 
-            const builder = builderIndex
-              ? await readContract(wagmiConfig, {
-                  address: cohort.cohortAddress as `0x${string}`,
-                  abi: deployedContract?.abi as Abi,
-                  functionName: "activeBuilders",
-                  args: [builderIndex],
-                  chainId: cohort.chainId,
-                })
-              : null;
-
-            if (address?.toLowerCase() === (builder as string)?.toLowerCase()) {
-              validCohorts.push({
-                ...cohort,
-                role: "BUILDER",
+            if (builderIndexResult && builderIndexResult !== 0n) {
+              const builderAddress: any = await readContract(wagmiConfig, {
+                address: cohort.address as `0x${string}`,
+                abi: deployedContract?.abi as Abi,
+                functionName: "activeBuilders",
+                args: [builderIndexResult],
+                chainId: cohort.chainId as AllowedChainIds,
               });
+
+              if (address?.toLowerCase() === (builderAddress as string)?.toLowerCase()) {
+                validCohorts.push({
+                  ...cohort,
+                  role: "BUILDER",
+                });
+              }
             }
           } catch (error) {
-            console.error(`Error checking builder status for cohort ${cohort.cohortAddress}:`, error);
+            console.error(`Error checking builder status for cohort ${cohort.address}:`, error);
             continue;
           }
         }
@@ -115,32 +124,33 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
       } catch (error) {
         console.error("Error fetching builder cohorts:", error);
         setBuilderCohorts([]);
+      } finally {
+        setIsLoadingBuilder(false);
       }
-
-      setIsLoadingBuilder(false);
     };
 
-    setIsLoadingBuilder(true);
     fetchBuilderCohorts();
   }, [deployedContract, cohorts, address]);
 
   useEffect(() => {
-    const cohortMap = new Map<string, Cohort>();
+    const cohortMap = new Map<string, CohortWithRole>();
 
     adminCohorts.forEach(cohort => {
-      const key = `${cohort.chainId}-${cohort.cohortAddress}`;
+      const key = `${cohort.chainId}-${cohort.address}`;
       cohortMap.set(key, { ...cohort, role: "ADMIN" });
     });
 
     builderCohorts.forEach(cohort => {
-      const key = `${cohort.chainId}-${cohort.cohortAddress}`;
+      const key = `${cohort.chainId}-${cohort.address}`;
       if (!cohortMap.has(key)) {
         cohortMap.set(key, { ...cohort, role: "BUILDER" });
       }
     });
 
     const combined = Array.from(cohortMap.values()).sort((a, b) => {
-      return a.createdAt > b.createdAt ? -1 : 1;
+      const aTime = parseInt(a.createdAt);
+      const bTime = parseInt(b.createdAt);
+      return bTime - aTime; // Newest first
     });
 
     setCombinedCohorts(combined);
@@ -158,11 +168,6 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
     adminCohorts,
     builderCohorts,
     combinedCohorts,
-    isLoading:
-      isLoadingCohorts ||
-      isConnecting ||
-      isReconnecting ||
-      !address ||
-      (filter === "admin" ? isLoadingAdmin : filter === "builder" ? isLoadingBuilder : false),
+    isLoading: isLoadingCohorts || isReconnecting || !address || isLoadingAdmin || isLoadingBuilder,
   };
 };

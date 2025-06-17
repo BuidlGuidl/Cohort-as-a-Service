@@ -7,6 +7,7 @@ export async function PATCH(req: Request, { params }: { params: { address: strin
     const { githubUsername, signature, message, builderAddress } = await req.json();
 
     if (!signature || !message || !githubUsername) {
+      console.log("hi");
       return new NextResponse("Missing required fields", { status: 400 });
     }
 
@@ -27,15 +28,12 @@ export async function PATCH(req: Request, { params }: { params: { address: strin
     const builder = await db.builder.findFirst({
       where: {
         address: builderAddress,
+        cohortId: cohort?.id,
       },
     });
 
-    if (!cohort) {
+    if (!cohort || !builder) {
       return new NextResponse("Cohort not found", { status: 404 });
-    }
-
-    if (builder?.cohortId !== cohort.id) {
-      return new NextResponse("Builder not found in cohort", { status: 400 });
     }
 
     if (
