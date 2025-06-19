@@ -104,6 +104,7 @@ interface CohortStateResponse {
       cohortAddress: string;
       builderAddress: string;
       amount: string;
+      projectIds: string[];
       reason: string;
       timestamp: string;
       transactionHash: string;
@@ -174,6 +175,7 @@ const fetchCohortData = async (cohortAddress: string) => {
           builderAddress
           amount
           reason
+          projectIds
           timestamp
           transactionHash
           blockNumber

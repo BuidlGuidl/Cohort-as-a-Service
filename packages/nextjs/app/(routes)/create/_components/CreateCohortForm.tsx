@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { LoadingModal } from "./LoadingModal";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getBytecode, getTransactionReceipt } from "@wagmi/core";
 import { readContract } from "@wagmi/core";
@@ -37,9 +38,19 @@ const CreateCohortForm = () => {
   const [showCustomCycleInput, setShowCustomCycleInput] = useState(false);
   const [selectedCycle, setSelectedCycle] = useState(PREDEFINED_CYCLES[3].value);
 
+  const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
+  const [loadingStage, setLoadingStage] = useState(0);
+  const [isLoadingError, setIsLoadingError] = useState(false);
+
   const currentChainCurrencies = chainId ? currencies[chainId]?.contracts || [] : [];
 
+  const [currencyName, setCurrencyName] = useState(
+    currentChainCurrencies.length > 0 ? currentChainCurrencies[0].name : "ETH",
+  );
+
   const initialCurrency = currentChainCurrencies.length > 0 ? currentChainCurrencies[0].address : "";
+
+  const [selectedCurrency, setSelectedCurrency] = useState<string>(initialCurrency);
 
   const { data: localDeployedContract } = useLocalDeployedContractInfo({ contractName: "Cohort" });
 
@@ -61,8 +72,6 @@ const CreateCohortForm = () => {
     mode: "onChange",
   });
 
-  const [selectedCurrency, setSelectedCurrency] = useState<string>(initialCurrency);
-
   const { isSubmitting, isValid, errors } = form.formState;
 
   useEffect(() => {
@@ -71,8 +80,8 @@ const CreateCohortForm = () => {
     }
 
     if (currentChainCurrencies.length > 0 && !selectedCurrency) {
-      const defaultCurrency = currentChainCurrencies[0].address;
-      handleCurrencySelect(defaultCurrency);
+      const defaultCurrency = currentChainCurrencies[0];
+      handleCurrencySelect(defaultCurrency.address, defaultCurrency.name);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address, chainId, currentChainCurrencies, form, selectedCurrency]);
@@ -106,8 +115,9 @@ const CreateCohortForm = () => {
     }
   };
 
-  const handleCurrencySelect = (address: string) => {
+  const handleCurrencySelect = (address: string, name: string) => {
     setSelectedCurrency(address);
+    setCurrencyName(name);
     form.setValue("currencyAddress", address, {
       shouldValidate: true,
       shouldDirty: true,
@@ -155,7 +165,23 @@ const CreateCohortForm = () => {
     });
   };
 
+  const handleLoadingClose = () => {
+    setIsLoadingModalOpen(false);
+    setIsLoadingError(false);
+    setLoadingStage(0);
+  };
+
+  const handleLoadingRetry = () => {
+    setIsLoadingError(false);
+    setLoadingStage(0);
+    form.handleSubmit(onSubmit)();
+  };
+
   const onSubmit = async (values: z.infer<typeof CreateCohortSchema>) => {
+    setIsLoadingModalOpen(true);
+    setIsLoadingError(false);
+    setLoadingStage(0);
+
     try {
       const filteredAddresses = values.builderAddresses.filter(addr => addr !== "");
       const filteredCaps = values.builderCaps.filter((_, index) => values.builderAddresses[index] !== "");
@@ -193,6 +219,8 @@ const CreateCohortForm = () => {
         value: parseEther(costWithAllowance),
       });
 
+      setLoadingStage(1);
+
       const receipt = await getTransactionReceipt(wagmiConfig, {
         hash: hash as `0x${string}`,
       });
@@ -229,6 +257,8 @@ const CreateCohortForm = () => {
         console.error("Contract verification failed:", verifyError);
       }
 
+      setLoadingStage(2);
+
       await axios.post(`/api/cohort`, {
         deployedAddress,
         adminAddress: values.adminAddress,
@@ -236,14 +266,46 @@ const CreateCohortForm = () => {
         builderAddresses: filteredAddresses,
         builderGithubUsernames: filteredGithubUsernames,
       });
-      router.push(`/cohort/${deployedAddress}`);
+
+      setTimeout(() => {
+        setIsLoadingModalOpen(false);
+        router.push(`/cohort/${deployedAddress}`);
+      }, 5000);
     } catch (e) {
       console.error("Error creating cohort", e);
+      setIsLoadingError(true);
     }
   };
 
+  useEffect(() => {
+    if (!showCustomCurrencyInput) return;
+
+    const fetchSymbol = async () => {
+      try {
+        const symbol = await readContract(wagmiConfig, {
+          address: selectedCurrency,
+          abi: erc20Abi,
+          functionName: "symbol",
+        });
+        setCurrencyName(symbol);
+      } catch (error) {
+        console.error("Failed to fetch currency symbol:", error);
+      }
+    };
+
+    fetchSymbol();
+  }, [selectedCurrency, showCustomCurrencyInput]);
+
   return (
     <div className="p-4">
+      <LoadingModal
+        isOpen={isLoadingModalOpen}
+        stage={loadingStage}
+        isError={isLoadingError}
+        onClose={handleLoadingClose}
+        onRetry={handleLoadingRetry}
+      />
+
       <div>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="form-control w-full">
@@ -273,7 +335,7 @@ const CreateCohortForm = () => {
 
           <div className="form-control w-full">
             <label className="label">
-              <span className="label-text font-medium">Description</span>
+              <span className="label-text font-medium">Description (optional)</span>
             </label>
 
             <textarea
@@ -333,7 +395,7 @@ const CreateCohortForm = () => {
                   key={currency.address}
                   type="button"
                   className={`btn btn-sm rounded-md ${selectedCurrency === currency.address ? "btn-primary" : "btn-outline"}`}
-                  onClick={() => handleCurrencySelect(currency.address)}
+                  onClick={() => handleCurrencySelect(currency.address, currency.name)}
                 >
                   {currency.name}
                 </button>
@@ -498,21 +560,28 @@ const CreateCohortForm = () => {
                     )}
                   </div>
                   <div className="flex-grow md:w-[25%] w-full">
-                    <input
-                      className="input input-sm rounded-md input-bordered border border-base-300 w-full"
-                      placeholder="Enter stream cap"
-                      type="number"
-                      step="any"
-                      {...form.register(`builderCaps.${index}`, {
-                        valueAsNumber: true,
-                        onChange: e => {
-                          const value = e.target.value;
-                          form.setValue(`builderCaps.${index}`, value, {
-                            shouldValidate: true,
-                          });
-                        },
-                      })}
-                    />
+                    <div className="relative w-full">
+                      <input
+                        className="input input-sm rounded-md input-bordered border border-base-300 w-full pr-16" // add right padding for suffix
+                        placeholder="Enter stream cap"
+                        type="text"
+                        inputMode="decimal"
+                        pattern="[0-9]*"
+                        {...form.register(`builderCaps.${index}`, {
+                          valueAsNumber: true,
+                          onChange: e => {
+                            const value = e.target.value;
+                            form.setValue(`builderCaps.${index}`, value, {
+                              shouldValidate: true,
+                            });
+                          },
+                        })}
+                      />
+                      <span className="absolute inset-y-0 right-3 flex items-center text-sm text-gray-500">
+                        {currencyName}
+                      </span>
+                    </div>
+
                     {form.formState.errors.builderCaps?.[index] && (
                       <label className="label">
                         <span className="label-text-alt text-error">

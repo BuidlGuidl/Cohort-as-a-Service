@@ -10,6 +10,7 @@ export async function GET(req: Request, { params }: { params: { address: string 
       include: {
         Builder: true,
         Application: true,
+        Project: true,
       },
     });
 

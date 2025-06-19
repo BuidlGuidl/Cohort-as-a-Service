@@ -18,7 +18,6 @@ export type Cohort = {
 
 interface useCohortsProps {
   chainId?: AllowedChainIds;
-  cohort?: string;
 }
 
 type GraphQLCohortsResponse = {
@@ -52,15 +51,11 @@ type GraphQLCohortsResponse = {
   };
 };
 
-const fetchCohorts = async (chainId?: AllowedChainIds, cohort?: string, address?: string) => {
+const fetchCohorts = async (chainId?: AllowedChainIds, address?: string) => {
   const whereConditions: string[] = [];
 
   if (chainId) {
     whereConditions.push(`chainId: ${chainId}`);
-  }
-
-  if (cohort) {
-    whereConditions.push(`address: "${cohort.toLowerCase()}"`);
   }
 
   const cohortsWhere = whereConditions.length > 0 ? `where: { ${whereConditions.join(", ")} }` : "";
@@ -129,13 +124,13 @@ const fetchCohorts = async (chainId?: AllowedChainIds, cohort?: string, address?
   return data;
 };
 
-export const useCohorts = ({ chainId, cohort }: useCohortsProps = {}) => {
+export const useCohorts = ({ chainId }: useCohortsProps = {}) => {
   const { address } = useAccount();
 
   return useQuery<Cohort[]>({
-    queryKey: ["cohorts", chainId, cohort, address],
+    queryKey: ["cohorts", chainId, address],
     queryFn: async (): Promise<Cohort[]> => {
-      const response = await fetchCohorts(chainId, cohort, address);
+      const response = await fetchCohorts(chainId, address);
 
       let filteredCohorts = response.cohorts.items;
 
@@ -166,7 +161,7 @@ export const useCohorts = ({ chainId, cohort }: useCohortsProps = {}) => {
       }));
     },
     enabled: true,
-    staleTime: 30_000, 
+    staleTime: 30_000,
     retry: 3,
   });
 };

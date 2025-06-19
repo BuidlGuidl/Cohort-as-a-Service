@@ -2,8 +2,11 @@ import React from "react";
 import { ApproveWithdrawal } from "./ApproveWithdrawal";
 import { CompleteWithdrawal } from "./CompleteWithdrawal";
 import { RejectWithdrawal } from "./RejectWithdrawal";
+import { Project } from "@prisma/client";
+import { Github, Globe } from "lucide-react";
 import { formatEther, formatUnits } from "viem";
 import { useAccount } from "wagmi";
+import { Preview } from "~~/components/preview";
 import { Address } from "~~/components/scaffold-eth";
 import { WithdrawalEvent, WithdrawalRequest } from "~~/hooks/useWithdrawEvents";
 
@@ -22,6 +25,7 @@ interface EventsModalProps {
   isLoadingRequests: boolean;
   cohortAddress: string;
   isAdmin: boolean;
+  projects?: Project[];
 }
 
 export const EventsModal: React.FC<EventsModalProps> = ({
@@ -39,8 +43,24 @@ export const EventsModal: React.FC<EventsModalProps> = ({
   isLoadingRequests,
   cohortAddress,
   isAdmin,
+  projects,
 }) => {
   const { address } = useAccount();
+
+  const getProjectsFromIds = (projectIds: string[]) => {
+    if (!projects || !projectIds) return [];
+    return projectIds.map(id => projects.find(project => project.id === id)).filter(Boolean) as Project[];
+  };
+
+  const getProjectLink = (project: Project) => {
+    if (project.websiteUrl) {
+      return { url: project.websiteUrl, icon: Globe, label: "Website" };
+    }
+    if (project.githubUrl) {
+      return { url: project.githubUrl, icon: Github, label: "GitHub" };
+    }
+    return null;
+  };
 
   if (!isOpen) return null;
 
@@ -55,19 +75,6 @@ export const EventsModal: React.FC<EventsModalProps> = ({
     return new Date(Number(timestamp) * 1000).toISOString().split("T")[0];
   };
 
-  const getStatusBadgeClass = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "completed":
-        return "badge-success";
-      case "approved":
-        return "badge-info";
-      case "rejected":
-        return "badge-error";
-      default:
-        return "badge-warning";
-    }
-  };
-
   return (
     <>
       <input type="checkbox" id="withdraw-events-modal" className="modal-toggle" checked={isOpen} readOnly />
@@ -76,7 +83,6 @@ export const EventsModal: React.FC<EventsModalProps> = ({
           className="modal-box relative bg-base-100 max-w-4xl border border-primary"
           onClick={e => e.stopPropagation()}
         >
-          {/* dummy input to capture event onclick on modal box */}
           <input className="h-0 w-0 absolute top-0 left-0" />
           <h3 className="text-xl font-bold mb-2">
             <p className="mb-1">{modalView === "contributions" ? "Contributions" : "Requests"}</p>
@@ -111,35 +117,72 @@ export const EventsModal: React.FC<EventsModalProps> = ({
                   </div>
                 ) : filteredWithdrawnEvents?.length > 0 ? (
                   <div className="flex flex-col">
-                    {filteredWithdrawnEvents?.map(event => (
-                      <div key={event.id} className="flex flex-col">
-                        <div>
-                          <span className="font-bold">Date: </span>
-                          {formatDate(event.timestamp)}
+                    {filteredWithdrawnEvents?.map(event => {
+                      const relatedProjects = getProjectsFromIds(event.projectIds);
+
+                      return (
+                        <div key={event.id} className="flex flex-col">
+                          <div>
+                            <span className="font-bold">Date: </span>
+                            {formatDate(event.timestamp)}
+                          </div>
+                          <div>
+                            <span className="font-bold">Amount: </span>
+                            {isERC20 ? tokenSymbol + " " : "Ξ"}
+                            {formatAmount(event.amount)}
+                          </div>
+                          <div>
+                            <span className="font-bold">Transaction: </span>
+                            <a
+                              href={`https://etherscan.io/tx/${event.transactionHash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary underline"
+                            >
+                              {event.transactionHash.slice(0, 10)}...
+                            </a>
+                          </div>
+                          Reason:
+                          <Preview value={event.reason} fontSize={16} />
+                          {relatedProjects.length > 0 && (
+                            <div className="mt-1">
+                              <span className="font-bold mb-2 block">Related Projects:</span>
+                              <div className="flex flex-wrap gap-2">
+                                {relatedProjects.map(project => {
+                                  const linkInfo = getProjectLink(project);
+
+                                  return linkInfo ? (
+                                    <a
+                                      key={project.id}
+                                      href={linkInfo.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-2 px-3 py-2 bg-base-100 rounded-lg border border-base-300 hover:bg-primary transition-colors cursor-pointer"
+                                      title={`Open ${linkInfo.label}`}
+                                    >
+                                      <div className="flex-1">
+                                        <div className="font-medium text-sm">{project.name}</div>
+                                      </div>
+                                      <linkInfo.icon size={14} />
+                                    </a>
+                                  ) : (
+                                    <div
+                                      key={project.id}
+                                      className="flex items-center gap-2 px-3 py-2 bg-base-100 rounded-lg border border-base-300"
+                                    >
+                                      <div className="flex-1">
+                                        <div className="font-medium text-sm">{project.name}</div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          <hr className="my-8" />
                         </div>
-                        <div>
-                          <span className="font-bold">Amount: </span>
-                          {isERC20 ? tokenSymbol + " " : "Ξ"}
-                          {formatAmount(event.amount)}
-                        </div>
-                        <div>
-                          <span className="font-bold">Reason: </span>
-                          {event.reason}
-                        </div>
-                        <div>
-                          <span className="font-bold">Transaction: </span>
-                          <a
-                            href={`https://etherscan.io/tx/${event.transactionHash}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary underline"
-                          >
-                            {event.transactionHash.slice(0, 10)}...
-                          </a>
-                        </div>
-                        <hr className="my-8" />
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <p>No contributions</p>
@@ -154,56 +197,105 @@ export const EventsModal: React.FC<EventsModalProps> = ({
                   </div>
                 ) : filteredRequestEvents?.length > 0 ? (
                   <div className="flex flex-col">
-                    {filteredRequestEvents?.map(event => (
-                      <div key={event.id} className="flex flex-col">
-                        <div>
-                          <span className="font-bold">Date: </span>
-                          {formatDate(event.requestTime)}
-                        </div>
-                        <div>
-                          <span className="font-bold">Amount: </span>
-                          {isERC20 ? tokenSymbol + " " : "Ξ"}
-                          {formatAmount(event.amount)}
-                        </div>
-                        <div>
-                          <span className="font-bold">Reason: </span>
-                          {event.reason}
-                        </div>
-                        <div>
-                          <span className="font-bold">Status: </span>
-                          <span className={`badge ${getStatusBadgeClass(event.status)}`}>
-                            {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-                          </span>
-                        </div>
-                        {isAdmin && event.status.toLowerCase() === "pending" && (
-                          <div className="flex gap-2 mt-2">
-                            <ApproveWithdrawal
-                              cohortAddress={cohortAddress}
-                              builderAddress={event.builderAddress}
-                              requestId={Number(event.requestId)}
-                              onClose={onClose}
-                            />
-                            <RejectWithdrawal
-                              cohortAddress={cohortAddress}
-                              builderAddress={event.builderAddress}
-                              requestId={Number(event.requestId)}
-                              onClose={onClose}
-                            />
+                    {filteredRequestEvents?.map(event => {
+                      const relatedProjects = getProjectsFromIds(event.projectIds);
+
+                      return (
+                        <div key={event.id} className="flex flex-col">
+                          <div>
+                            <span className="font-bold">Date: </span>
+                            {formatDate(event.requestTime)}
                           </div>
-                        )}
-                        {address?.toLowerCase() === event.builderAddress.toLowerCase() &&
-                          event.status.toLowerCase() === "approved" && (
+                          <div>
+                            <span className="font-bold">Amount: </span>
+                            {isERC20 ? tokenSymbol + " " : "Ξ"}
+                            {formatAmount(event.amount)}
+                          </div>
+                          <div>
+                            <span className="font-bold">Reason: </span>
+                            <Preview value={event.reason} fontSize={16} />
+                          </div>
+
+                          {relatedProjects.length > 0 && (
+                            <div className="mt-1">
+                              <span className="font-bold mb-2 block">Related Projects:</span>
+                              <div className="flex flex-wrap gap-2">
+                                {relatedProjects.map(project => {
+                                  const linkInfo = getProjectLink(project);
+
+                                  return linkInfo ? (
+                                    <a
+                                      key={project.id}
+                                      href={linkInfo.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-2 px-3 py-2 bg-base-100 rounded-lg border border-base-300 hover:bg-primary transition-colors cursor-pointer"
+                                      title={`Open ${linkInfo.label}`}
+                                    >
+                                      <div className="flex-1">
+                                        <div className="font-medium text-sm">{project.name}</div>
+                                      </div>
+                                      <linkInfo.icon size={14} />
+                                    </a>
+                                  ) : (
+                                    <div
+                                      key={project.id}
+                                      className="flex items-center gap-2 px-3 py-2 bg-base-100 rounded-lg border border-base-300"
+                                    >
+                                      <div className="flex-1">
+                                        <div className="font-medium text-sm">{project.name}</div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="mt-3">
+                            <span className="font-bold">Status: </span>
+                            <span
+                              className={`badge ${
+                                event.status === "Completed"
+                                  ? "badge-success"
+                                  : event.status === "Approved"
+                                    ? "badge-info"
+                                    : "badge-warning"
+                              }`}
+                            >
+                              {event.status}
+                            </span>
+                          </div>
+                          {isAdmin && event.status.toLowerCase() === "pending" && (
                             <div className="flex gap-2 mt-2">
-                              <CompleteWithdrawal
+                              <ApproveWithdrawal
                                 cohortAddress={cohortAddress}
+                                builderAddress={event.builderAddress}
+                                requestId={Number(event.requestId)}
+                                onClose={onClose}
+                              />
+                              <RejectWithdrawal
+                                cohortAddress={cohortAddress}
+                                builderAddress={event.builderAddress}
                                 requestId={Number(event.requestId)}
                                 onClose={onClose}
                               />
                             </div>
                           )}
-                        <hr className="my-8" />
-                      </div>
-                    ))}
+                          {address?.toLowerCase() === event.builderAddress.toLowerCase() &&
+                            event.status.toLowerCase() === "approved" && (
+                              <div className="flex gap-2 mt-2">
+                                <CompleteWithdrawal
+                                  cohortAddress={cohortAddress}
+                                  requestId={Number(event.requestId)}
+                                  onClose={onClose}
+                                />
+                              </div>
+                            )}
+                          <hr className="my-8" />
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <p>No requests</p>

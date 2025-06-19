@@ -6,7 +6,7 @@
 const source = `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-// Sources flattened with hardhat v2.22.18 https://hardhat.org
+// Sources flattened with hardhat v2.24.2 https://hardhat.org
 
 
 // File @openzeppelin/contracts/token/ERC20/IERC20.sol@v4.6.0

@@ -532,6 +532,12 @@ export const CohortAbi = [
         "internalType": "string",
         "name": "reason",
         "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string[]",
+        "name": "projectIds",
+        "type": "string[]"
       }
     ],
     "name": "Withdraw",
@@ -626,6 +632,12 @@ export const CohortAbi = [
         "internalType": "string",
         "name": "reason",
         "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string[]",
+        "name": "projectIds",
+        "type": "string[]"
       }
     ],
     "name": "WithdrawRequested",
@@ -1123,6 +1135,11 @@ export const CohortAbi = [
         "internalType": "string",
         "name": "_reason",
         "type": "string"
+      },
+      {
+        "internalType": "string[]",
+        "name": "_projectIds",
+        "type": "string[]"
       }
     ],
     "name": "streamWithdraw",

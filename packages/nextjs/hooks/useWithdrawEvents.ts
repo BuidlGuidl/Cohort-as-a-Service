@@ -11,6 +11,7 @@ export type WithdrawalEvent = {
   builderAddress: string;
   amount: string;
   reason: string;
+  projectIds: string[];
   timestamp: string;
   transactionHash: string;
   blockNumber: number;
@@ -29,6 +30,7 @@ export type WithdrawalRequest = {
   requestId: string;
   amount: string;
   reason: string;
+  projectIds: string[];
   status: string;
   requestTime: string;
   blockNumber: number;
@@ -52,6 +54,7 @@ const WITHDRAW_EVENTS_QUERY = gql`
         builderAddress
         amount
         reason
+        projectIds
         timestamp
         transactionHash
         blockNumber
@@ -70,6 +73,7 @@ const WITHDRAW_REQUESTS_QUERY = gql`
         requestId
         amount
         reason
+        projectIds
         status
         requestTime
         blockNumber
@@ -139,7 +143,7 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
               requestId: BigInt(event.requestId),
             },
           };
-        } catch (err) {
+        } catch {
           return {
             ...event,
             completed: false,

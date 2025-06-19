@@ -6,7 +6,7 @@
 const source = `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-// Sources flattened with hardhat v2.22.18 https://hardhat.org
+// Sources flattened with hardhat v2.24.2 https://hardhat.org
 
 
 // File @openzeppelin/contracts/access/IAccessControl.sol@v4.6.0
@@ -978,7 +978,7 @@ abstract contract ReentrancyGuard {
 abstract contract CohortEvents {
     // Core events
     event FundsReceived(address indexed from, uint256 amount);
-    event Withdraw(address indexed to, uint256 amount, string reason);
+    event Withdraw(address indexed to, uint256 amount, string reason, string[] projectIds);
     event AddBuilder(address indexed to, uint256 amount);
     event UpdateBuilder(address indexed to, uint256 amount);
     event AdminAdded(address indexed to);
@@ -990,7 +990,7 @@ abstract contract CohortEvents {
     event AllowApplicationsChanged(bool allowApplications);
 
     // Withdrawal request events
-    event WithdrawRequested(address indexed builder, uint256 requestId, uint256 amount, string reason);
+    event WithdrawRequested(address indexed builder, uint256 requestId, uint256 amount, string reason, string[] projectIds);
     event WithdrawApproved(address indexed builder, uint256 requestId);
     event WithdrawRejected(address indexed builder, uint256 requestId);
     event WithdrawCompleted(address indexed builder, uint256 requestId, uint256 amount);
@@ -1020,6 +1020,7 @@ interface ICohortStructs {
         bool approved;
         bool completed;
         uint256 requestTime;
+        string[] projectIds;
     }
 
     // Custom errors
@@ -1418,7 +1419,7 @@ abstract contract CohortAdmin is CohortBase {
         request.completed = true;
 
         emit WithdrawCompleted(_builder, _requestId, request.amount);
-        emit Withdraw(_builder, request.amount, request.reason);
+        emit Withdraw(_builder, request.amount, request.reason, request.projectIds);
     }
 
     /**
@@ -1606,7 +1607,11 @@ abstract contract CohortWithdrawal is CohortBuilderManager {
      * @param _amount Amount to withdraw
      * @param _reason Reason for withdrawal
      */
-    function _requestWithdraw(uint256 _amount, string memory _reason) private noPendingRequests(msg.sender) {
+    function _requestWithdraw(
+        uint256 _amount,
+        string memory _reason,
+        string[] memory _projectIds
+    ) private noPendingRequests(msg.sender) {
         // Check if the builder has enough unlocked to withdraw
         uint256 totalAmountCanWithdraw = unlockedBuilderAmount(msg.sender);
         if (totalAmountCanWithdraw < _amount) {
@@ -1620,12 +1625,13 @@ abstract contract CohortWithdrawal is CohortBuilderManager {
                 reason: _reason,
                 approved: false,
                 completed: false,
-                requestTime: block.timestamp
+                requestTime: block.timestamp,
+                projectIds: _projectIds
             })
         );
 
         uint256 requestId = withdrawRequests[msg.sender].length - 1;
-        emit WithdrawRequested(msg.sender, requestId, _amount, _reason);
+        emit WithdrawRequested(msg.sender, requestId, _amount, _reason, _projectIds);
     }
 
     /**
@@ -1635,10 +1641,11 @@ abstract contract CohortWithdrawal is CohortBuilderManager {
      */
     function streamWithdraw(
         uint256 _amount,
-        string memory _reason
+        string memory _reason,
+        string[] memory _projectIds
     ) public isStreamActive(msg.sender) nonReentrant isCohortLocked {
         if (requiresApproval[msg.sender]) {
-            _requestWithdraw(_amount, _reason);
+            _requestWithdraw(_amount, _reason, _projectIds);
             return;
         }
 
@@ -1648,7 +1655,7 @@ abstract contract CohortWithdrawal is CohortBuilderManager {
             _processStreamWithdraw(msg.sender, _amount);
         }
 
-        emit Withdraw(msg.sender, _amount, _reason);
+        emit Withdraw(msg.sender, _amount, _reason, _projectIds);
     }
 }
 

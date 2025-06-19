@@ -17,7 +17,7 @@ interface SearchPageProps {
 }
 
 const SearchPage = ({ searchParams }: SearchPageProps) => {
-  const { isLoading, combinedCohorts: allMyCohorts } = useFilteredCohorts({ ...searchParams });
+  const { isLoading, cohorts: allMyCohorts } = useFilteredCohorts({ ...searchParams });
   const { address } = useAccount();
 
   return (
