@@ -39,7 +39,13 @@ const CreateCohortForm = () => {
 
   const currentChainCurrencies = chainId ? currencies[chainId]?.contracts || [] : [];
 
+  const [currencyName, setCurrencyName] = useState(
+    currentChainCurrencies.length > 0 ? currentChainCurrencies[0].name : "ETH",
+  );
+
   const initialCurrency = currentChainCurrencies.length > 0 ? currentChainCurrencies[0].address : "";
+
+  const [selectedCurrency, setSelectedCurrency] = useState<string>(initialCurrency);
 
   const { data: localDeployedContract } = useLocalDeployedContractInfo({ contractName: "Cohort" });
 
@@ -61,8 +67,6 @@ const CreateCohortForm = () => {
     mode: "onChange",
   });
 
-  const [selectedCurrency, setSelectedCurrency] = useState<string>(initialCurrency);
-
   const { isSubmitting, isValid, errors } = form.formState;
 
   useEffect(() => {
@@ -71,8 +75,8 @@ const CreateCohortForm = () => {
     }
 
     if (currentChainCurrencies.length > 0 && !selectedCurrency) {
-      const defaultCurrency = currentChainCurrencies[0].address;
-      handleCurrencySelect(defaultCurrency);
+      const defaultCurrency = currentChainCurrencies[0];
+      handleCurrencySelect(defaultCurrency.address, defaultCurrency.name);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address, chainId, currentChainCurrencies, form, selectedCurrency]);
@@ -106,8 +110,9 @@ const CreateCohortForm = () => {
     }
   };
 
-  const handleCurrencySelect = (address: string) => {
+  const handleCurrencySelect = (address: string, name: string) => {
     setSelectedCurrency(address);
+    setCurrencyName(name);
     form.setValue("currencyAddress", address, {
       shouldValidate: true,
       shouldDirty: true,
@@ -242,6 +247,25 @@ const CreateCohortForm = () => {
     }
   };
 
+  useEffect(() => {
+    if (!showCustomCurrencyInput) return;
+
+    const fetchSymbol = async () => {
+      try {
+        const symbol = await readContract(wagmiConfig, {
+          address: selectedCurrency,
+          abi: erc20Abi,
+          functionName: "symbol",
+        });
+        setCurrencyName(symbol);
+      } catch (error) {
+        console.error("Failed to fetch currency symbol:", error);
+      }
+    };
+
+    fetchSymbol();
+  }, [selectedCurrency, showCustomCurrencyInput]);
+
   return (
     <div className="p-4">
       <div>
@@ -273,7 +297,7 @@ const CreateCohortForm = () => {
 
           <div className="form-control w-full">
             <label className="label">
-              <span className="label-text font-medium">Description</span>
+              <span className="label-text font-medium">Description (optional)</span>
             </label>
 
             <textarea
@@ -333,7 +357,7 @@ const CreateCohortForm = () => {
                   key={currency.address}
                   type="button"
                   className={`btn btn-sm rounded-md ${selectedCurrency === currency.address ? "btn-primary" : "btn-outline"}`}
-                  onClick={() => handleCurrencySelect(currency.address)}
+                  onClick={() => handleCurrencySelect(currency.address, currency.name)}
                 >
                   {currency.name}
                 </button>
@@ -498,21 +522,28 @@ const CreateCohortForm = () => {
                     )}
                   </div>
                   <div className="flex-grow md:w-[25%] w-full">
-                    <input
-                      className="input input-sm rounded-md input-bordered border border-base-300 w-full"
-                      placeholder="Enter stream cap"
-                      type="number"
-                      step="any"
-                      {...form.register(`builderCaps.${index}`, {
-                        valueAsNumber: true,
-                        onChange: e => {
-                          const value = e.target.value;
-                          form.setValue(`builderCaps.${index}`, value, {
-                            shouldValidate: true,
-                          });
-                        },
-                      })}
-                    />
+                    <div className="relative w-full">
+                      <input
+                        className="input input-sm rounded-md input-bordered border border-base-300 w-full pr-16" // add right padding for suffix
+                        placeholder="Enter stream cap"
+                        type="text"
+                        inputMode="decimal"
+                        pattern="[0-9]*"
+                        {...form.register(`builderCaps.${index}`, {
+                          valueAsNumber: true,
+                          onChange: e => {
+                            const value = e.target.value;
+                            form.setValue(`builderCaps.${index}`, value, {
+                              shouldValidate: true,
+                            });
+                          },
+                        })}
+                      />
+                      <span className="absolute inset-y-0 right-3 flex items-center text-sm text-gray-500">
+                        {currencyName}
+                      </span>
+                    </div>
+
                     {form.formState.errors.builderCaps?.[index] && (
                       <label className="label">
                         <span className="label-text-alt text-error">
