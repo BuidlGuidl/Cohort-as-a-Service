@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { LoadingModal } from "./LoadingModal";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getBytecode, getTransactionReceipt } from "@wagmi/core";
 import { readContract } from "@wagmi/core";
@@ -36,6 +37,10 @@ const CreateCohortForm = () => {
   const [showCustomCurrencyInput, setShowCustomCurrencyInput] = useState(false);
   const [showCustomCycleInput, setShowCustomCycleInput] = useState(false);
   const [selectedCycle, setSelectedCycle] = useState(PREDEFINED_CYCLES[3].value);
+
+  const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
+  const [loadingStage, setLoadingStage] = useState(0);
+  const [isLoadingError, setIsLoadingError] = useState(false);
 
   const currentChainCurrencies = chainId ? currencies[chainId]?.contracts || [] : [];
 
@@ -160,7 +165,23 @@ const CreateCohortForm = () => {
     });
   };
 
+  const handleLoadingClose = () => {
+    setIsLoadingModalOpen(false);
+    setIsLoadingError(false);
+    setLoadingStage(0);
+  };
+
+  const handleLoadingRetry = () => {
+    setIsLoadingError(false);
+    setLoadingStage(0);
+    form.handleSubmit(onSubmit)();
+  };
+
   const onSubmit = async (values: z.infer<typeof CreateCohortSchema>) => {
+    setIsLoadingModalOpen(true);
+    setIsLoadingError(false);
+    setLoadingStage(0);
+
     try {
       const filteredAddresses = values.builderAddresses.filter(addr => addr !== "");
       const filteredCaps = values.builderCaps.filter((_, index) => values.builderAddresses[index] !== "");
@@ -198,6 +219,8 @@ const CreateCohortForm = () => {
         value: parseEther(costWithAllowance),
       });
 
+      setLoadingStage(1);
+
       const receipt = await getTransactionReceipt(wagmiConfig, {
         hash: hash as `0x${string}`,
       });
@@ -234,6 +257,8 @@ const CreateCohortForm = () => {
         console.error("Contract verification failed:", verifyError);
       }
 
+      setLoadingStage(2);
+
       await axios.post(`/api/cohort`, {
         deployedAddress,
         adminAddress: values.adminAddress,
@@ -241,9 +266,14 @@ const CreateCohortForm = () => {
         builderAddresses: filteredAddresses,
         builderGithubUsernames: filteredGithubUsernames,
       });
-      router.push(`/cohort/${deployedAddress}`);
+
+      setTimeout(() => {
+        setIsLoadingModalOpen(false);
+        router.push(`/cohort/${deployedAddress}`);
+      }, 5000);
     } catch (e) {
       console.error("Error creating cohort", e);
+      setIsLoadingError(true);
     }
   };
 
@@ -268,6 +298,14 @@ const CreateCohortForm = () => {
 
   return (
     <div className="p-4">
+      <LoadingModal
+        isOpen={isLoadingModalOpen}
+        stage={loadingStage}
+        isError={isLoadingError}
+        onClose={handleLoadingClose}
+        onRetry={handleLoadingRetry}
+      />
+
       <div>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="form-control w-full">
