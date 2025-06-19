@@ -83,7 +83,7 @@ ponder.on("Cohort:AdminRemoved", async ({ event, context }) => {
 });
 
 ponder.on("Cohort:Withdraw", async ({ event, context }) => {
-  const { to: builderAddress, amount, reason } = event.args;
+  const { to: builderAddress, amount, reason, projectIds } = event.args;
   const cohortAddress = event.log.address.toLowerCase();
 
   await context.db.insert(withdrawEvent).values({
@@ -92,6 +92,7 @@ ponder.on("Cohort:Withdraw", async ({ event, context }) => {
     builderAddress: builderAddress.toLowerCase() as `0x${string}`,
     amount,
     reason,
+    projectIds: [...projectIds],
     timestamp: event.block.timestamp,
     transactionHash: event.transaction.hash,
     blockNumber: event.block.number,
@@ -99,7 +100,13 @@ ponder.on("Cohort:Withdraw", async ({ event, context }) => {
 });
 
 ponder.on("Cohort:WithdrawRequested", async ({ event, context }) => {
-  const { builder: builderAddress, requestId, amount, reason } = event.args;
+  const {
+    builder: builderAddress,
+    requestId,
+    amount,
+    reason,
+    projectIds,
+  } = event.args;
   const cohortAddress = event.log.address.toLowerCase();
 
   await context.db.insert(withdrawRequest).values({
@@ -109,6 +116,7 @@ ponder.on("Cohort:WithdrawRequested", async ({ event, context }) => {
     requestId,
     amount,
     reason,
+    projectIds: [...projectIds],
     status: "pending",
     requestTime: event.block.timestamp,
     blockNumber: event.block.number,

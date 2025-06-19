@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Application } from "@prisma/client";
 import { useAccount } from "wagmi";
+import { Preview } from "~~/components/preview";
 import { RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 
 interface ApplicationListProps {
@@ -55,13 +56,15 @@ export const ApplicationList = ({ applications }: ApplicationListProps) => {
             <div className="space-y-4">
               <h3 className="text-xl font-bold">Your Applications</h3>
               {userApplications.map(application => (
-                <div key={application.id} className="border border-base-300 rounded-md p-4">
+                <div key={application.id} className="border border-base-300 rounded-md p-4 text-xs text-gray-400">
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-sm ">{application.description}</span>
+                    <div>
+                      Description: <Preview value={application.description} fontSize={12} />
+                    </div>
                     {formatStatus(application.status)}
                   </div>
                   {application.githubUsername && (
-                    <p className="text-xs text-gray-400">
+                    <p>
                       GitHub:{" "}
                       <a
                         href={`https://github.com/${application.githubUsername}`}
@@ -73,8 +76,12 @@ export const ApplicationList = ({ applications }: ApplicationListProps) => {
                       </a>
                     </p>
                   )}
-                  {application.note && <p className="text-xs text-gray-400">Note: {application.note}</p>}
-                  <p className="text-xs text-gray-400 mt-2">Submitted on {formatDate(application.createdAt)}</p>
+                  {application.note && (
+                    <div>
+                      Note: <Preview value={application.note} fontSize={12} />
+                    </div>
+                  )}
+                  <p className="mt-2">Submitted on {formatDate(application.createdAt)}</p>
                 </div>
               ))}
             </div>
