@@ -7,7 +7,6 @@ interface NotificationBellProps {
 }
 
 export const NotificationBell: React.FC<NotificationBellProps> = ({ count, onClick, variant = "warning" }) => {
-  // Map variant to colors
   const bellColor = {
     warning: "text-warning",
     info: "text-info",

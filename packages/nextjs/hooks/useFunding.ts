@@ -72,7 +72,6 @@ export const useFunding = ({
     }
 
     if (isErc20 && tokenAddress) {
-      // Format amount according to token decimals
       const approvalAmount = formatAmount(amount, "approve");
 
       const { request } = await simulateContract(wagmiConfig, {
@@ -110,7 +109,6 @@ export const useFunding = ({
 
     if (cohort && cohortAddress) {
       try {
-        // Format amount according to token decimals for ERC20 tokens
         const fundAmount = isErc20 ? formatAmount(amount, "fund") : BigInt(0);
 
         console.log(fundAmount);
@@ -149,7 +147,6 @@ export const useFunding = ({
             args: [address, cohortAddress],
           });
 
-          // Format based on token decimals
           const decimals = tokenDecimals || 18;
           const divisor = 10n ** BigInt(decimals);
           const formatted = Number(data) / Number(divisor);
@@ -176,7 +173,6 @@ export const useFunding = ({
             args: [address],
           });
 
-          // Format based on token decimals
           const decimals = tokenDecimals || 18;
           const divisor = 10n ** BigInt(decimals);
           const formatted = Number(data) / Number(divisor);
@@ -196,7 +192,6 @@ export const useFunding = ({
         setTokenName("");
         setIsLoading(true);
         try {
-          // Fetch token metadata
           const symbolPromise = readContract(wagmiConfig, {
             address: tokenAddress,
             abi: erc20Abi,
@@ -209,7 +204,6 @@ export const useFunding = ({
             functionName: "name",
           });
 
-          // Resolve promises in parallel
           const [symbol, name] = await Promise.all([symbolPromise, namePromise]);
 
           setTokenSymbol(symbol);

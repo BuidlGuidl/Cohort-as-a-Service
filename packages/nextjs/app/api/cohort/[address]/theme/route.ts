@@ -32,13 +32,11 @@ export async function POST(req: Request, { params }: { params: { address: string
       return new NextResponse("Missing required fields", { status: 400 });
     }
 
-    // Recover signer address from signature
     const signerAddress = await recoverMessageAddress({
       message,
       signature,
     });
 
-    // Find cohort
     const cohort = await db.cohort.findUnique({
       where: {
         address: params.address.toLowerCase(),
