@@ -550,8 +550,8 @@ const CreateCohortForm = () => {
                   </div>
                 </div>
               ))}
-              <button type="button" className="btn btn-primary btn-sm rounded-md mt-4" onClick={handleAddBuilder}>
-                <Plus className="h-4 w-4 mr-5" /> Add Builder
+              <button type="button" className="btn btn-primary btn-sm rounded-md mt-2 ml-4" onClick={handleAddBuilder}>
+                <Plus className="h-4 w-4 mr-1" /> Add Builder
               </button>
             </div>
           </div>
