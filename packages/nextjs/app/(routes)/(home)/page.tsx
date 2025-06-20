@@ -68,7 +68,7 @@ const Home: NextPage = () => {
                   </li>
                   <li className="flex items-start">
                     <span className="text-primary mr-2">•</span>
-                    Builders withdraw once and only once
+                    Builders are only allowed one withdraw
                   </li>
                 </ul>
               </div>
