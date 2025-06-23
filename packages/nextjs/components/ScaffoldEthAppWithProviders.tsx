@@ -23,8 +23,7 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
         className={`flex flex-col min-h-screen h-screen w-screen bg-base-100 overflow-x-hidden ${shareTechMono.className}`}
       >
         <Header />
-
-        <main className="relative flex flex-col flex-1 pt-[60px] w-full px-2">
+        <main className="relative flex flex-col flex-1  w-full px-2">
           <div>{children}</div>
         </main>
         <Footer />

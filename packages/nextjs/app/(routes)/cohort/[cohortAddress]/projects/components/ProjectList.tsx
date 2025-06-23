@@ -45,7 +45,7 @@ export const ProjectList = ({ projects, cohortAddress }: ProjectListProps) => {
               {isAdmin && <ProjectActions project={project} />}
             </div>
             <p className="text-white mt-1">{project.description}</p>
-            <div className="flex -mt-3 ">
+            <div className="flex -mt-3 gap-2">
               {project.githubUrl && (
                 <Link
                   href={project.githubUrl}

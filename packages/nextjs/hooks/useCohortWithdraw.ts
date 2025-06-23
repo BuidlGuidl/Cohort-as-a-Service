@@ -14,6 +14,7 @@ interface useCohortWithdrawProps {
   amount: string;
   isErc20?: boolean;
   tokenDecimals?: number;
+  selectedProjects?: string[];
 }
 
 export const useCohortWithdraw = ({
@@ -22,6 +23,7 @@ export const useCohortWithdraw = ({
   reason,
   isErc20,
   tokenDecimals,
+  selectedProjects = [],
 }: useCohortWithdrawProps) => {
   const { chain, chainId } = useAccount();
   const { targetNetwork } = useTargetNetwork();
@@ -46,7 +48,7 @@ export const useCohortWithdraw = ({
             abi: cohort.abi,
             address: cohortAddress,
             functionName: "streamWithdraw",
-            args: [isErc20 ? parseUnits(amount, tokenDecimals || 18) : parseEther(amount), reason],
+            args: [isErc20 ? parseUnits(amount, tokenDecimals || 18) : parseEther(amount), reason, selectedProjects],
           });
 
         await writeTx(makeWriteWithParams);

@@ -6,6 +6,7 @@ import { Application } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useAccount } from "wagmi";
+import { Preview } from "~~/components/preview";
 import { Address, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useCohortData } from "~~/hooks/useCohortData";
 
@@ -50,12 +51,18 @@ export const AdminApplicationList = ({
     const isLong = description.length > 150;
 
     if (!isLong) {
-      return <div className="text-sm">{description}</div>;
+      return (
+        <div className="text-sm ">
+          <Preview value={description} />
+        </div>
+      );
     }
 
     return (
       <div className="space-y-2">
-        <div className={`text-sm ${isExpanded ? "" : "line-clamp-3"}`}>{description}</div>
+        <div className={`text-sm ${isExpanded ? "" : "max-h-4 overflow-hidden"}`}>
+          <Preview value={description} />
+        </div>
         <button onClick={() => toggleDescription(id)} className="btn btn-xs btn-ghost flex items-center gap-1">
           {isExpanded ? (
             <>

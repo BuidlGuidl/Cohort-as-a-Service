@@ -7,7 +7,7 @@ import { BuildersList } from "./_components/BuildersList";
 import { StreamContractInfo } from "./_components/StreamContractInfo";
 import { ThemeCustomizer } from "./_components/ThemeCustomizer";
 import { EventsModal } from "./members/_components/EventsModal";
-import { Application, Builder, Cohort } from "@prisma/client";
+import { Application, Builder, Cohort, Project } from "@prisma/client";
 import axios from "axios";
 import { useAccount } from "wagmi";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
@@ -18,6 +18,7 @@ import { useWithdrawEvents } from "~~/hooks/useWithdrawEvents";
 type CohortWithBuilder = Cohort & {
   Builder: Builder[];
   Application: Application[];
+  Project: Project[];
 };
 
 const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
@@ -102,15 +103,14 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
   };
 
   return (
-    <div className="max-w-4xl text-base-content px-4 sm:px-6 lg:px-8">
+    <div className="max-w-4xl text-base-content px-4 sm:px-6 lg:px-8 mt-8">
       {isAdmin && (
-        <Link href="/cohorts" className="btn btn-ghost btn-sm rounded-sm">
+        <Link href="/cohorts" className="btn btn-ghost btn-sm rounded-sm mb-5">
           <ArrowLongLeftIcon className="w-7 h-4" />
           My cohorts
         </Link>
       )}
-
-      <div className="mt-8">
+      <div>
         <h1 className="text-4xl font-bold mb-8 text-primary-content bg-primary inline-block p-2">Cohort</h1>
         <h2 className="text-2xl font-bold">{name}</h2>
         <p className="mt-0">{description}</p>
@@ -183,6 +183,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         cycle={cycle ?? 0}
         requiresApproval={requiresApproval ?? false}
         allowApplications={allowApplications ?? false}
+        projects={dbCohort?.Project}
       />
 
       <EventsModal
@@ -199,6 +200,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         isLoadingRequests={isLoadingRequests}
         isAdmin={isAdmin ?? false}
         cohortAddress={params.cohortAddress}
+        projects={dbCohort?.Project}
       />
 
       <ThemeCustomizer cohortAddress={params.cohortAddress} isAdmin={isAdmin ?? false} />

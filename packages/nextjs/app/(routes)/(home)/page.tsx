@@ -9,7 +9,7 @@ const Home: NextPage = () => {
   const { address } = useAccount();
   return (
     <>
-      <div className="flex flex-col flex-grow pt-10 max-w-4xl mx-auto">
+      <div className="flex flex-col flex-grow pt-10 max-w-4xl mx-auto mt-8">
         <div>
           <h1>
             <span className="block text-3xl font-semibold">The Cohort Launchpod for Everyone</span>

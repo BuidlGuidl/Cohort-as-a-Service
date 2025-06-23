@@ -19,6 +19,7 @@ interface ICohortStructs {
         bool approved;
         bool completed;
         uint256 requestTime;
+        string[] projectIds;
     }
 
     // Custom errors

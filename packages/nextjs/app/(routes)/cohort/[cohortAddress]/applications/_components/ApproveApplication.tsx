@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, X } from "lucide-react";
+import { Editor } from "~~/components/editor";
+import { Preview } from "~~/components/preview";
 import { AddressInput, EtherInput } from "~~/components/scaffold-eth";
 import { useApproveApplication } from "~~/hooks/useApproveApplication";
 import { useRejectApplication } from "~~/hooks/useRejectApplication";
@@ -27,7 +29,12 @@ export const ApproveApplication = ({
   const router = useRouter();
   const [isPendingReject, setIsPendingReject] = useState(false);
   const [cap, setCap] = useState<string>("");
-  const [note, setNote] = useState<string>("");
+  const [approveNote, setApproveNote] = useState("");
+  const [rejectNote, setRejectNote] = useState("");
+
+  // Preview states for both modals
+  const [isApproveNotePreviewing, setIsApproveNotePreviewing] = useState(false);
+  const [isRejectNotePreviewing, setIsRejectNotePreviewing] = useState(false);
 
   const {
     approveApplication,
@@ -41,13 +48,13 @@ export const ApproveApplication = ({
     tokenDecimals,
     applicationId,
     githubUsername,
-    note,
+    note: approveNote,
   });
 
   const { rejectApplication, isSuccess: isRejectSuccess } = useRejectApplication({
     applicationId,
     cohortAddress,
-    note,
+    note: rejectNote,
   });
 
   const handleApprove = () => {
@@ -57,7 +64,7 @@ export const ApproveApplication = ({
     }
   };
 
-  const OpenRejectModal = () => {
+  const openRejectModal = () => {
     const modalCheckbox = document.getElementById("reject-builder-modal") as HTMLInputElement;
     if (modalCheckbox) {
       modalCheckbox.checked = true;
@@ -77,10 +84,23 @@ export const ApproveApplication = ({
 
   useEffect(() => {
     if (isSuccessApprove || isRejectSuccess) {
-      const modalCheckbox = document.getElementById("approve-builder-modal") as HTMLInputElement;
-      if (modalCheckbox) {
-        modalCheckbox.checked = false;
+      // Close both modals
+      const approveModalCheckbox = document.getElementById("approve-builder-modal") as HTMLInputElement;
+      const rejectModalCheckbox = document.getElementById("reject-builder-modal") as HTMLInputElement;
+
+      if (approveModalCheckbox) {
+        approveModalCheckbox.checked = false;
       }
+      if (rejectModalCheckbox) {
+        rejectModalCheckbox.checked = false;
+      }
+
+      // Reset states
+      setCap("");
+      setApproveNote("");
+      setRejectNote("");
+      setIsApproveNotePreviewing(false);
+      setIsRejectNotePreviewing(false);
 
       router.refresh();
     }
@@ -96,16 +116,16 @@ export const ApproveApplication = ({
         )}
       </button>
 
-      <button className="btn btn-xs btn-error" onClick={OpenRejectModal}>
+      <button className="btn btn-xs btn-error" onClick={openRejectModal}>
         {isPendingReject ? <span className="loading loading-spinner loading-xs"></span> : <X className="h-3 w-3" />}
       </button>
 
       {/* Modal for approving builder */}
       <input type="checkbox" id="approve-builder-modal" className="modal-toggle" />
-      <label htmlFor="approve-builder-modal" className="modal cursor-pointer">
-        <label className="modal-box relative bg-base-100 border border-primary">
+      <div className="modal">
+        <div className="modal-box relative bg-base-100 border border-primary max-w-2xl">
           <input className="h-0 w-0 absolute top-0 left-0" />
-          <p className="font-bold mb-6 flex items-center gap-1">Approve Builder</p>
+          <div className="font-bold mb-4 flex items-center gap-1">Approve Builder</div>
           <label htmlFor="approve-builder-modal" className="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">
             ✕
           </label>
@@ -127,6 +147,7 @@ export const ApproveApplication = ({
                   type="text"
                   className="input input-sm rounded-md input-bordered border border-base-300 bg-transparent"
                   value={githubUsername}
+                  readOnly
                 />
               </div>
             )}
@@ -142,29 +163,52 @@ export const ApproveApplication = ({
                   type="number"
                   onChange={e => setCap(e.target.value.toString())}
                   value={cap}
+                  disabled={isPendingApprove}
                 />
               ) : (
                 <EtherInput
                   value={cap}
                   onChange={value => setCap(value?.toString() || "")}
                   placeholder="Enter stream cap"
+                  disabled={isPendingApprove}
                 />
               )}
             </div>
 
-            <div className="form-control">
+            <div className="form-control w-full">
               <label className="label">
                 <span className="label-text font-medium">Note (optional)</span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className={`btn btn-xs ${!isApproveNotePreviewing ? "btn-primary" : "btn-ghost"}`}
+                    onClick={() => setIsApproveNotePreviewing(false)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn btn-xs ${isApproveNotePreviewing ? "btn-primary" : "btn-ghost"}`}
+                    onClick={() => setIsApproveNotePreviewing(true)}
+                  >
+                    Preview
+                  </button>
+                </div>
               </label>
 
-              <textarea
-                className="textarea textarea-sm rounded-md input-bordered border border-base-300 w-full h-36 bg-base-100"
-                placeholder="Add a note "
-                onChange={e => {
-                  setNote((e.target as HTMLTextAreaElement).value);
-                }}
-                value={note}
-              />
+              <div className="rounded-md">
+                {isApproveNotePreviewing ? (
+                  <div className="p-4">
+                    {approveNote && approveNote !== "<p><br></p>" ? (
+                      <Preview value={approveNote} />
+                    ) : (
+                      <p className="text-base-content/60 italic">Nothing to preview yet...</p>
+                    )}
+                  </div>
+                ) : (
+                  <Editor value={approveNote} onChange={setApproveNote} />
+                )}
+              </div>
             </div>
 
             <button
@@ -175,32 +219,54 @@ export const ApproveApplication = ({
               {isPendingApprove ? "Processing..." : "Approve Builder"}
             </button>
           </div>
-        </label>
-      </label>
+        </div>
+      </div>
 
+      {/* Modal for rejecting builder */}
       <input type="checkbox" id="reject-builder-modal" className="modal-toggle" />
-      <label htmlFor="reject-builder-modal" className="modal cursor-pointer">
-        <label className="modal-box relative bg-base-100 border border-primary">
+      <div className="modal">
+        <div className="modal-box relative bg-base-100 border border-primary max-w-2xl">
           <input className="h-0 w-0 absolute top-0 left-0" />
-          <p className="font-bold mb-6 flex items-center gap-1">Reject Application</p>
+          <div className="font-bold mb-4 flex items-center gap-1">Reject Application</div>
           <label htmlFor="reject-builder-modal" className="btn btn-ghost btn-sm btn-circle absolute right-3 top-3">
             ✕
           </label>
 
           <div className="space-y-4">
-            <div className="form-control">
+            <div className="form-control w-full">
               <label className="label">
                 <span className="label-text font-medium">Note (optional)</span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className={`btn btn-xs ${!isRejectNotePreviewing ? "btn-primary" : "btn-ghost"}`}
+                    onClick={() => setIsRejectNotePreviewing(false)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn btn-xs ${isRejectNotePreviewing ? "btn-primary" : "btn-ghost"}`}
+                    onClick={() => setIsRejectNotePreviewing(true)}
+                  >
+                    Preview
+                  </button>
+                </div>
               </label>
 
-              <textarea
-                className="textarea textarea-sm rounded-md input-bordered border border-base-300 w-full h-36 bg-base-100"
-                placeholder="Reason for rejection"
-                onChange={e => {
-                  setNote((e.target as HTMLTextAreaElement).value);
-                }}
-                value={note}
-              />
+              <div className="rounded-md">
+                {isRejectNotePreviewing ? (
+                  <div className="p-4">
+                    {rejectNote && rejectNote !== "<p><br></p>" ? (
+                      <Preview value={rejectNote} />
+                    ) : (
+                      <p className="text-base-content/60 italic">Nothing to preview yet...</p>
+                    )}
+                  </div>
+                ) : (
+                  <Editor value={rejectNote} onChange={setRejectNote} />
+                )}
+              </div>
             </div>
 
             <button
@@ -208,11 +274,11 @@ export const ApproveApplication = ({
               onClick={handleReject}
               disabled={isPendingApprove || isPendingReject}
             >
-              {isPendingApprove ? "Processing..." : "Reject Application"}
+              {isPendingReject ? "Processing..." : "Reject Application"}
             </button>
           </div>
-        </label>
-      </label>
+        </div>
+      </div>
     </div>
   );
 };

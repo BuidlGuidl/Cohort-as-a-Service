@@ -15,7 +15,11 @@ abstract contract CohortWithdrawal is CohortBuilderManager {
      * @param _amount Amount to withdraw
      * @param _reason Reason for withdrawal
      */
-    function _requestWithdraw(uint256 _amount, string memory _reason) private noPendingRequests(msg.sender) {
+    function _requestWithdraw(
+        uint256 _amount,
+        string memory _reason,
+        string[] memory _projectIds
+    ) private noPendingRequests(msg.sender) {
         // Check if the builder has enough unlocked to withdraw
         uint256 totalAmountCanWithdraw = unlockedBuilderAmount(msg.sender);
         if (totalAmountCanWithdraw < _amount) {
@@ -29,12 +33,13 @@ abstract contract CohortWithdrawal is CohortBuilderManager {
                 reason: _reason,
                 approved: false,
                 completed: false,
-                requestTime: block.timestamp
+                requestTime: block.timestamp,
+                projectIds: _projectIds
             })
         );
 
         uint256 requestId = withdrawRequests[msg.sender].length - 1;
-        emit WithdrawRequested(msg.sender, requestId, _amount, _reason);
+        emit WithdrawRequested(msg.sender, requestId, _amount, _reason, _projectIds);
     }
 
     /**
@@ -44,10 +49,11 @@ abstract contract CohortWithdrawal is CohortBuilderManager {
      */
     function streamWithdraw(
         uint256 _amount,
-        string memory _reason
+        string memory _reason,
+        string[] memory _projectIds
     ) public isStreamActive(msg.sender) nonReentrant isCohortLocked {
         if (requiresApproval[msg.sender]) {
-            _requestWithdraw(_amount, _reason);
+            _requestWithdraw(_amount, _reason, _projectIds);
             return;
         }
 
@@ -57,6 +63,6 @@ abstract contract CohortWithdrawal is CohortBuilderManager {
             _processStreamWithdraw(msg.sender, _amount);
         }
 
-        emit Withdraw(msg.sender, _amount, _reason);
+        emit Withdraw(msg.sender, _amount, _reason, _projectIds);
     }
 }

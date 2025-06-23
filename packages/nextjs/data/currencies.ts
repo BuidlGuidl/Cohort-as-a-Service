@@ -14,7 +14,7 @@ export const currencies: CurrenciesType = {
     name: "mainnet",
     contracts: [
       {
-        name: "Native (ETH)",
+        name: "ETH",
         address: "0x0000000000000000000000000000000000000000",
       },
       {
@@ -36,7 +36,7 @@ export const currencies: CurrenciesType = {
     name: "optimism",
     contracts: [
       {
-        name: "Native (ETH)",
+        name: "ETH",
         address: "0x0000000000000000000000000000000000000000",
       },
       {
@@ -62,7 +62,7 @@ export const currencies: CurrenciesType = {
     name: "polygon",
     contracts: [
       {
-        name: "Native (MATIC)",
+        name: "MATIC",
         address: "0x0000000000000000000000000000000000000000",
       },
       {
@@ -84,7 +84,7 @@ export const currencies: CurrenciesType = {
     name: "arbitrum",
     contracts: [
       {
-        name: "Native (ETH)",
+        name: "ETH",
         address: "0x0000000000000000000000000000000000000000",
       },
       {
@@ -110,7 +110,7 @@ export const currencies: CurrenciesType = {
     name: "base",
     contracts: [
       {
-        name: "Native (ETH)",
+        name: "ETH",
         address: "0x0000000000000000000000000000000000000000",
       },
       {
@@ -136,7 +136,7 @@ export const currencies: CurrenciesType = {
     name: "scroll",
     contracts: [
       {
-        name: "Native (ETH)",
+        name: "ETH",
         address: "0x0000000000000000000000000000000000000000",
       },
     ],
@@ -146,7 +146,7 @@ export const currencies: CurrenciesType = {
     name: "base-sepolia",
     contracts: [
       {
-        name: "Native (ETH)",
+        name: "ETH",
         address: "0x0000000000000000000000000000000000000000",
       },
     ],
@@ -156,7 +156,7 @@ export const currencies: CurrenciesType = {
     name: "localhost",
     contracts: [
       {
-        name: "Native (ETH)",
+        name: "ETH",
         address: "0x0000000000000000000000000000000000000000",
       },
     ],
@@ -166,7 +166,7 @@ export const currencies: CurrenciesType = {
     name: "op-sepolia",
     contracts: [
       {
-        name: "Native (ETH)",
+        name: "ETH",
         address: "0x0000000000000000000000000000000000000000",
       },
     ],
