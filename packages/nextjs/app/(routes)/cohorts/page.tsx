@@ -21,7 +21,7 @@ const SearchPage = ({ searchParams }: SearchPageProps) => {
   const { address } = useAccount();
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto mt-8">
       <div className="py-3 space-y-4">
         <Chains />
 

@@ -35,7 +35,6 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
     if (!cohorts) return;
     if (!address || cohorts.length < 1 || !deployedContract) {
       setIsLoadingAdmin(false);
-      setIsLoadingBuilder(false);
       return;
     }
 
@@ -85,6 +84,8 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
       return;
     }
 
+    console.log(cohorts);
+
     const fetchBuilderCohorts = async () => {
       setIsLoadingBuilder(true);
       try {
@@ -100,21 +101,19 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
               chainId: cohort.chainId as AllowedChainIds,
             });
 
-            if (builderIndexResult && builderIndexResult !== 0n) {
-              const builderAddress: any = await readContract(wagmiConfig, {
-                address: cohort.address as `0x${string}`,
-                abi: deployedContract?.abi as Abi,
-                functionName: "activeBuilders",
-                args: [builderIndexResult],
-                chainId: cohort.chainId as AllowedChainIds,
-              });
+            const builderAddress: any = await readContract(wagmiConfig, {
+              address: cohort.address as `0x${string}`,
+              abi: deployedContract?.abi as Abi,
+              functionName: "activeBuilders",
+              args: [builderIndexResult],
+              chainId: cohort.chainId as AllowedChainIds,
+            });
 
-              if (address?.toLowerCase() === (builderAddress as string)?.toLowerCase()) {
-                validCohorts.push({
-                  ...cohort,
-                  role: "BUILDER",
-                });
-              }
+            if (address?.toLowerCase() === (builderAddress as string)?.toLowerCase()) {
+              validCohorts.push({
+                ...cohort,
+                role: "BUILDER",
+              });
             }
           } catch (error) {
             console.error(`Error checking builder status for cohort ${cohort.address}:`, error);
@@ -152,7 +151,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
     const combined = Array.from(cohortMap.values()).sort((a, b) => {
       const aTime = parseInt(a.createdAt);
       const bTime = parseInt(b.createdAt);
-      return bTime - aTime; // Newest first
+      return bTime - aTime;
     });
 
     setCombinedCohorts(combined);

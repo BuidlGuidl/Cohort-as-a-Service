@@ -27,7 +27,7 @@ const PREDEFINED_CYCLES = [
   { label: "14 Days", value: 14 },
   { label: "30 Days", value: 30 },
   { label: "One Time Stream", value: 0 },
-  { label: "Custom", value: 1 },
+  { label: "Custom", value: -1 },
 ];
 
 const CreateCohortForm = () => {
@@ -101,17 +101,16 @@ const CreateCohortForm = () => {
   const cycleInSeconds = (cycle: number) => cycle * 24 * 60 * 60;
 
   const handleCycleSelect = (cycle: number, label: string) => {
-    setSelectedCycle(cycle);
-
-    form.setValue("cycle", cycle, {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
-
-    if (label != "Custom") {
-      setShowCustomCycleInput(false);
-    } else {
+    if (label === "Custom") {
+      setSelectedCycle(-1);
       setShowCustomCycleInput(true);
+    } else {
+      setSelectedCycle(cycle);
+      setShowCustomCycleInput(false);
+      form.setValue("cycle", cycle, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
     }
   };
 
@@ -453,19 +452,22 @@ const CreateCohortForm = () => {
             {showCustomCycleInput && (
               <div className="form-control">
                 <input
-                  type="number"
-                  min={1}
-                  value={form.watch("cycle")}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={form.watch("cycle") || ""}
                   className={`input input-sm rounded-md input-bordered border border-base-300 w-full ${errors.cycle ? "input-error" : ""}`}
                   placeholder="Enter cycle days"
                   {...form.register("cycle", {
                     onChange: e => {
                       const value = e.target.value;
-                      form.setValue("cycle", parseFloat(value), {
-                        shouldValidate: true,
-                        shouldDirty: true,
-                      });
-                      setSelectedCycle(parseFloat(value));
+                      const numValue = parseFloat(value);
+                      if (!isNaN(numValue) || value === "") {
+                        form.setValue("cycle", numValue, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        });
+                      }
                     },
                   })}
                 />
@@ -562,7 +564,7 @@ const CreateCohortForm = () => {
                   <div className="flex-grow md:w-[25%] w-full">
                     <div className="relative w-full">
                       <input
-                        className="input input-sm rounded-md input-bordered border border-base-300 w-full pr-16" // add right padding for suffix
+                        className="input input-sm rounded-md input-bordered border border-base-300 w-full pr-16"
                         placeholder="Enter stream cap"
                         type="text"
                         inputMode="decimal"

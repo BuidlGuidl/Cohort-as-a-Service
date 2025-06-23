@@ -50,17 +50,24 @@ const ProjectSelector = ({
   selectedProjects: string[];
   onSelectionChange: (selectedIds: string[]) => void;
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
   const toggleProject = (projectId: string) => {
     const isSelected = selectedProjects.includes(projectId);
     if (isSelected) {
       onSelectionChange(selectedProjects.filter(id => id !== projectId));
     } else {
       onSelectionChange([...selectedProjects, projectId]);
+      setIsOpen(false);
     }
   };
 
   const removeProject = (projectId: string) => {
     onSelectionChange(selectedProjects.filter(id => id !== projectId));
+  };
+
+  const toggleDropdown = () => {
+    setIsOpen(!isOpen);
   };
 
   const selectedProjectsData = projects.filter(p => selectedProjects.includes(p.id));
@@ -74,7 +81,6 @@ const ProjectSelector = ({
       <label className="label">
         <span className="label-text font-medium">Related Projects </span>
       </label>
-
       {selectedProjects.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-2">
           {selectedProjectsData.map(project => (
@@ -92,11 +98,11 @@ const ProjectSelector = ({
         </div>
       )}
 
-      <div className="dropdown dropdown-top w-full">
+      <div className="relative w-full">
         <div
-          tabIndex={0}
           role="button"
-          className="input input-sm input-bordered border border-base-300 w-full flex items-center justify-between bg-base-100 rounded-md"
+          className="input input-sm input-bordered border border-base-300 w-full flex items-center justify-between bg-base-100 rounded-md cursor-pointer"
+          onClick={toggleDropdown}
         >
           <span className="text-base-content/60">
             {selectedProjects.length === 0
@@ -105,27 +111,27 @@ const ProjectSelector = ({
           </span>
           <ChevronDown className="w-4 h-4" />
         </div>
-        <ul
-          tabIndex={0}
-          className="dropdown-content menu bg-base-100 rounded-box z-[9999] w-full p-2 shadow-lg border border-base-300 max-h-40 overflow-y-auto"
-        >
-          {projects.map(project => {
-            const isSelected = selectedProjects.includes(project.id);
-            return (
-              <li key={project.id}>
-                <label className="cursor-pointer flex items-center gap-2 hover:bg-base-200">
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-xs checkbox-primary"
-                    checked={isSelected}
-                    onChange={() => toggleProject(project.id)}
-                  />
-                  <span className="font-medium text-sm">{project.name}</span>
-                </label>
-              </li>
-            );
-          })}
-        </ul>
+
+        {isOpen && (
+          <ul className="absolute bottom-full left-0 right-0 mb-1 menu bg-base-100 rounded-box z-[9999] w-full p-2 shadow-lg border border-base-300 max-h-40 overflow-y-auto">
+            {projects.map(project => {
+              const isSelected = selectedProjects.includes(project.id);
+              return (
+                <li key={project.id}>
+                  <label className="cursor-pointer flex items-center gap-2 hover:bg-base-200">
+                    <input
+                      type="checkbox"
+                      className="checkbox checkbox-xs checkbox-primary"
+                      checked={isSelected}
+                      onChange={() => toggleProject(project.id)}
+                    />
+                    <span className="font-medium text-sm">{project.name}</span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </div>
   );
