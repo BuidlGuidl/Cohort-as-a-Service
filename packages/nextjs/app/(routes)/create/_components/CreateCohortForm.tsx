@@ -568,7 +568,7 @@ const CreateCohortForm = () => {
                         placeholder="Enter stream cap"
                         type="text"
                         inputMode="decimal"
-                        pattern="[0-9]*"
+                        pattern="[0-9]*(\.[0-9]+)?"
                         {...form.register(`builderCaps.${index}`, {
                           valueAsNumber: true,
                           onChange: e => {
