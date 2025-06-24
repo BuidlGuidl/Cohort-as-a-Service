@@ -482,7 +482,7 @@ const CreateCohortForm = () => {
             {form.watch("cycle") == 0 && (
               <label className="label">
                 <span className="label-text-alt text-base-content/60">
-                  One time withdraw cohorts only allow a single withdrawal which doesn&apos;t reset
+                  One time withdraw cohorts only allow a single withdraw per builder
                 </span>
               </label>
             )}
@@ -621,14 +621,18 @@ const CreateCohortForm = () => {
                   </div>
                 </div>
               ))}
-              <button type="button" className="btn btn-primary btn-sm rounded-md mt-4" onClick={handleAddBuilder}>
-                <Plus className="h-4 w-4 mr-5" /> Add Builder
+              <button type="button" className="btn btn-primary btn-sm rounded-md mt-2 ml-4" onClick={handleAddBuilder}>
+                <Plus className="h-4 w-4 mr-1" /> Add Builder
               </button>
             </div>
           </div>
 
           <div className="flex items-center gap-x-2">
-            <button type="submit" className="btn btn-primary btn-sm rounded-md" disabled={!isValid || isSubmitting}>
+            <button
+              type="submit"
+              className="btn btn-primary btn-sm rounded-md mt-4"
+              disabled={!isValid || isSubmitting}
+            >
               {isSubmitting ? "Creating..." : "Continue"}
             </button>
           </div>
