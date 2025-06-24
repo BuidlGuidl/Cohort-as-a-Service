@@ -70,6 +70,10 @@ const Home: NextPage = () => {
                     <span className="text-primary mr-2">•</span>
                     Builders are only allowed one withdraw
                   </li>
+                  <li className="flex items-start">
+                    <span className="text-primary mr-2">•</span>
+                    Add your chosen builders, or allow any to apply
+                  </li>
                 </ul>
               </div>
             </div>
