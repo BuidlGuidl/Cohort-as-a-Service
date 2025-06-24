@@ -4,6 +4,7 @@ import { Cohort } from "./useCohorts";
 import { useLocalDeployedContractInfo } from "./useLocalDeployedContractInfo";
 import { readContract } from "@wagmi/core";
 import { Abi } from "abitype";
+import { isAddress } from "viem";
 import { useAccount } from "wagmi";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
@@ -19,10 +20,11 @@ interface useFilteredCohortsProps {
 }
 
 export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohortsProps) => {
-  const { data: cohorts, isLoading: isLoadingCohorts } = useCohorts({ chainId, cohort });
+  const { data: cohorts, isLoading: isLoadingCohorts } = useCohorts({ chainId });
   const [adminCohorts, setAdminCohorts] = useState<CohortWithRole[]>([]);
   const [builderCohorts, setBuilderCohorts] = useState<CohortWithRole[]>([]);
   const [combinedCohorts, setCombinedCohorts] = useState<CohortWithRole[]>([]);
+  const [searchedCohorts, setSearchedCohorts] = useState<CohortWithRole[]>([]);
   const [isLoadingAdmin, setIsLoadingAdmin] = useState(true);
   const [isLoadingBuilder, setIsLoadingBuilder] = useState(true);
 
@@ -33,7 +35,6 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
     if (!cohorts) return;
     if (!address || cohorts.length < 1 || !deployedContract) {
       setIsLoadingAdmin(false);
-      setIsLoadingBuilder(false);
       return;
     }
 
@@ -83,6 +84,8 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
       return;
     }
 
+    console.log(cohorts);
+
     const fetchBuilderCohorts = async () => {
       setIsLoadingBuilder(true);
       try {
@@ -98,21 +101,19 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
               chainId: cohort.chainId as AllowedChainIds,
             });
 
-            if (builderIndexResult && builderIndexResult !== 0n) {
-              const builderAddress: any = await readContract(wagmiConfig, {
-                address: cohort.address as `0x${string}`,
-                abi: deployedContract?.abi as Abi,
-                functionName: "activeBuilders",
-                args: [builderIndexResult],
-                chainId: cohort.chainId as AllowedChainIds,
-              });
+            const builderAddress: any = await readContract(wagmiConfig, {
+              address: cohort.address as `0x${string}`,
+              abi: deployedContract?.abi as Abi,
+              functionName: "activeBuilders",
+              args: [builderIndexResult],
+              chainId: cohort.chainId as AllowedChainIds,
+            });
 
-              if (address?.toLowerCase() === (builderAddress as string)?.toLowerCase()) {
-                validCohorts.push({
-                  ...cohort,
-                  role: "BUILDER",
-                });
-              }
+            if (address?.toLowerCase() === (builderAddress as string)?.toLowerCase()) {
+              validCohorts.push({
+                ...cohort,
+                role: "BUILDER",
+              });
             }
           } catch (error) {
             console.error(`Error checking builder status for cohort ${cohort.address}:`, error);
@@ -150,7 +151,7 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
     const combined = Array.from(cohortMap.values()).sort((a, b) => {
       const aTime = parseInt(a.createdAt);
       const bTime = parseInt(b.createdAt);
-      return bTime - aTime; // Newest first
+      return bTime - aTime;
     });
 
     setCombinedCohorts(combined);
@@ -163,8 +164,28 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
     return [];
   };
 
+  useEffect(() => {
+    if (!cohort) {
+      setSearchedCohorts(getFilteredCohorts());
+      return;
+    }
+    const lowerCohort = cohort.toLowerCase();
+
+    if (isAddress(cohort)) {
+      const filtered = getFilteredCohorts().filter(c => c.address.toLowerCase() === lowerCohort);
+      setSearchedCohorts(filtered);
+    } else {
+      const filtered = getFilteredCohorts().filter(
+        c => c.name.toLowerCase().includes(lowerCohort) || c.description?.toLowerCase().includes(lowerCohort),
+      );
+      setSearchedCohorts(filtered);
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cohort, combinedCohorts]);
+
   return {
-    cohorts: getFilteredCohorts(),
+    cohorts: searchedCohorts,
     adminCohorts,
     builderCohorts,
     combinedCohorts,

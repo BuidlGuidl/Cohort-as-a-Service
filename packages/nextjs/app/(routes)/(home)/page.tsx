@@ -6,7 +6,7 @@ import type { NextPage } from "next";
 const Home: NextPage = () => {
   return (
     <>
-      <div className="flex flex-col flex-grow pt-10 max-w-4xl mx-auto">
+      <div className="flex flex-col flex-grow pt-10 max-w-4xl mx-auto mt-8">
         <div>
           <h1 className="text-center">
             <span className="block text-3xl font-semibold">Stream Deployment Made Easy</span>

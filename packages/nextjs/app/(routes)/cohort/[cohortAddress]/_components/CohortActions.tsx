@@ -30,7 +30,7 @@ export const CohortActions = ({
   return (
     <>
       <div className="dropdown dropdown-end px-0 ">
-        <label tabIndex={0} className="btn btn-ghost btn-sm m-1">
+        <label tabIndex={0} className="btn btn-ghost btn-sm m-1 p-0">
           <EllipsisVertical className="w-5 h-5" />
         </label>
         <ul
@@ -59,7 +59,7 @@ export const CohortActions = ({
           </li>
           <li>
             <label htmlFor={`allow-applications-modal`} className="w-full">
-              {allowApplications ? "Disallow " : "allow "} applications
+              {allowApplications ? "Disallow " : "Allow "} applications
             </label>
           </li>
         </ul>
