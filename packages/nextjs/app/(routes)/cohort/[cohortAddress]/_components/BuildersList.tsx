@@ -40,6 +40,7 @@ interface BuildersListProps {
   allowApplications?: boolean;
   applications?: Application[];
   onApplicationSuccess?: () => void;
+  onDataUpdate?: () => void;
 }
 
 export const BuildersList: React.FC<BuildersListProps> = ({
@@ -61,6 +62,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
   allowApplications,
   applications,
   onApplicationSuccess,
+  onDataUpdate,
 }) => {
   const { address } = useAccount();
   const router = useRouter();
@@ -246,9 +248,12 @@ export const BuildersList: React.FC<BuildersListProps> = ({
                         isErc20={isERC20}
                         tokenDecimals={tokenDecimals}
                         dbBuilder={dbBuilder}
+                        onDataUpdate={onDataUpdate}
                       />
                     )}
-                    {isBuilder && address == builderStream.builderAddress && <BuilderActions dbBuilder={dbBuilder} />}
+                    {isBuilder && address?.toLowerCase() == builderStream.builderAddress && (
+                      <BuilderActions dbBuilder={dbBuilder} onDataUpdate={onDataUpdate} />
+                    )}
                     {showNotification && (
                       <NotificationBell
                         count={bellNotificationCount}

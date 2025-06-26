@@ -5,9 +5,10 @@ import { EllipsisVertical } from "lucide-react";
 
 interface BuilderActionsProps {
   dbBuilder?: Builder;
+  onDataUpdate?: () => void;
 }
 
-export const BuilderActions = ({ dbBuilder }: BuilderActionsProps) => {
+export const BuilderActions = ({ dbBuilder, onDataUpdate }: BuilderActionsProps) => {
   return (
     <>
       <div className="dropdown dropdown-start">
@@ -26,7 +27,7 @@ export const BuilderActions = ({ dbBuilder }: BuilderActionsProps) => {
         </ul>
       </div>
 
-      <EditGithub builder={dbBuilder} />
+      <EditGithub builder={dbBuilder} onSuccess={onDataUpdate} />
     </>
   );
 };

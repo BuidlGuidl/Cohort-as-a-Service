@@ -28,6 +28,15 @@ abstract contract CohortAdmin is CohortBase {
     }
 
     /**
+     * @dev Edit cohort description
+     * @param _description The new description for the cohort
+     */
+    function editDescription(string memory _description) public onlyAdmin {
+        description = _description;
+        emit DescriptionUpdated(_description);
+    }
+
+    /**
      * @dev Transfer primary admin role
      * @param newPrimaryAdmin Address of the new primary admin
      */

@@ -5,6 +5,7 @@ import {
   withdrawEvent,
   withdrawRequest,
   cohortState,
+  cohort,
 } from "ponder:schema";
 
 ponder.on("Cohort:AddBuilder", async ({ event, context }) => {
@@ -29,6 +30,18 @@ ponder.on("Cohort:AddBuilder", async ({ event, context }) => {
       isActive: true,
       blockNumber: event.block.number,
     });
+});
+
+ponder.on("Cohort:DescriptionUpdated", async ({ event, context }) => {
+  const cohortAddress = event.log.address.toLowerCase();
+  const description = event.args.description;
+
+  const chainId = context.network.chainId;
+  const id = `${chainId}-${cohortAddress.toLowerCase()}`;
+
+  await context.db.update(cohort, { id: id }).set({
+    description,
+  });
 });
 
 ponder.on("Cohort:UpdateBuilder", async ({ event, context }) => {

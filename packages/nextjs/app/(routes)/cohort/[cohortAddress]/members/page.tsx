@@ -93,7 +93,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
 
   return (
     <div>
-      <div className="max-w-3xl px-4 py-8">
+      <div className="max-w-3xl px-4 mt-8">
         <h1 className="text-4xl font-bold mb-8 text-primary-content bg-primary inline-block p-2">Members</h1>
         <div className="mb-16">
           <p className="mt-0 mb-10">
@@ -120,6 +120,7 @@ const Page = ({ params }: { params: { cohortAddress: string } }) => {
             applications={dbCohort?.Application}
             onApplicationSuccess={handleApplicationSuccess}
             allowApplications={allowApplications ?? false}
+            onDataUpdate={fetchCohort}
           />
         </div>
 

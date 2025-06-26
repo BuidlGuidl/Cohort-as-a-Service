@@ -13,6 +13,7 @@ interface AdminActionsProps {
   isErc20: boolean;
   tokenDecimals?: number;
   dbBuilder?: Builder;
+  onDataUpdate?: () => void;
 }
 
 export const AdminActions = ({
@@ -22,6 +23,7 @@ export const AdminActions = ({
   isErc20,
   tokenDecimals,
   dbBuilder,
+  onDataUpdate,
 }: AdminActionsProps) => {
   return (
     <>
@@ -68,7 +70,7 @@ export const AdminActions = ({
         builderAddress={builderAddress}
         requiresApproval={requiresApproval}
       />
-      <EditGithub builder={dbBuilder} />
+      <EditGithub builder={dbBuilder} onSuccess={onDataUpdate} />
     </>
   );
 };
