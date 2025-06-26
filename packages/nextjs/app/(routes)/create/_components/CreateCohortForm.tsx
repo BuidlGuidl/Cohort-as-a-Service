@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoadingModal } from "./LoadingModal";
+// Add this import
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getBytecode, getTransactionReceipt } from "@wagmi/core";
 import { readContract } from "@wagmi/core";
@@ -12,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { erc20Abi, formatEther, parseEther, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 import * as z from "zod";
+import { Editor } from "~~/components/editor";
 import { AddressInput } from "~~/components/scaffold-eth";
 import currencies from "~~/data/currencies";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
@@ -337,16 +339,16 @@ const CreateCohortForm = () => {
               <span className="label-text font-medium">Description (optional)</span>
             </label>
 
-            <textarea
-              className={`textarea textarea-sm rounded-md input-bordered border border-base-300 w-full ${errors.description ? "input-error" : ""}`}
-              placeholder="Ethereum Brawlers is a cohort for building on Ethereum"
-              disabled={isSubmitting}
-              {...form.register("description")}
+            <Editor
+              value={form.watch("description") || ""}
+              onChange={content => {
+                form.setValue("description", content, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              }}
+              height="150px"
             />
-
-            <label className="label">
-              <span className="label-text-alt text-base-content/60">Description cannot be changed afterwards</span>
-            </label>
 
             {errors.description && (
               <label className="label">

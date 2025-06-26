@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BuildersList } from "./_components/BuildersList";
+import { EditDescription } from "./_components/EditDescription";
 import { StreamContractInfo } from "./_components/StreamContractInfo";
 import { ThemeCustomizer } from "./_components/ThemeCustomizer";
 import { EventsModal } from "./members/_components/EventsModal";
@@ -12,6 +13,7 @@ import axios from "axios";
 import { useAccount } from "wagmi";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { ArrowLongLeftIcon } from "@heroicons/react/24/outline";
+import { Preview } from "~~/components/preview";
 import { useCohortData } from "~~/hooks/useCohortData";
 import { useWithdrawEvents } from "~~/hooks/useWithdrawEvents";
 
@@ -113,21 +115,14 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
       <div>
         <h1 className="text-4xl font-bold mb-8 text-primary-content bg-primary inline-block p-2">Cohort</h1>
         <h2 className="text-2xl font-bold">{name}</h2>
-        <p className="mt-0">{description}</p>
-        <p>
-          <span onClick={onMemeberClick} className="underline text-primary mr-1 cursor-pointer">
-            Members
-          </span>
-          contributing to any of the active{" "}
-          <span onClick={onProjectClick} className="underline text-primary cursor-pointer">
-            projects
-          </span>{" "}
-          can submit their work and claim grant streams, while showcasing their contributions to the public.
-        </p>
+        <div className="flex gap-2">
+          {description && description.length > 0 && description != "<p><br></p>" && <Preview value={description} />}
+          {isAdmin && <EditDescription cohortAddress={params.cohortAddress} currentDescription={description} />}
+        </div>
       </div>
 
       {buildersData.length <= 8 && (
-        <div className="mt-8 mb-8">
+        <div className="mt-8 ">
           <h3 className="text-xl font-bold mb-4">Members</h3>
           <BuildersList
             cohortAddress={params.cohortAddress}
@@ -151,6 +146,29 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
           />
         </div>
       )}
+
+      <div className="flex gap-3">
+        {buildersData.length > 8 && (
+          <div className="">
+            <button className="btn btn-sm btn-primary rounded-md " onClick={onMemeberClick}>
+              Members
+            </button>
+          </div>
+        )}
+
+        {isAdmin ? (
+          <button className="btn btn-sm rounded-md btn-primary" onClick={onProjectClick}>
+            View Projects
+          </button>
+        ) : (
+          dbCohort?.Project &&
+          dbCohort.Project.length > 0 && (
+            <button className="btn btn-sm rounded-md btn-primary mb-4" onClick={onProjectClick}>
+              View Projects
+            </button>
+          )
+        )}
+      </div>
 
       <p className="font-bold mb-2 text-secondary">
         Stream Contract

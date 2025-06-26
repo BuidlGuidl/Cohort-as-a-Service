@@ -7,6 +7,7 @@ pragma solidity ^0.8.17;
  */
 abstract contract CohortEvents {
     // Core events
+    event DescriptionUpdated(string description);
     event FundsReceived(address indexed from, uint256 amount);
     event Withdraw(address indexed to, uint256 amount, string reason, string[] projectIds);
     event AddBuilder(address indexed to, uint256 amount);

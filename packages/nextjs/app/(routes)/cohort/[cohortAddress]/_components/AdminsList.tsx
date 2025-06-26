@@ -19,8 +19,6 @@ export const AdminsList = ({ cohortAddress, admins, isLoading }: AdminListProps)
 
   return (
     <div>
-      <AddAdmin cohortAddress={cohortAddress} />
-
       {isLoading ? (
         <>
           <LoadingAddress />
@@ -29,7 +27,7 @@ export const AdminsList = ({ cohortAddress, admins, isLoading }: AdminListProps)
       ) : (
         <>
           {admins.length === 0 ? (
-            <p>No admin</p>
+            <p className="ml-4 text-sm">No admin</p>
           ) : (
             admins.map((admin, index) => (
               <div className="flex gap-4 mt-2 w-full" key={index}>
@@ -40,6 +38,8 @@ export const AdminsList = ({ cohortAddress, admins, isLoading }: AdminListProps)
           )}
         </>
       )}
+
+      <AddAdmin cohortAddress={cohortAddress} />
     </div>
   );
 };

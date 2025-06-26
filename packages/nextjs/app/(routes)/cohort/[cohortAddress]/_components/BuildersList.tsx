@@ -40,6 +40,7 @@ interface BuildersListProps {
   allowApplications?: boolean;
   applications?: Application[];
   onApplicationSuccess?: () => void;
+  onDataUpdate?: () => void;
 }
 
 export const BuildersList: React.FC<BuildersListProps> = ({
@@ -61,6 +62,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
   allowApplications,
   applications,
   onApplicationSuccess,
+  onDataUpdate,
 }) => {
   const { address } = useAccount();
   const router = useRouter();
@@ -159,28 +161,13 @@ export const BuildersList: React.FC<BuildersListProps> = ({
         </div>
       )}
 
-      {isAdmin && (
-        <div className="flex flex-col md:flex-row gap-4">
-          <AddBatch cohortAddress={cohortAddress} isErc20={isERC20} tokenDecimals={tokenDecimals} />
-
-          {pendingApplicationsCount > 0 && (
-            <Link href={`/cohort/${cohortAddress}/applications`}>
-              <button className="btn btn-sm btn-primary rounded-md w-fit relative">
-                Applications
-                <div className="badge badge-warning badge-sm absolute -top-2 -right-2">{pendingApplicationsCount}</div>
-              </button>
-            </Link>
-          )}
-        </div>
-      )}
-
       {isLoading ? (
         <div>
           <div className="text-4xl animate-bounce mb-2">👾</div>
           <div className="text-lg ">Loading...</div>
         </div>
       ) : !builderStreams || Array.from(builderStreams.values()).length == 0 ? (
-        <div>No builders</div>
+        <div className="text-sm ml-4">No builders</div>
       ) : (
         Array.from(builderStreams.values()).map(builderStream => {
           if (builderStream.cap == 0) return null;
@@ -246,9 +233,12 @@ export const BuildersList: React.FC<BuildersListProps> = ({
                         isErc20={isERC20}
                         tokenDecimals={tokenDecimals}
                         dbBuilder={dbBuilder}
+                        onDataUpdate={onDataUpdate}
                       />
                     )}
-                    {isBuilder && address == builderStream.builderAddress && <BuilderActions dbBuilder={dbBuilder} />}
+                    {isBuilder && address?.toLowerCase() == builderStream.builderAddress && (
+                      <BuilderActions dbBuilder={dbBuilder} onDataUpdate={onDataUpdate} />
+                    )}
                     {showNotification && (
                       <NotificationBell
                         count={bellNotificationCount}
@@ -269,6 +259,20 @@ export const BuildersList: React.FC<BuildersListProps> = ({
             </div>
           );
         })
+      )}
+      {isAdmin && (
+        <div className="flex flex-col md:flex-row gap-4">
+          <AddBatch cohortAddress={cohortAddress} isErc20={isERC20} tokenDecimals={tokenDecimals} />
+
+          {pendingApplicationsCount > 0 && (
+            <Link href={`/cohort/${cohortAddress}/applications`}>
+              <button className="btn btn-sm btn-primary rounded-md w-fit relative">
+                Applications
+                <div className="badge badge-warning badge-sm absolute -top-2 -right-2">{pendingApplicationsCount}</div>
+              </button>
+            </Link>
+          )}
+        </div>
       )}
       <ApplicationModal cohortAddress={cohortAddress} onApplicationSuccess={onApplicationSuccess} />
     </div>

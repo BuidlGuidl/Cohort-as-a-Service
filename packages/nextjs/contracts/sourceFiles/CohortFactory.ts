@@ -1054,6 +1054,7 @@ abstract contract ReentrancyGuard {
  */
 abstract contract CohortEvents {
     // Core events
+    event DescriptionUpdated(string description);
     event FundsReceived(address indexed from, uint256 amount);
     event Withdraw(address indexed to, uint256 amount, string reason, string[] projectIds);
     event AddBuilder(address indexed to, uint256 amount);
@@ -1337,6 +1338,15 @@ abstract contract CohortAdmin is CohortBase {
             revokeRole(DEFAULT_ADMIN_ROLE, adminAddress);
             emit AdminRemoved(adminAddress);
         }
+    }
+
+    /**
+     * @dev Edit cohort description
+     * @param _description The new description for the cohort
+     */
+    function editDescription(string memory _description) public onlyAdmin {
+        description = _description;
+        emit DescriptionUpdated(_description);
     }
 
     /**
