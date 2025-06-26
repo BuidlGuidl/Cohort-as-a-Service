@@ -119,18 +119,6 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
           {description && description.length > 0 && description != "<p><br></p>" && <Preview value={description} />}
           {isAdmin && <EditDescription cohortAddress={params.cohortAddress} currentDescription={description} />}
         </div>
-        {isAdmin ? (
-          <button className="btn btn-sm rounded-md btn-primary mb-4 mt-2" onClick={onProjectClick}>
-            View Projects
-          </button>
-        ) : (
-          dbCohort?.Project &&
-          dbCohort.Project.length > 0 && (
-            <button className="btn btn-sm rounded-md btn-primary mb-4" onClick={onProjectClick}>
-              View Projects
-            </button>
-          )
-        )}
       </div>
 
       {buildersData.length <= 8 && (
@@ -159,13 +147,28 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         </div>
       )}
 
-      {buildersData.length > 8 && (
-        <div className=" mb-8">
-          <button className="btn btn-sm btn-ghost rounded-md " onClick={onMemeberClick}>
-            View more members
+      <div className="flex gap-3">
+        {buildersData.length > 8 && (
+          <div className="">
+            <button className="btn btn-sm btn-primary rounded-md " onClick={onMemeberClick}>
+              Members
+            </button>
+          </div>
+        )}
+
+        {isAdmin ? (
+          <button className="btn btn-sm rounded-md btn-primary" onClick={onProjectClick}>
+            View Projects
           </button>
-        </div>
-      )}
+        ) : (
+          dbCohort?.Project &&
+          dbCohort.Project.length > 0 && (
+            <button className="btn btn-sm rounded-md btn-primary mb-4" onClick={onProjectClick}>
+              View Projects
+            </button>
+          )
+        )}
+      </div>
 
       <p className="font-bold mb-2 text-secondary">
         Stream Contract
