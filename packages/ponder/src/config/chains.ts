@@ -29,24 +29,24 @@ export const chainConfigs = {
   },
   cohortFactoryContracts: {
     arbitrum: {
-      address: "0x738c6EE8Ce83959E2A2fF6E082d6CA5508AFe400" as `0x${string}`,
-      startBlock: 340729533,
+      address: "0xe15f5fb3B2f21e2916C7bDD7ba0f719caD504a5d" as `0x${string}`,
+      startBlock: 351421606,
     },
     base: {
-      address: "0xcd35264b9Be6EC2f837D37e1D0ae03cb594FE864" as `0x${string}`,
-      startBlock: 30737573,
+      address: "0x0abc1D7F4aE715C8b1434eeFE2b38B35CED252d1" as `0x${string}`,
+      startBlock: 32078609,
     },
     baseSepolia: {
       address: "0x62cc031A90B14f10aAE263ad10d3E158B271da40" as `0x${string}`,
       startBlock: 27581248,
     },
     optimism: {
-      address: "0x8ca81c6aAEe9829Bc1417D1F2492E614584c3FE4" as `0x${string}`,
-      startBlock: 136332861,
+      address: "0x2890984B0f09f0d06e237B9F04E0c7Af7e86AB28" as `0x${string}`,
+      startBlock: 137673845,
     },
     optimismSepolia: {
-      address: "0x2890984B0f09f0d06e237B9F04E0c7Af7e86AB28" as `0x${string}`,
-      startBlock: 29273527,
+      address: "0xC5006A3BE7408cFCb9Cda3903478ce184da9a88f" as `0x${string}`,
+      startBlock: 29572038,
     },
     sepolia: {
       address: "0x630d9e93B2f3d6F41D6Af0c1D70eB21663fd1674" as `0x${string}`,
