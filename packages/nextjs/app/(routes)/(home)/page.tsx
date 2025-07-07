@@ -9,7 +9,10 @@ const Home: NextPage = () => {
       <div className="flex flex-col flex-grow pt-10 max-w-4xl mx-auto mt-8">
         <div>
           <h1 className="text-center">
-            <span className="block text-3xl font-semibold">Stream Deployment Made Easy</span>
+            <span className="block text-3xl font-semibold">
+              Launch unstoppable payment streams and bounties in seconds - automate trust, empower builders, and fuel
+              projects effortlessly.
+            </span>
           </h1>
           <p className="text-lg mt-4 mb-6 text-base-content/80"></p>
 
@@ -78,6 +81,22 @@ const Home: NextPage = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Fee info text */}
+        <div className="mt-8 flex justify-center">
+          <p className="text-base text-center text-primary max-w-xl">
+            When deploying a cohort, a one-time $20 fee is contributed to{" "}
+            <a
+              href="https://buidlguidl.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-primary-focus"
+            >
+              BuidlGuidl
+            </a>{" "}
+            to support open-source tooling and educational initiatives.
+          </p>
         </div>
 
         <div className="mt-8 flex justify-center">
