@@ -20,7 +20,7 @@ interface useFilteredCohortsProps {
 }
 
 export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohortsProps) => {
-  const { data: cohorts, isLoading: isLoadingCohorts } = useCohorts({ chainId });
+  const { data: cohorts, isLoading: isLoadingCohorts } = useCohorts();
   const [adminCohorts, setAdminCohorts] = useState<CohortWithRole[]>([]);
   const [builderCohorts, setBuilderCohorts] = useState<CohortWithRole[]>([]);
   const [combinedCohorts, setCombinedCohorts] = useState<CohortWithRole[]>([]);
@@ -83,8 +83,6 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
       setIsLoadingBuilder(false);
       return;
     }
-
-    console.log(cohorts);
 
     const fetchBuilderCohorts = async () => {
       setIsLoadingBuilder(true);
@@ -165,24 +163,32 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
   };
 
   useEffect(() => {
-    if (!cohort) {
+    if (!cohort && !chainId) {
       setSearchedCohorts(getFilteredCohorts());
       return;
     }
-    const lowerCohort = cohort.toLowerCase();
 
-    if (isAddress(cohort)) {
-      const filtered = getFilteredCohorts().filter(c => c.address.toLowerCase() === lowerCohort);
-      setSearchedCohorts(filtered);
-    } else {
-      const filtered = getFilteredCohorts().filter(
-        c => c.name.toLowerCase().includes(lowerCohort) || c.description?.toLowerCase().includes(lowerCohort),
-      );
+    if (cohort) {
+      const lowerCohort = cohort.toLowerCase();
+
+      if (isAddress(cohort)) {
+        const filtered = getFilteredCohorts().filter(c => c.address.toLowerCase() === lowerCohort);
+        setSearchedCohorts(filtered);
+      } else {
+        const filtered = getFilteredCohorts().filter(
+          c => c.name.toLowerCase().includes(lowerCohort) || c.description?.toLowerCase().includes(lowerCohort),
+        );
+        setSearchedCohorts(filtered);
+      }
+    }
+
+    if (chainId) {
+      const filtered = getFilteredCohorts().filter(c => c.chainId.toString() === chainId.toString());
       setSearchedCohorts(filtered);
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cohort, combinedCohorts]);
+  }, [cohort, combinedCohorts, chainId]);
 
   return {
     cohorts: searchedCohorts,
