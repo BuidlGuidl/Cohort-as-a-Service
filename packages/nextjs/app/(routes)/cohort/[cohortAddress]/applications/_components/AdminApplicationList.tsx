@@ -47,7 +47,7 @@ export const AdminApplicationList = ({ cohortAddress, applications, adminAddress
       switchChain({ chainId });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId]);
+  }, [chainId, address]);
 
   const renderDescription = (description: string, id: string) => {
     const isExpanded = expandedDescriptions[id];

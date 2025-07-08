@@ -108,7 +108,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
       switchChain({ chainId });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId]);
+  }, [chainId, address]);
 
   const handleApplicationSuccess = () => {
     fetchCohort();
