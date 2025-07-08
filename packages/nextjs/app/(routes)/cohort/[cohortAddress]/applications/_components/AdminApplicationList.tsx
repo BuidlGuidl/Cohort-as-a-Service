@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ApplicationActions from "./ApplicationActions";
 import { Application } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useAccount } from "wagmi";
+import { useSwitchChain } from "wagmi";
 import { Preview } from "~~/components/preview";
 import { Address, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useCohortData } from "~~/hooks/useCohortData";
@@ -18,10 +19,11 @@ interface AdminApplicationListProps {
 
 export const AdminApplicationList = ({ cohortAddress, applications, adminAddresses }: AdminApplicationListProps) => {
   const [activeFilter, setActiveFilter] = useState<"ALL" | "PENDING" | "APPROVED" | "REJECTED">("ALL");
-  const { address } = useAccount();
+  const { address, chainId: connectedChainId } = useAccount();
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
 
-  const { isERC20: isErc20, tokenDecimals, tokenSymbol } = useCohortData(cohortAddress);
+  const { isERC20: isErc20, tokenDecimals, tokenSymbol, chainId } = useCohortData(cohortAddress);
+  const { switchChain } = useSwitchChain();
 
   const isAdmin = adminAddresses?.includes(address || "");
 
@@ -39,6 +41,13 @@ export const AdminApplicationList = ({ cohortAddress, applications, adminAddress
       [id]: !prev[id],
     }));
   };
+
+  useEffect(() => {
+    if (chainId && connectedChainId && chainId !== connectedChainId) {
+      switchChain({ chainId });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chainId]);
 
   const renderDescription = (description: string, id: string) => {
     const isExpanded = expandedDescriptions[id];
