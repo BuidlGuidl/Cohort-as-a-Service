@@ -108,5 +108,5 @@ export const isValidInteger = (dataType: IntegerVariant, value: string) => {
 // const ensRegex = /.+\..+/;
 // export const isENS = (address = "") => ensRegex.test(address);
 
-const ensRegexMultiple = /^[a-zA-Z0-9-]+\.(eth|xyz|luxe|kred|art)$/;
-export const isENS = (address = "") => ensRegexMultiple.test(address);
+const ensRegexWithSubdomains = /^[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.(eth|xyz|luxe|kred|art)$/;
+export const isENS = (address = "") => ensRegexWithSubdomains.test(address);
