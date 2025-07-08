@@ -262,7 +262,12 @@ export const BuildersList: React.FC<BuildersListProps> = ({
       )}
       {isAdmin && (
         <div className="flex flex-col md:flex-row gap-4">
-          <AddBatch cohortAddress={cohortAddress} isErc20={isERC20} tokenDecimals={tokenDecimals} />
+          <AddBatch
+            cohortAddress={cohortAddress}
+            isErc20={isERC20}
+            tokenDecimals={tokenDecimals}
+            tokenSymbol={tokenSymbol}
+          />
 
           {pendingApplicationsCount > 0 && (
             <Link href={`/cohort/${cohortAddress}/applications`}>

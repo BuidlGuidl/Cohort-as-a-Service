@@ -14,20 +14,14 @@ interface AdminApplicationListProps {
   cohortAddress: string;
   applications?: Application[];
   adminAddresses?: string[];
-  tokenDecimals?: number;
 }
 
-export const AdminApplicationList = ({
-  cohortAddress,
-  applications,
-  adminAddresses,
-  tokenDecimals,
-}: AdminApplicationListProps) => {
+export const AdminApplicationList = ({ cohortAddress, applications, adminAddresses }: AdminApplicationListProps) => {
   const [activeFilter, setActiveFilter] = useState<"ALL" | "PENDING" | "APPROVED" | "REJECTED">("ALL");
   const { address } = useAccount();
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
 
-  const { isERC20: isErc20 } = useCohortData(cohortAddress);
+  const { isERC20: isErc20, tokenDecimals, tokenSymbol } = useCohortData(cohortAddress);
 
   const isAdmin = adminAddresses?.includes(address || "");
 
@@ -175,6 +169,7 @@ export const AdminApplicationList = ({
                         githubUsername={application.githubUsername || undefined}
                         isErc20={isErc20 || false}
                         tokenDecimals={tokenDecimals}
+                        tokenSymbol={tokenSymbol || ""}
                       />
                     )}
                   </td>
