@@ -127,8 +127,8 @@ export const BuildersList: React.FC<BuildersListProps> = ({
   const canApply = () => {
     if (!userApplications.length && allowApplications) return true;
 
-    const hasPendingOrApproved = userApplications.some(app => app.status === "PENDING" || app.status === "APPROVED");
-    return !hasPendingOrApproved;
+    const hasPending = userApplications.some(app => app.status === "PENDING");
+    return !hasPending;
   };
 
   return (

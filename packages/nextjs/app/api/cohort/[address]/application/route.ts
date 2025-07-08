@@ -32,12 +32,10 @@ export async function POST(req: Request, { params }: { params: { address: string
       },
     });
 
-    const hasPendingOrApproved = existingApplications.some(
-      app => app.status === "PENDING" || app.status === "APPROVED",
-    );
+    const hasPending = existingApplications.some(app => app.status === "PENDING");
 
-    if (hasPendingOrApproved) {
-      return new NextResponse("You already have a pending or approved application for this cohort", { status: 400 });
+    if (hasPending) {
+      return new NextResponse("You already have a pending application for this cohort", { status: 400 });
     }
 
     const application = await db.application.create({
