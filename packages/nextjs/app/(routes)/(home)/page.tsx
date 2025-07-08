@@ -16,6 +16,12 @@ const Home: NextPage = () => {
           </h1>
           <p className="text-lg mt-4 mb-6 text-base-content/80"></p>
 
+          <div className="mt-8 flex justify-center">
+            <Link href="/app">
+              <button className="btn btn-primary btn-lg text-lg w-48">Deploy Stream</button>
+            </Link>
+          </div>
+
           <div className="grid md:grid-cols-2 gap-6 mt-8">
             <div className="card bg-base-100 shadow-xl border border-base-300">
               <div className="card-body">
@@ -97,14 +103,6 @@ const Home: NextPage = () => {
             </a>{" "}
             to support open-source tooling and educational initiatives.
           </p>
-        </div>
-
-        <div className="mt-8 flex justify-center">
-          <div className="transform scale-125">
-            <Link href="/app">
-              <button className="btn btn-primary btn-sm">Go To App</button>
-            </Link>
-          </div>
         </div>
       </div>
     </>
