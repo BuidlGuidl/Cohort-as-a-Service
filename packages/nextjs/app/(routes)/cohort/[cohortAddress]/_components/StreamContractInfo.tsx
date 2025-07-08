@@ -328,12 +328,22 @@ export const StreamContractInfo = ({
               {cycle > 0 && (
                 <div className="w-full">
                   {isErc20 ? (
-                    <input
-                      className="input input-sm rounded-md input-bordered border border-base-300 w-full"
-                      placeholder={`Amount of ${tokenSymbol}`}
-                      type="number"
-                      onChange={e => setAmount(e.target.value.toString())}
-                    />
+                    <div className="relative">
+                      <input
+                        className="input input-sm rounded-md input-bordered border border-base-300 w-full"
+                        placeholder={`Amount of ${tokenSymbol}`}
+                        type="text"
+                        inputMode="decimal"
+                        pattern="[0-9]*(\.[0-9]+)?"
+                        onChange={e => setAmount(e.target.value.toString())}
+                        disabled={isPending}
+                      />
+                      {tokenSymbol && (
+                        <span className="absolute inset-y-0 right-3 flex items-center text-sm text-gray-500">
+                          {tokenSymbol}
+                        </span>
+                      )}
+                    </div>
                   ) : (
                     <EtherInput value={amount} onChange={value => setAmount(value)} placeholder="Amount in ETH" />
                   )}
@@ -349,7 +359,13 @@ export const StreamContractInfo = ({
               <button
                 type="button"
                 className="btn btn-secondary btn-sm w-full"
-                disabled={isPending || amount === "" || reason === "" || reason === "<p><br></p>" || amount === "0"}
+                disabled={
+                  isPending ||
+                  reason === "" ||
+                  reason === "<p><br></p>" ||
+                  parseFloat(amount) <= 0 ||
+                  Number.isNaN(parseFloat(amount))
+                }
                 onClick={streamWithdraw}
               >
                 {connectedAddressRequiresApproval ? "Request Withdrawal" : "Withdraw"}
