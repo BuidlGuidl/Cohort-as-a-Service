@@ -22,7 +22,7 @@ const scaffoldConfig = {
     chains.scroll,
     chains.base,
     chains.unichain,
-    chains.ink,
+    // chains.ink,
   ],
 
   // The interval at which your front-end polls the RPC servers for new data

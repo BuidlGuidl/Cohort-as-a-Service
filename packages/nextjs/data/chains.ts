@@ -68,13 +68,13 @@ export const chains: Chain[] = [
     icon: "/chain/unichain.png",
     isEVM: true,
   },
-  {
-    id: "ink",
-    name: "Ink",
-    chainId: 57073,
-    icon: "/chain/ink.png",
-    isEVM: true,
-  },
+  // {
+  //   id: "ink",
+  //   name: "Ink",
+  //   chainId: 57073,
+  //   icon: "/chain/ink.png",
+  //   isEVM: true,
+  // },
 ];
 
 const allNetworks = getTargetNetworks();

@@ -181,16 +181,16 @@ export const currencies: CurrenciesType = {
       },
     ],
   },
-  57073: {
-    chainId: "57073",
-    name: "ink",
-    contracts: [
-      {
-        name: "INK",
-        address: "0x0000000000000000000000000000000000000000",
-      },
-    ],
-  },
+  // 57073: {
+  //   chainId: "57073",
+  //   name: "ink",
+  //   contracts: [
+  //     {
+  //       name: "INK",
+  //       address: "0x0000000000000000000000000000000000000000",
+  //     },
+  //   ],
+  // },
 };
 
 export default currencies;
