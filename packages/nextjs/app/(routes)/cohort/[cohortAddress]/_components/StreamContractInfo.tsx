@@ -160,7 +160,7 @@ export const StreamContractInfo = ({
   allowApplications,
   projects = [],
 }: StreamContractInfoProps) => {
-  const { address, chainId, isConnected } = useAccount();
+  const { address, chainId } = useAccount();
   const { switchChain } = useSwitchChain();
   const [networkColor, setNetworkColor] = useState<string>("#bbbbbb");
 
@@ -205,7 +205,7 @@ export const StreamContractInfo = ({
   return (
     <>
       <div className="">
-        {cohortChainId && chainId !== cohortChainId && isConnected && (
+        {cohortChainId && chainId !== cohortChainId && address && (
           <div
             onClick={() => onClick(cohortChainId)}
             className="bg-error/15 px-3 py-1 w-fit rounded-md flex items-center gap-x-2 text-sm text-destructive mb-3 cursor-pointer hover:bg-error/25"
@@ -349,7 +349,7 @@ export const StreamContractInfo = ({
               <button
                 type="button"
                 className="btn btn-secondary btn-sm w-full"
-                disabled={isPending}
+                disabled={isPending || amount === "" || reason === "" || reason === "<p><br></p>" || amount === "0"}
                 onClick={streamWithdraw}
               >
                 {connectedAddressRequiresApproval ? "Request Withdrawal" : "Withdraw"}

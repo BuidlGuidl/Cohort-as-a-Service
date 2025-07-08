@@ -11,6 +11,7 @@ import { EventsModal } from "./members/_components/EventsModal";
 import { Application, Builder, Cohort, Project } from "@prisma/client";
 import axios from "axios";
 import { useAccount } from "wagmi";
+import { useSwitchChain } from "wagmi";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { ArrowLongLeftIcon } from "@heroicons/react/24/outline";
 import { Preview } from "~~/components/preview";
@@ -48,8 +49,10 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     allowApplications,
   } = useCohortData(params.cohortAddress);
 
+  const { switchChain } = useSwitchChain();
+
   const router = useRouter();
-  const { address } = useAccount();
+  const { address, chainId: connectedChainId } = useAccount();
 
   const [selectedAddress, setSelectedAddress] = useState("");
   const [dbCohort, setDbCohort] = useState<CohortWithBuilder>();
@@ -99,6 +102,13 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
   useEffect(() => {
     fetchCohort();
   }, [fetchCohort, builderStreams]);
+
+  useEffect(() => {
+    if (chainId && connectedChainId && chainId !== connectedChainId) {
+      switchChain({ chainId });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chainId]);
 
   const handleApplicationSuccess = () => {
     fetchCohort();

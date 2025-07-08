@@ -223,14 +223,14 @@ const defaultCohortData: CohortData = {
 };
 
 export const useCohortData = (cohortAddress: string) => {
-  const { address } = useAccount();
+  const { address, chainId: connectedChainId } = useAccount();
   const publicClient = usePublicClient();
   const { data: deployedContract } = useLocalDeployedContractInfo({
     contractName: "Cohort",
   });
 
   const query = useQuery<CohortData>({
-    queryKey: ["cohortData", cohortAddress, address],
+    queryKey: ["cohortData", cohortAddress, address, connectedChainId],
     queryFn: async (): Promise<CohortData> => {
       const response = await fetchCohortData(cohortAddress);
 
