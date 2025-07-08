@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoadingModal } from "./LoadingModal";
-// Add this import
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getBytecode, getTransactionReceipt } from "@wagmi/core";
 import { readContract } from "@wagmi/core";
