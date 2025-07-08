@@ -63,7 +63,7 @@ const Home: NextPage = () => {
                   </li>
                   <li className="flex items-start">
                     <span className="text-primary mr-2">•</span>
-                    List and describle your current projects
+                    List and describe your current projects
                   </li>
                   <li className="flex items-start">
                     <span className="text-primary mr-2">•</span>
