@@ -14,18 +14,15 @@ import { useCohortData } from "~~/hooks/useCohortData";
 interface AdminApplicationListProps {
   cohortAddress: string;
   applications?: Application[];
-  adminAddresses?: string[];
 }
 
-export const AdminApplicationList = ({ cohortAddress, applications, adminAddresses }: AdminApplicationListProps) => {
+export const AdminApplicationList = ({ cohortAddress, applications }: AdminApplicationListProps) => {
   const [activeFilter, setActiveFilter] = useState<"ALL" | "PENDING" | "APPROVED" | "REJECTED">("ALL");
   const { address, chainId: connectedChainId } = useAccount();
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
 
   const { isERC20: isErc20, tokenDecimals, tokenSymbol, chainId, isAdmin } = useCohortData(cohortAddress);
   const { switchChain } = useSwitchChain();
-
-  const isAdmin = adminAddresses?.includes(address || "");
 
   const formatTime = (date: Date) => {
     try {

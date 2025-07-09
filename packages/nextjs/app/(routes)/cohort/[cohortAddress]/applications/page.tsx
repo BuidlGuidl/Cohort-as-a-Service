@@ -33,11 +33,7 @@ const page = async ({
       </Link>
 
       <div className="mt-8">
-        <AdminApplicationList
-          cohortAddress={params.cohortAddress}
-          applications={cohort.Application.reverse()}
-          adminAddresses={cohort.adminAddresses}
-        />
+        <AdminApplicationList cohortAddress={params.cohortAddress} applications={cohort.Application.reverse()} />
       </div>
     </div>
   );
