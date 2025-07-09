@@ -50,7 +50,6 @@ export const ApplicationModal = ({ cohortAddress, onApplicationSuccess }: Applic
 
   const { isSubmitting, isValid, errors } = form.formState;
 
-  // Update form value when description changes
   useEffect(() => {
     form.setValue("description", description, { shouldValidate: true });
   }, [description, form]);

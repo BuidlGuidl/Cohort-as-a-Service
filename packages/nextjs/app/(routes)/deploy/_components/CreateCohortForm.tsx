@@ -395,7 +395,7 @@ const CreateCohortForm = () => {
                 <button
                   key={currency.address}
                   type="button"
-                  className={`btn btn-sm rounded-md ${selectedCurrency === currency.address ? "btn-primary" : "btn-outline"}`}
+                  className={`btn btn-sm rounded-md ${selectedCurrency === currency.address && !showCustomCurrencyInput ? "btn-primary" : "btn-outline"}`}
                   onClick={() => handleCurrencySelect(currency.address, currency.name)}
                 >
                   {currency.name}
@@ -457,21 +457,19 @@ const CreateCohortForm = () => {
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
-                  value={form.watch("cycle") || ""}
+                  value={form.watch("cycle") ?? ""}
                   className={`input input-sm rounded-md input-bordered border border-base-300 w-full ${errors.cycle ? "input-error" : ""}`}
                   placeholder="Enter cycle days"
-                  {...form.register("cycle", {
-                    onChange: e => {
-                      const value = e.target.value;
-                      const numValue = parseFloat(value);
-                      if (!isNaN(numValue) || value === "") {
-                        form.setValue("cycle", numValue, {
-                          shouldValidate: true,
-                          shouldDirty: true,
-                        });
-                      }
-                    },
-                  })}
+                  onChange={e => {
+                    const value = e.target.value;
+                    const numValue = parseFloat(value);
+                    if (!isNaN(numValue) || value === "") {
+                      form.setValue("cycle", numValue, {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      });
+                    }
+                  }}
                 />
                 {errors.cycle && (
                   <label className="label">
