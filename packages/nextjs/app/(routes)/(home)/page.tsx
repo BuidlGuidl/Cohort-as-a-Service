@@ -6,15 +6,21 @@ import type { NextPage } from "next";
 const Home: NextPage = () => {
   return (
     <>
-      <div className="flex flex-col flex-grow pt-10 max-w-4xl mx-auto mt-8">
+      <div className="flex flex-col flex-grow pt-5 max-w-4xl mx-auto mt-4">
         <div>
           <h1 className="text-center">
-            <span className="block text-3xl font-semibold">
+            <span className="block text-2xl font-semibold">
               Launch unstoppable payment streams and bounties in seconds - automate trust, empower builders, and fuel
               projects effortlessly.
             </span>
           </h1>
           <p className="text-lg mt-4 mb-6 text-base-content/80"></p>
+
+          <div className="mt-8 flex justify-center">
+            <Link href="/deploy">
+              <button className="btn btn-primary btn-lg text-lg w-48">Deploy Stream</button>
+            </Link>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-6 mt-8">
             <div className="card bg-base-100 shadow-xl border border-base-300">
@@ -97,14 +103,6 @@ const Home: NextPage = () => {
             </a>{" "}
             to support open-source tooling and educational initiatives.
           </p>
-        </div>
-
-        <div className="mt-8 flex justify-center">
-          <div className="transform scale-125">
-            <Link href="/app">
-              <button className="btn btn-primary btn-sm">Go To App</button>
-            </Link>
-          </div>
         </div>
       </div>
     </>
