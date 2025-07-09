@@ -104,11 +104,11 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
   }, [fetchCohort, builderStreams]);
 
   useEffect(() => {
-    if (chainId && connectedChainId && chainId !== connectedChainId) {
+    if ((isAdmin || isBuilder) && chainId && connectedChainId && chainId !== connectedChainId) {
       switchChain({ chainId });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId, address]);
+  }, [chainId, address, connectedChainId, isAdmin, isBuilder]);
 
   const handleApplicationSuccess = () => {
     fetchCohort();

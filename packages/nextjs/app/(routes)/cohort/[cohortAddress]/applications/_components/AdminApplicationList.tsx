@@ -22,7 +22,7 @@ export const AdminApplicationList = ({ cohortAddress, applications, adminAddress
   const { address, chainId: connectedChainId } = useAccount();
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
 
-  const { isERC20: isErc20, tokenDecimals, tokenSymbol, chainId } = useCohortData(cohortAddress);
+  const { isERC20: isErc20, tokenDecimals, tokenSymbol, chainId, isAdmin } = useCohortData(cohortAddress);
   const { switchChain } = useSwitchChain();
 
   const isAdmin = adminAddresses?.includes(address || "");
@@ -43,11 +43,11 @@ export const AdminApplicationList = ({ cohortAddress, applications, adminAddress
   };
 
   useEffect(() => {
-    if (chainId && connectedChainId && chainId !== connectedChainId) {
+    if (isAdmin && chainId && connectedChainId && chainId !== connectedChainId) {
       switchChain({ chainId });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId, address]);
+  }, [chainId, address, connectedChainId, isAdmin]);
 
   const renderDescription = (description: string, id: string) => {
     const isExpanded = expandedDescriptions[id];
