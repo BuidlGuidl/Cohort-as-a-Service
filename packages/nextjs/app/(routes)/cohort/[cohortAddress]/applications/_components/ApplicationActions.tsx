@@ -9,6 +9,7 @@ interface ApplicationActionsProps {
   githubUsername?: string;
   isErc20: boolean;
   tokenDecimals?: number;
+  tokenSymbol?: string;
 }
 
 export const ApplicationActions = ({
@@ -18,6 +19,7 @@ export const ApplicationActions = ({
   githubUsername,
   isErc20,
   tokenDecimals,
+  tokenSymbol,
 }: ApplicationActionsProps) => {
   return (
     <ApproveApplication
@@ -27,6 +29,7 @@ export const ApplicationActions = ({
       githubUsername={githubUsername}
       isErc20={isErc20}
       tokenDecimals={tokenDecimals}
+      tokenSymbol={tokenSymbol}
     />
   );
 };

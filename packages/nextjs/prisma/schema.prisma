@@ -52,14 +52,14 @@ enum ApplicationStatus {
 }
 
 model Application {
-    id             String  @id @default(cuid())
+    id             String            @id @default(cuid())
     address        String
     description    String
     githubUsername String?
     cohortId       String
     note           String?
     status         ApplicationStatus @default(PENDING)
-    cohort         Cohort  @relation(fields: [cohortId], references: [id])
+    cohort         Cohort            @relation(fields: [cohortId], references: [id])
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

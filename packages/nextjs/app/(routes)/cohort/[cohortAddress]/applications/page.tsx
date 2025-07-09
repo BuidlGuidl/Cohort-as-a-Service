@@ -26,18 +26,14 @@ const page = async ({
   }
 
   return (
-    <div className="max-w-4xl mt-8">
+    <div className="max-w-4xl mt-8 px-4 sm:px-6 lg:px-8">
       <Link href={`/cohort/${params.cohortAddress}`} className="btn btn-ghost btn-sm rounded-sm">
         <ArrowLongLeftIcon className="w-7 h-4" />
         Back to Cohort
       </Link>
 
       <div className="mt-8">
-        <AdminApplicationList
-          cohortAddress={params.cohortAddress}
-          applications={cohort.Application.reverse()}
-          adminAddresses={cohort.adminAddresses}
-        />
+        <AdminApplicationList cohortAddress={params.cohortAddress} applications={cohort.Application.reverse()} />
       </div>
     </div>
   );

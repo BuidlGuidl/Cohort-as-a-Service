@@ -62,12 +62,19 @@ export const chains: Chain[] = [
   },
 
   {
-    id: "optimism-sepolia",
-    name: "Optimism Sepolia",
-    chainId: 11155420,
-    icon: "/chain/11155420.svg",
+    id: "unichain",
+    name: "Unichain",
+    chainId: 130,
+    icon: "/chain/unichain.png",
     isEVM: true,
   },
+  // {
+  //   id: "ink",
+  //   name: "Ink",
+  //   chainId: 57073,
+  //   icon: "/chain/ink.png",
+  //   isEVM: true,
+  // },
 ];
 
 const allNetworks = getTargetNetworks();

@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import dynamic from "next/dynamic";
 import { Share_Tech_Mono } from "next/font/google";
-import "react-quill/dist/quill.snow.css";
+import "react-quill-new/dist/quill.snow.css";
 
 const shareTechMono = Share_Tech_Mono({ subsets: ["latin"], weight: "400" });
 
@@ -14,7 +14,7 @@ interface EditorProps {
 }
 
 export const Editor = ({ value, onChange, height = "200px" }: EditorProps) => {
-  const ReactQuill = useMemo(() => dynamic(() => import("react-quill"), { ssr: false }), []);
+  const ReactQuill = useMemo(() => dynamic(() => import("react-quill-new"), { ssr: false }), []);
 
   const modules = {
     toolbar: [

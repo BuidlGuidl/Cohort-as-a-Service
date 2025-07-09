@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ApplicationActions from "./ApplicationActions";
 import { Application } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useAccount } from "wagmi";
+import { useSwitchChain } from "wagmi";
 import { Preview } from "~~/components/preview";
 import { Address, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useCohortData } from "~~/hooks/useCohortData";
@@ -13,23 +14,15 @@ import { useCohortData } from "~~/hooks/useCohortData";
 interface AdminApplicationListProps {
   cohortAddress: string;
   applications?: Application[];
-  adminAddresses?: string[];
-  tokenDecimals?: number;
 }
 
-export const AdminApplicationList = ({
-  cohortAddress,
-  applications,
-  adminAddresses,
-  tokenDecimals,
-}: AdminApplicationListProps) => {
+export const AdminApplicationList = ({ cohortAddress, applications }: AdminApplicationListProps) => {
   const [activeFilter, setActiveFilter] = useState<"ALL" | "PENDING" | "APPROVED" | "REJECTED">("ALL");
-  const { address } = useAccount();
+  const { address, chainId: connectedChainId } = useAccount();
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
 
-  const { isERC20: isErc20 } = useCohortData(cohortAddress);
-
-  const isAdmin = adminAddresses?.includes(address || "");
+  const { isERC20: isErc20, tokenDecimals, tokenSymbol, chainId, isAdmin } = useCohortData(cohortAddress);
+  const { switchChain } = useSwitchChain();
 
   const formatTime = (date: Date) => {
     try {
@@ -45,6 +38,13 @@ export const AdminApplicationList = ({
       [id]: !prev[id],
     }));
   };
+
+  useEffect(() => {
+    if (isAdmin && chainId && connectedChainId && chainId !== connectedChainId) {
+      switchChain({ chainId });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chainId, address, connectedChainId, isAdmin]);
 
   const renderDescription = (description: string, id: string) => {
     const isExpanded = expandedDescriptions[id];
@@ -175,6 +175,7 @@ export const AdminApplicationList = ({
                         githubUsername={application.githubUsername || undefined}
                         isErc20={isErc20 || false}
                         tokenDecimals={tokenDecimals}
+                        tokenSymbol={tokenSymbol || ""}
                       />
                     )}
                   </td>

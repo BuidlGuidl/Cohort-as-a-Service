@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { gql, request } from "graphql-request";
 import { useAccount } from "wagmi";
-import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
 export type Cohort = {
   id: string;
@@ -15,10 +14,6 @@ export type Cohort = {
   transactionHash: string;
   blockNumber: string;
 };
-
-interface useCohortsProps {
-  chainId?: AllowedChainIds;
-}
 
 type GraphQLCohortsResponse = {
   cohorts: {
@@ -51,21 +46,13 @@ type GraphQLCohortsResponse = {
   };
 };
 
-const fetchCohorts = async (chainId?: AllowedChainIds, address?: string) => {
-  const whereConditions: string[] = [];
-
-  if (chainId) {
-    whereConditions.push(`chainId: ${chainId}`);
-  }
-
-  const cohortsWhere = whereConditions.length > 0 ? `where: { ${whereConditions.join(", ")} }` : "";
-
+const fetchCohorts = async (address?: string) => {
   let query: string;
 
   if (address) {
     query = gql`
       query GetCohorts {
-        cohorts${cohortsWhere ? `(${cohortsWhere})` : ""} {
+        cohorts {
           items {
             id
             address
@@ -98,7 +85,7 @@ const fetchCohorts = async (chainId?: AllowedChainIds, address?: string) => {
   } else {
     query = gql`
       query GetCohorts {
-        cohorts${cohortsWhere ? `(${cohortsWhere})` : ""} {
+        cohorts {
           items {
             id
             address
@@ -124,13 +111,13 @@ const fetchCohorts = async (chainId?: AllowedChainIds, address?: string) => {
   return data;
 };
 
-export const useCohorts = ({ chainId }: useCohortsProps = {}) => {
+export const useCohorts = () => {
   const { address } = useAccount();
 
   return useQuery<Cohort[]>({
-    queryKey: ["cohorts", chainId, address],
+    queryKey: ["cohorts", address],
     queryFn: async (): Promise<Cohort[]> => {
-      const response = await fetchCohorts(chainId, address);
+      const response = await fetchCohorts(address);
 
       let filteredCohorts = response.cohorts.items;
 

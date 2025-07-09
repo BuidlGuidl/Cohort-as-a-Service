@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTargetNetwork } from "./scaffold-eth";
 import { useTransactor } from "./scaffold-eth";
@@ -34,9 +34,13 @@ export const useApproveApplication = ({
   const router = useRouter();
   const { chain, chainId } = useAccount();
   const { targetNetwork } = useTargetNetwork();
-  const [contractSuccess, setContractSuccess] = useState(false);
 
-  const { data: signature, signMessage, isSuccess: isSignatureSuccess } = useSignMessage();
+  const {
+    data: signature,
+    signMessage,
+    isSuccess: isSignatureSuccess,
+    isPending: isSignaturePending,
+  } = useSignMessage();
 
   const cohort = contracts?.[baseChainId]["Cohort"];
   const writeTx = useTransactor();
@@ -86,7 +90,6 @@ export const useApproveApplication = ({
             });
 
           await writeTx(makeWriteWithParams);
-          setContractSuccess(true);
         } catch (e: any) {
           const message = getParsedError(e);
           notification.error(message);
@@ -100,7 +103,7 @@ export const useApproveApplication = ({
 
   useEffect(() => {
     const updateApplicationInDb = async () => {
-      if (signature && isSignatureSuccess && isSuccess && contractSuccess) {
+      if (signature && isSignatureSuccess && isSuccess) {
         const message = `Approve application ${applicationId} for cohort ${cohortAddress}`;
         try {
           await axios.patch(`/api/cohort/${cohortAddress}/admin/application/${applicationId}`, {
@@ -128,12 +131,12 @@ export const useApproveApplication = ({
 
     updateApplicationInDb();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSuccess, contractSuccess]);
+  }, [isSuccess]);
 
   return {
     approveApplication,
-    isPending,
-    isSuccess: isSuccess && contractSuccess,
+    isPending: isSignaturePending || isPending,
+    isSuccess,
   };
 };
 

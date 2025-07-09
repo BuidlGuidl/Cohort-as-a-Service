@@ -10,9 +10,10 @@ interface AddbatchProps {
   cohortAddress: string;
   isErc20: boolean;
   tokenDecimals?: number;
+  tokenSymbol?: string;
 }
 
-export const AddBatch = ({ cohortAddress, isErc20, tokenDecimals }: AddbatchProps) => {
+export const AddBatch = ({ cohortAddress, isErc20, tokenDecimals, tokenSymbol }: AddbatchProps) => {
   const [caps, setCaps] = useState<string[]>([""]);
   const [builderAddresses, setBuilderAddresses] = useState<string[]>([""]);
   const [githubUsernames, setGithubUsernames] = useState<string[]>([""]);
@@ -123,13 +124,22 @@ export const AddBatch = ({ cohortAddress, isErc20, tokenDecimals }: AddbatchProp
                       </label>
 
                       {isErc20 ? (
-                        <input
-                          className="input input-sm rounded-md input-bordered border border-base-300 w-full"
-                          placeholder={`Enter stream cap`}
-                          type="number"
-                          onChange={e => handleInputChange(index, e.target.value.toString(), setCaps)}
-                          value={caps ? caps[index]?.toString() : ""}
-                        />
+                        <div className="relative">
+                          <input
+                            className="input input-sm rounded-md input-bordered border border-base-300 w-full pr-16"
+                            placeholder={`Enter stream cap`}
+                            type="text"
+                            inputMode="decimal"
+                            pattern="[0-9]*(\.[0-9]+)?"
+                            onChange={e => handleInputChange(index, e.target.value.toString(), setCaps)}
+                            value={caps ? caps[index]?.toString() : ""}
+                          />
+                          {tokenSymbol && (
+                            <span className="absolute inset-y-0 right-3 flex items-center text-sm text-gray-500">
+                              {tokenSymbol}
+                            </span>
+                          )}
+                        </div>
                       ) : (
                         <EtherInput
                           value={caps ? caps[index]?.toString() : ""}

@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import dynamic from "next/dynamic";
 import { Share_Tech_Mono } from "next/font/google";
-import "react-quill/dist/quill.bubble.css";
+import "react-quill-new/dist/quill.bubble.css";
 
 const shareTechMono = Share_Tech_Mono({ subsets: ["latin"], weight: "400" });
 
@@ -13,7 +13,7 @@ interface PreviewProps {
 }
 
 export const Preview = ({ value, fontSize = 14 }: PreviewProps) => {
-  const ReactQuill = useMemo(() => dynamic(() => import("react-quill"), { ssr: false }), []);
+  const ReactQuill = useMemo(() => dynamic(() => import("react-quill-new"), { ssr: false }), []);
 
   return (
     <div id="preview" key="preview" className={`bg-base-100 preview-container ${shareTechMono.className}`}>
