@@ -30,7 +30,7 @@ const SearchPage = ({ searchParams }: SearchPageProps) => {
             <div className="pb-2 md:mb-0 flex md:flex-row flex-col gap-2">
               <SearchInput />
 
-              <Link href="/create">
+              <Link href="/deploy">
                 <button className="btn btn-sm rounded-md btn-primary">Create new</button>
               </Link>
             </div>
