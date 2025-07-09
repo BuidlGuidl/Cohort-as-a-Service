@@ -6,10 +6,10 @@ import type { NextPage } from "next";
 const Home: NextPage = () => {
   return (
     <>
-      <div className="flex flex-col flex-grow pt-10 max-w-4xl mx-auto mt-8">
+      <div className="flex flex-col flex-grow pt-5 max-w-4xl mx-auto mt-4">
         <div>
           <h1 className="text-center">
-            <span className="block text-3xl font-semibold">
+            <span className="block text-2xl font-semibold">
               Launch unstoppable payment streams and bounties in seconds - automate trust, empower builders, and fuel
               projects effortlessly.
             </span>
@@ -17,7 +17,7 @@ const Home: NextPage = () => {
           <p className="text-lg mt-4 mb-6 text-base-content/80"></p>
 
           <div className="mt-8 flex justify-center">
-            <Link href="/app">
+            <Link href="/deploy">
               <button className="btn btn-primary btn-lg text-lg w-48">Deploy Stream</button>
             </Link>
           </div>

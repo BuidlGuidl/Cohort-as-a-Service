@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BugAntIcon } from "@heroicons/react/24/outline";
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 
 type HeaderMenuLink = {
@@ -14,13 +13,12 @@ type HeaderMenuLink = {
 
 export const menuLinks: HeaderMenuLink[] = [
   {
-    label: "Home",
-    href: "/",
+    label: "Deploy",
+    href: "/deploy",
   },
   {
-    label: "Debug Contracts",
-    href: "/debug",
-    icon: <BugAntIcon className="h-4 w-4" />,
+    label: "My Cohorts",
+    href: "/cohorts",
   },
 ];
 
@@ -35,9 +33,7 @@ export const HeaderMenuLinks = () => {
             <Link
               href={href}
               passHref
-              className={`${
-                isActive ? "bg-secondary shadow-md" : ""
-              } hover:bg-secondary hover:shadow-md focus:!bg-secondary active:!text-neutral py-1.5 px-3 text-sm rounded-full gap-2 grid grid-flow-col`}
+              className={`btn btn-ghost btn-sm text-sm text-primary-content hover:bg-primary hover:text-primary-content leading-none py-1 ${isActive ? "btn-active" : ""}`}
             >
               {icon}
               <span>{label}</span>
@@ -61,9 +57,14 @@ export const Header = () => {
             <Image alt="BG logo" className="cursor-pointer" fill src="/BG_Logo.svg" />
           </div>
           <div className="flex flex-col mt-2">
-            <span className="font-bold leading-tight text-xs md:text-lg text-base-content">Cohorts Services</span>
+            <span className="font-bold leading-tight text-xs md:text-lg text-base-content">Cohorts.fun</span>
           </div>
         </Link>
+      </div>
+      <div className="navbar-center hidden lg:flex">
+        <ul className="menu menu-horizontal menu-md gap-4 pl-8">
+          <HeaderMenuLinks />
+        </ul>
       </div>
       <div className="navbar-end flex-grow mr-4">
         <RainbowKitCustomConnectButton />
