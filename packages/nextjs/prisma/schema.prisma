@@ -8,11 +8,11 @@ datasource db {
 }
 
 model Cohort {
-    id             String        @id @default(cuid())
-    address        String        @unique
-    chainId        String?
-    subDomain      String?
-    
+    id        String  @id @default(cuid())
+    address   String  @unique
+    chainId   String?
+    subDomain String? @unique
+
     adminAddresses String[]
     Project        Project[]
     theme          Json?
