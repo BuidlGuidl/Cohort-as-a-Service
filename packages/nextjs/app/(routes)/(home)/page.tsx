@@ -101,7 +101,7 @@ const Home: NextPage = () => {
             >
               BuidlGuidl
             </a>{" "}
-            to support open-source tooling and educational initiatives.
+            to support open-source tooling and curriculum.
           </p>
         </div>
       </div>

@@ -10,6 +10,7 @@ import { ThemeCustomizer } from "./_components/ThemeCustomizer";
 import { EventsModal } from "./members/_components/EventsModal";
 import { Application, Builder, Cohort, Project } from "@prisma/client";
 import axios from "axios";
+import { Plus } from "lucide-react";
 import { useAccount } from "wagmi";
 import { useSwitchChain } from "wagmi";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
@@ -168,7 +169,8 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
 
         {isAdmin ? (
           <button className="btn btn-sm rounded-md btn-primary" onClick={onProjectClick}>
-            View Projects
+            {dbCohort?.Project && dbCohort.Project.length > 0 ? "View Projects" : "Add Projects"}
+            {(!dbCohort?.Project || dbCohort.Project.length === 0) && <Plus className="h-4 w-4" />}
           </button>
         ) : (
           dbCohort?.Project &&
