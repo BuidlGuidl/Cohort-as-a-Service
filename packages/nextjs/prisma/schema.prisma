@@ -11,6 +11,8 @@ model Cohort {
     id             String        @id @default(cuid())
     address        String        @unique
     chainId        String?
+    subDomain      String?
+    
     adminAddresses String[]
     Project        Project[]
     theme          Json?

@@ -1,3 +1,5 @@
+import { domain } from "~~/data/domain";
+
 export const getAssetUrl = (path: string, headers?: Headers) => {
   if (typeof window === "undefined" && headers) {
     const host = headers.get("host") || "";
@@ -5,7 +7,7 @@ export const getAssetUrl = (path: string, headers?: Headers) => {
 
     if (isSubdomain) {
       const isLocalhost = host.includes("localhost");
-      const mainDomain = isLocalhost ? "localhost:3000" : "yourdomain.com";
+      const mainDomain = isLocalhost ? "localhost:3000" : domain;
       const protocol = isLocalhost ? "http" : "https";
       return `${protocol}://${mainDomain}${path}`;
     }
@@ -18,7 +20,7 @@ export const getAssetUrl = (path: string, headers?: Headers) => {
 
     if (isSubdomain) {
       const isLocalhost = host.includes("localhost");
-      const mainDomain = isLocalhost ? "localhost:3000" : "yourdomain.com";
+      const mainDomain = isLocalhost ? "localhost:3000" : domain;
       const protocol = isLocalhost ? "http" : "https";
       return `${protocol}://${mainDomain}${path}`;
     }

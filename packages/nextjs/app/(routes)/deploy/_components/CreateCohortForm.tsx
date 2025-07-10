@@ -32,7 +32,11 @@ const PREDEFINED_CYCLES = [
   { label: "Custom", value: -1 },
 ];
 
-const CreateCohortForm = () => {
+interface CreateCohortFormProps {
+  existingSubDomains: string[];
+}
+
+const CreateCohortForm = ({ exisitingSubdomains }: CreateCohortFormProps) => {
   const router = useRouter();
   const { address, chainId } = useAccount();
 
