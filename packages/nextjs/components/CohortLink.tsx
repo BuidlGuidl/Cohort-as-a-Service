@@ -15,7 +15,24 @@ interface CohortLinkProps {
 export const CohortLink: React.FC<CohortLinkProps> = ({ href, children, className, cohortAddress, onClick }) => {
   const { isOnSubdomain } = useSubdomainRouter();
 
+  const subdomainsEnabled = process.env.NEXT_PUBLIC_USE_SUBDOMAINS === "true";
+
   const getCorrectHref = () => {
+    if (!subdomainsEnabled) {
+      if (
+        cohortAddress &&
+        (href === "/members" || href === "/projects" || href === "/applications" || href === "/myapplications")
+      ) {
+        return `/cohort/${cohortAddress}${href}`;
+      }
+
+      if (cohortAddress && href === "/") {
+        return `/cohort/${cohortAddress}`;
+      }
+
+      return href;
+    }
+
     if (isOnSubdomain()) {
       if (href.startsWith("/cohort/")) {
         const match = href.match(/^\/cohort\/[^\/]+(.*)$/);
@@ -25,12 +42,15 @@ export const CohortLink: React.FC<CohortLinkProps> = ({ href, children, classNam
       }
 
       if (href === "/") {
-        return `/`;
+        return "/";
       }
 
       return href;
     } else {
-      if (cohortAddress && (href === "/members" || href === "/projects" || href === "/applications")) {
+      if (
+        cohortAddress &&
+        (href === "/members" || href === "/projects" || href === "/applications" || href === "/myapplications")
+      ) {
         return `/cohort/${cohortAddress}${href}`;
       }
 
@@ -39,7 +59,6 @@ export const CohortLink: React.FC<CohortLinkProps> = ({ href, children, classNam
       }
 
       if (cohortAddress && href === "/") {
-        console.log("wrong");
         return `/cohort/${cohortAddress}`;
       }
 

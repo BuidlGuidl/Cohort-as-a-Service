@@ -1,5 +1,11 @@
 export const getCohortUrl = (cohortAddress: string, subdomain?: string | null) => {
-  if (subdomain && process.env.NEXT_PUBLIC_USE_SUBDOMAINS === "true") {
+  const subdomainsEnabled = process.env.NEXT_PUBLIC_USE_SUBDOMAINS === "true";
+
+  if (!subdomainsEnabled) {
+    return `/cohort/${cohortAddress}`;
+  }
+
+  if (subdomain) {
     if (typeof window !== "undefined") {
       const host = window.location.host;
       const isLocalhost = host.includes("localhost");

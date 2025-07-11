@@ -24,12 +24,19 @@ export const SubdomainLink: React.FC<SubdomainLinkProps> = ({
   const { getBaseUrl, pushToSubdomain, isOnSubdomain } = useSubdomainRouter();
   const [mounted, setMounted] = useState(false);
 
+  const subdomainsEnabled = process.env.NEXT_PUBLIC_USE_SUBDOMAINS === "true";
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
+
+    if (!subdomainsEnabled) {
+      router.push(href);
+      return;
+    }
 
     if (toSubdomain) {
       pushToSubdomain(toSubdomain, href);
@@ -53,9 +60,21 @@ export const SubdomainLink: React.FC<SubdomainLinkProps> = ({
     );
   }
 
+  if (!subdomainsEnabled) {
+    return (
+      <Link href={href} className={className}>
+        {children}
+      </Link>
+    );
+  }
+
   if ((toMainDomain && isOnSubdomain()) || toSubdomain) {
     return (
-      <a href={toMainDomain ? `${getBaseUrl()}${href}` : href} onClick={handleClick} className={className}>
+      <a
+        href={toMainDomain && getBaseUrl() ? `${getBaseUrl()}${href}` : href}
+        onClick={handleClick}
+        className={className}
+      >
         {children}
       </a>
     );

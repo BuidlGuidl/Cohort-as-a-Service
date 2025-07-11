@@ -88,6 +88,9 @@ export const useSubdomainRouter = () => {
   }, []);
 
   const isOnSubdomain = useCallback(() => {
+    if (process.env.NEXT_PUBLIC_USE_SUBDOMAINS !== "true") {
+      return false;
+    }
     return getCurrentSubdomain() !== null;
   }, [getCurrentSubdomain]);
 
