@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { BuildersList } from "./_components/BuildersList";
 import { EditDescription } from "./_components/EditDescription";
 import { StreamContractInfo } from "./_components/StreamContractInfo";
@@ -15,6 +13,8 @@ import { useAccount } from "wagmi";
 import { useSwitchChain } from "wagmi";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { ArrowLongLeftIcon } from "@heroicons/react/24/outline";
+import { CohortLink } from "~~/components/CohortLink";
+import { SubdomainLink } from "~~/components/SubDomainLink";
 import { Preview } from "~~/components/preview";
 import { useCohortData } from "~~/hooks/useCohortData";
 import { useWithdrawEvents } from "~~/hooks/useWithdrawEvents";
@@ -52,7 +52,6 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
 
   const { switchChain } = useSwitchChain();
 
-  const router = useRouter();
   const { address, chainId: connectedChainId } = useAccount();
 
   const [selectedAddress, setSelectedAddress] = useState("");
@@ -78,14 +77,6 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     setModalView(view);
     filterEventsByAddress(builderAddress);
     setIsModalOpen(true);
-  };
-
-  const onMemeberClick = () => {
-    router.push(`/cohort/${params.cohortAddress}/members`);
-  };
-
-  const onProjectClick = () => {
-    router.push(`/cohort/${params.cohortAddress}/projects`);
   };
 
   const fetchCohort = useCallback(async () => {
@@ -118,10 +109,10 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
   return (
     <div className="max-w-4xl text-base-content px-4 sm:px-6 lg:px-8 mt-8">
       {isAdmin && (
-        <Link href="/cohorts" className="btn btn-ghost btn-sm rounded-sm mb-5">
+        <SubdomainLink href="/cohorts" className="btn btn-ghost btn-sm rounded-sm mb-5" toMainDomain={true}>
           <ArrowLongLeftIcon className="w-7 h-4" />
           My cohorts
-        </Link>
+        </SubdomainLink>
       )}
       <div>
         <h1 className="text-4xl font-bold mb-8 text-primary-content bg-primary inline-block p-2">Cohort</h1>
@@ -160,24 +151,29 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
 
       <div className="flex gap-3">
         {buildersData.length > 8 && (
-          <div className="">
-            <button className="btn btn-sm btn-primary rounded-md " onClick={onMemeberClick}>
-              Members
-            </button>
+          <div>
+            <CohortLink href="/members" cohortAddress={params.cohortAddress}>
+              <button className="btn btn-sm btn-primary rounded-md ">Members</button>
+            </CohortLink>
           </div>
         )}
 
         {isAdmin ? (
-          <button className="btn btn-sm rounded-md btn-primary" onClick={onProjectClick}>
-            {dbCohort?.Project && dbCohort.Project.length > 0 ? "View Projects" : "Add Projects"}
-            {(!dbCohort?.Project || dbCohort.Project.length === 0) && <Plus className="h-4 w-4" />}
-          </button>
+          <CohortLink href="/projects" cohortAddress={params.cohortAddress}>
+            <button className="btn btn-sm rounded-md btn-primary">
+              {dbCohort?.Project && dbCohort.Project.length > 0 ? "View Projects" : "Add Projects"}
+              {(!dbCohort?.Project || dbCohort.Project.length === 0) && <Plus className="h-4 w-4" />}
+            </button>
+          </CohortLink>
         ) : (
           dbCohort?.Project &&
           dbCohort.Project.length > 0 && (
-            <button className="btn btn-sm rounded-md btn-primary mb-4" onClick={onProjectClick}>
-              View Projects
-            </button>
+            <CohortLink href="/projects" cohortAddress={params.cohortAddress}>
+              <button className="btn btn-sm rounded-md btn-primary mb-4">
+                {dbCohort?.Project && dbCohort.Project.length > 0 ? "View Projects" : "Add Projects"}
+                {(!dbCohort?.Project || dbCohort.Project.length === 0) && <Plus className="h-4 w-4" />}
+              </button>
+            </CohortLink>
           )
         )}
       </div>

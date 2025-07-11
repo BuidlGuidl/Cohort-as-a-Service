@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Builder } from "@prisma/client";
@@ -24,13 +23,11 @@ const EditGithubSchema = z.object({
 
 interface EditGithubProps {
   builder?: Builder;
+  cohortAddress: string;
   onSuccess?: () => void;
 }
 
-export const EditGithub = ({ builder, onSuccess }: EditGithubProps) => {
-  const params = useParams();
-  const cohortAddress = params.cohortAddress as string;
-
+export const EditGithub = ({ builder, onSuccess, cohortAddress }: EditGithubProps) => {
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [formValues, setFormValues] = useState<z.infer<typeof EditGithubSchema> | null>(null);

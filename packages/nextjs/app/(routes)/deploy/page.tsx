@@ -6,14 +6,14 @@ const CreatePage = async () => {
   const dbCohorts = await db.cohort.findMany({});
 
   const existingSubdomains = dbCohorts
-    .map(cohort => cohort.subDomain)
-    .filter((subDomain): subDomain is string => subDomain !== null);
+    .map(cohort => cohort.subdomain)
+    .filter((subdomain): subdomain is string => subdomain !== null);
 
   return (
     <div className="max-w-4xl mt-10 space-y-6 mx-auto">
       <h1 className="text-2xl font-semibold">Create a new cohort</h1>
       <ChainToggler />
-      <CreateCohortForm existingSubDomains={existingSubdomains} />
+      <CreateCohortForm existingSubdomains={existingSubdomains} />
     </div>
   );
 };
