@@ -237,7 +237,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
                       />
                     )}
                     {isBuilder && address?.toLowerCase() == builderStream.builderAddress && (
-                      <BuilderActions dbBuilder={dbBuilder} onDataUpdate={onDataUpdate} />
+                      <BuilderActions cohortAddress={cohortAddress} dbBuilder={dbBuilder} onDataUpdate={onDataUpdate} />
                     )}
                     {showNotification && (
                       <NotificationBell

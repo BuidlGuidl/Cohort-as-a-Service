@@ -7,10 +7,11 @@ import { Project } from "@prisma/client";
 import { EllipsisVertical } from "lucide-react";
 
 interface ProjectActionsProps {
+  cohortAddress: string;
   project: Project;
 }
 
-export const ProjectActions = ({ project }: ProjectActionsProps) => {
+export const ProjectActions = ({ project, cohortAddress }: ProjectActionsProps) => {
   return (
     <>
       <div className="dropdown dropdown-start">
@@ -34,8 +35,8 @@ export const ProjectActions = ({ project }: ProjectActionsProps) => {
         </ul>
       </div>
 
-      <EditProject project={project} />
-      <DeleteProject project={project} />
+      <EditProject project={project} cohortAddress={cohortAddress} />
+      <DeleteProject project={project} cohortAddress={cohortAddress} />
     </>
   );
 };

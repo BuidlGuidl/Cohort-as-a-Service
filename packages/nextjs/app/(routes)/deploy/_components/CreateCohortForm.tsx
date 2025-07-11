@@ -32,13 +32,19 @@ const PREDEFINED_CYCLES = [
   { label: "Custom", value: -1 },
 ];
 
-const CreateCohortForm = () => {
+interface CreateCohortFormProps {
+  existingSubdomains: string[];
+}
+
+const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
   const router = useRouter();
   const { address, chainId } = useAccount();
 
   const [showCustomCurrencyInput, setShowCustomCurrencyInput] = useState(false);
   const [showCustomCycleInput, setShowCustomCycleInput] = useState(false);
   const [selectedCycle, setSelectedCycle] = useState(PREDEFINED_CYCLES[3].value);
+  const [isCheckingSubdomain, setIsCheckingSubdomain] = useState(false);
+  const [subdomainError, setSubdomainError] = useState("");
 
   const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
   const [loadingStage, setLoadingStage] = useState(0);
@@ -70,6 +76,7 @@ const CreateCohortForm = () => {
       builderCaps: [],
       requiresApproval: false,
       allowApplications: false,
+      subdomain: "",
     },
     mode: "onChange",
   });
@@ -101,6 +108,18 @@ const CreateCohortForm = () => {
   });
 
   const cycleInSeconds = (cycle: number) => cycle * 24 * 60 * 60;
+
+  const checkSubdomainAvailability = async (subdomain: string) => {
+    if (!subdomain || isCheckingSubdomain) return;
+
+    setIsCheckingSubdomain(true);
+    if (existingSubdomains.includes(subdomain.toLowerCase())) {
+      setSubdomainError("This subdomain is already taken");
+    } else {
+      setSubdomainError("");
+    }
+    setIsCheckingSubdomain(false);
+  };
 
   const handleCycleSelect = (cycle: number, label: string) => {
     if (label === "Custom") {
@@ -266,11 +285,20 @@ const CreateCohortForm = () => {
         chainId,
         builderAddresses: filteredAddresses,
         builderGithubUsernames: filteredGithubUsernames,
+        subdomain: values.subdomain,
       });
 
       setTimeout(() => {
         setIsLoadingModalOpen(false);
-        router.push(`/cohort/${deployedAddress}`);
+        if (values.subdomain) {
+          const subdomain = values.subdomain.toLowerCase();
+          const baseUrl = window.location.host.includes("localhost")
+            ? `http://${subdomain}.localhost:3000`
+            : `https://${subdomain}.cohorts.fun`;
+          window.location.href = baseUrl;
+        } else {
+          router.push(`/cohort/${deployedAddress}`);
+        }
       }, 5000);
     } catch (e) {
       console.error("Error creating cohort", e);
@@ -353,6 +381,34 @@ const CreateCohortForm = () => {
             {errors.description && (
               <label className="label">
                 <span className="label-text-alt text-error -mt-3">{errors.description.message}</span>
+              </label>
+            )}
+          </div>
+
+          <div className="form-control w-full">
+            <label className="label">
+              <span className="label-text font-medium">Custom Subdomain (optional)</span>
+            </label>
+
+            <div className="relative">
+              <input
+                className={`input input-sm rounded-md input-bordered border border-base-300 w-full ${subdomainError ? "input-error" : ""}`}
+                placeholder="my-cohort"
+                disabled={isSubmitting}
+                {...form.register("subdomain", {
+                  onChange: e => {
+                    const value = e.target.value.toLowerCase();
+                    form.setValue("subdomain", value);
+                    checkSubdomainAvailability(value);
+                  },
+                })}
+              />
+              <span className="absolute right-3 top-1 text-sm text-base-content/60">.cohorts.fun</span>
+            </div>
+
+            {(subdomainError || errors.subdomain) && (
+              <label className="label">
+                <span className="label-text-alt text-error">{subdomainError || errors.subdomain?.message}</span>
               </label>
             )}
           </div>

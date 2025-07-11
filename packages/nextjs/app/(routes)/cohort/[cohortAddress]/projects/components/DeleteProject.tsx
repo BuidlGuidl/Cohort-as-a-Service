@@ -1,21 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Project } from "@prisma/client";
 import axios from "axios";
 import { useSignMessage } from "wagmi";
 import { notification } from "~~/utils/scaffold-eth";
 
 interface DeleteProjectProps {
+  cohortAddress: string;
   project: Project;
   onSuccess?: () => void;
 }
 
-export const DeleteProject = ({ project, onSuccess }: DeleteProjectProps) => {
-  const params = useParams();
+export const DeleteProject = ({ project, onSuccess, cohortAddress }: DeleteProjectProps) => {
   const router = useRouter();
-  const cohortAddress = params.cohortAddress as string;
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const { data: signature, signMessage, isSuccess: isSignatureSuccess } = useSignMessage();

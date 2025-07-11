@@ -70,7 +70,7 @@ export const AdminActions = ({
         builderAddress={builderAddress}
         requiresApproval={requiresApproval}
       />
-      <EditGithub builder={dbBuilder} onSuccess={onDataUpdate} />
+      <EditGithub cohortAddress={cohortAddress} builder={dbBuilder} onSuccess={onDataUpdate} />
     </>
   );
 };

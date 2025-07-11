@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { Cohort } from "@prisma/client";
 import { Address } from "~~/components/scaffold-eth";
 import { getChainById } from "~~/data/chains";
 import { getNetworkColor } from "~~/hooks/scaffold-eth";
+import { getCohortUrl } from "~~/utils/cohortUrl";
 import { AllowedChainIds, ChainWithAttributes } from "~~/utils/scaffold-eth";
 
 interface CohortCardProps {
@@ -13,10 +15,14 @@ interface CohortCardProps {
   primaryAdmin?: string;
   chainName?: string;
   role?: "ADMIN" | "BUILDER";
+  dbCohorts: Cohort[];
 }
 
-export const CohortCard = ({ address, chainName, primaryAdmin, name, role, chainId }: CohortCardProps) => {
+export const CohortCard = ({ address, chainName, primaryAdmin, name, role, chainId, dbCohorts }: CohortCardProps) => {
   const [networkColor, setNetworkColor] = useState<string>("#bbbbbb");
+
+  const dbCohort = dbCohorts.find(cohort => cohort.address.toLowerCase() === address?.toLowerCase());
+  const cohortUrl = getCohortUrl(address as string, dbCohort?.subdomain);
 
   useEffect(() => {
     if (!chainId) return;
@@ -27,7 +33,7 @@ export const CohortCard = ({ address, chainName, primaryAdmin, name, role, chain
 
   return (
     <div>
-      <Link href={`/cohort/${address}`}>
+      <Link href={cohortUrl}>
         <div className="group hover:shadow-sm transition overflow-hidden border rounded-lg p-2 h-full relative">
           <div className="justify-between flex text-xs">
             <span>{role}</span>

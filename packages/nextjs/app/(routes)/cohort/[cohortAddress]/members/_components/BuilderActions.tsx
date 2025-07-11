@@ -4,11 +4,12 @@ import { Builder } from "@prisma/client";
 import { EllipsisVertical } from "lucide-react";
 
 interface BuilderActionsProps {
+  cohortAddress: string;
   dbBuilder?: Builder;
   onDataUpdate?: () => void;
 }
 
-export const BuilderActions = ({ dbBuilder, onDataUpdate }: BuilderActionsProps) => {
+export const BuilderActions = ({ dbBuilder, onDataUpdate, cohortAddress }: BuilderActionsProps) => {
   return (
     <>
       <div className="dropdown dropdown-start">
@@ -27,7 +28,7 @@ export const BuilderActions = ({ dbBuilder, onDataUpdate }: BuilderActionsProps)
         </ul>
       </div>
 
-      <EditGithub builder={dbBuilder} onSuccess={onDataUpdate} />
+      <EditGithub cohortAddress={cohortAddress} builder={dbBuilder} onSuccess={onDataUpdate} />
     </>
   );
 };

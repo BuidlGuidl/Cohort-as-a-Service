@@ -38,6 +38,13 @@ export const CreateCohortSchema = z.object({
     .default([]),
   requiresApproval: z.boolean().default(false),
   allowApplications: z.boolean().default(false),
+  subdomain: z
+    .string()
+    .regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens allowed")
+    .min(3, "Subdomain must be at least 3 characters")
+    .max(30, "Subdomain cannot exceed 30 characters")
+    .optional()
+    .or(z.literal("")),
 });
 
 export const CreateProjectSchema = z.object({

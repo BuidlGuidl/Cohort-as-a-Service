@@ -1,5 +1,6 @@
 import { CohortCard } from "./CohortCard";
 import { CohortLoadingCard } from "./CohortLoadingCard";
+import { Cohort as DbCohort } from "@prisma/client";
 import { Cohort } from "~~/hooks/useCohorts";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
@@ -10,9 +11,10 @@ type CohortWithRole = Cohort & {
 interface CohortsListProps {
   items: CohortWithRole[];
   loading: boolean;
+  dbCohorts: DbCohort[];
 }
 
-const CohortsList = ({ items, loading }: CohortsListProps) => {
+const CohortsList = ({ items, loading, dbCohorts }: CohortsListProps) => {
   if (loading) {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -36,6 +38,7 @@ const CohortsList = ({ items, loading }: CohortsListProps) => {
             name={item.name}
             chainName={item.chainName}
             role={item.role}
+            dbCohorts={dbCohorts}
           />
         ))}
       </div>

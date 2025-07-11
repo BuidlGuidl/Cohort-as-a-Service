@@ -113,8 +113,8 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
                 role: "BUILDER",
               });
             }
-          } catch (error) {
-            console.error(`Error checking builder status for cohort ${cohort.address}:`, error);
+          } catch {
+            // console.error(`Error checking builder status for cohort ${cohort.address}:`, error);
             continue;
           }
         }

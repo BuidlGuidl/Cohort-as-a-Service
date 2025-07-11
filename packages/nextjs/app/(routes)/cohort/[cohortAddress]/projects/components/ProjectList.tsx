@@ -42,7 +42,7 @@ export const ProjectList = ({ projects, cohortAddress }: ProjectListProps) => {
             <div className="flex items-center gap-2">
               <span className="text-secondary  ">{project.name}</span>
               <span className="text-gray-400 text-xs ">- Updated {formatUpdatedTime(project.updatedAt)}</span>
-              {isAdmin && <ProjectActions project={project} />}
+              {isAdmin && <ProjectActions project={project} cohortAddress={cohortAddress} />}
             </div>
             <p className="text-white mt-1">{project.description}</p>
             <div className="flex -mt-3 gap-2">

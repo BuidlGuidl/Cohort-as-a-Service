@@ -10,14 +10,47 @@ export const useSubdomainRouter = () => {
     const host = window.location.host;
     const protocol = window.location.protocol;
 
-    const cohortMatch = host.match(/^(0x[a-fA-F0-9]{40})\./i);
+    const parts = host.split(".");
 
-    if (cohortMatch) {
-      const mainDomain = host.replace(/^0x[a-fA-F0-9]{40}\./i, "");
-      return `${protocol}//${mainDomain}`;
+    if (parts.length >= 2) {
+      const subdomain = parts[0];
+
+      if (subdomain === "www" || subdomain === "cohorts" || subdomain.includes("localhost")) {
+        return "";
+      }
+
+      const isCustomSubdomain = /^[a-z0-9-]+$/i.test(subdomain);
+
+      if (isCustomSubdomain) {
+        const mainDomain = parts.slice(1).join(".");
+        return `${protocol}//${mainDomain}`;
+      }
     }
 
     return "";
+  }, []);
+
+  const getCurrentSubdomain = useCallback(() => {
+    if (typeof window === "undefined") return null;
+
+    const host = window.location.host;
+    const parts = host.split(".");
+
+    if (parts.length >= 2) {
+      const subdomain = parts[0];
+
+      if (subdomain === "www" || subdomain === "cohorts" || subdomain.includes("localhost")) {
+        return null;
+      }
+
+      const isCustomSubdomain = /^[a-z0-9-]+$/i.test(subdomain);
+
+      if (isCustomSubdomain) {
+        return subdomain;
+      }
+    }
+
+    return null;
   }, []);
 
   const pushToMainDomain = useCallback(
@@ -39,9 +72,34 @@ export const useSubdomainRouter = () => {
     [router],
   );
 
+  const pushToSubdomain = useCallback((subdomain: string, path: string = "/") => {
+    if (typeof window === "undefined") return;
+
+    const host = window.location.host;
+    const protocol = window.location.protocol;
+
+    if (host.includes("localhost")) {
+      window.location.href = `${protocol}//${subdomain}.localhost:3000${path}`;
+    } else {
+      const parts = host.split(".");
+      const mainDomain = parts.length > 2 ? parts.slice(1).join(".") : host;
+      window.location.href = `${protocol}//${subdomain}.${mainDomain}${path}`;
+    }
+  }, []);
+
+  const isOnSubdomain = useCallback(() => {
+    if (process.env.NEXT_PUBLIC_USE_SUBDOMAINS !== "true") {
+      return false;
+    }
+    return getCurrentSubdomain() !== null;
+  }, [getCurrentSubdomain]);
+
   return {
     pushToMainDomain,
     pushWithinCohort,
+    pushToSubdomain,
     getBaseUrl,
+    getCurrentSubdomain,
+    isOnSubdomain,
   };
 };

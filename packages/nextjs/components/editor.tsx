@@ -26,19 +26,7 @@ export const Editor = ({ value, onChange, height = "200px" }: EditorProps) => {
     ],
   };
 
-  const formats = [
-    "header",
-    "bold",
-    "italic",
-    "underline",
-    "strike",
-    "blockquote",
-    "list",
-    "bullet",
-    "indent",
-    "link",
-    "image",
-  ];
+  const formats = ["header", "bold", "italic", "underline", "strike", "blockquote", "list", "indent", "link", "image"];
 
   return (
     <div className={`bg-base-100 editor-container border rounded-md ${shareTechMono.className}`} style={{ height }}>
