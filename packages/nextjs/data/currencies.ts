@@ -114,10 +114,6 @@ export const currencies: CurrenciesType = {
         address: "0x0000000000000000000000000000000000000000",
       },
       {
-        name: "BASE",
-        address: "0xd07379a755a8f11b57610154861d694b2a0f615a",
-      },
-      {
         name: "USDC",
         address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
       },

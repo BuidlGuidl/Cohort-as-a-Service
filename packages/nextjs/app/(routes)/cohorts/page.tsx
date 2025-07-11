@@ -37,7 +37,11 @@ const SearchPage = ({ searchParams }: SearchPageProps) => {
             <CohortsList items={allMyCohorts} loading={isLoading} />
           </div>
         ) : (
-          <RainbowKitCustomConnectButton />
+          <div className="flex justify-center">
+            <div className="[&_.btn]:btn-md [&_.btn]:text-lg">
+              <RainbowKitCustomConnectButton />
+            </div>
+          </div>
         )}
       </div>
     </div>
