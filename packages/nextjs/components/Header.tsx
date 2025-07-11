@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAccount } from "wagmi";
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 
 type HeaderMenuLink = {
@@ -11,7 +13,7 @@ type HeaderMenuLink = {
   icon?: React.ReactNode;
 };
 
-export const menuLinks: HeaderMenuLink[] = [
+const baseMenuLinks: HeaderMenuLink[] = [
   {
     label: "Deploy",
     href: "/deploy",
@@ -24,6 +26,31 @@ export const menuLinks: HeaderMenuLink[] = [
 
 export const HeaderMenuLinks = () => {
   const pathname = usePathname();
+  const { address } = useAccount();
+  const [menuLinks, setMenuLinks] = useState<HeaderMenuLink[]>(baseMenuLinks);
+
+  useEffect(() => {
+    if (!address) {
+      setMenuLinks(baseMenuLinks);
+      return;
+    }
+
+    const bgAdmins = process.env.NEXT_PUBLIC_BG_ADMINS?.split(",").map(addr => addr.toLowerCase()) || [];
+    const isAdmin = bgAdmins.includes(address.toLowerCase());
+
+    if (isAdmin) {
+      setMenuLinks([
+        ...baseMenuLinks,
+        {
+          label: "Analytics",
+          href: "/analytics",
+        },
+      ]);
+    } else {
+      setMenuLinks(baseMenuLinks);
+    }
+  }, [address]);
+
   return (
     <>
       {menuLinks.map(({ label, href, icon }) => {
