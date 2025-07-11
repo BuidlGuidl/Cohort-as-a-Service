@@ -5,6 +5,14 @@ export async function middleware(request: NextRequest) {
   const host = request.headers.get("host") || "";
   const pathname = request.nextUrl.pathname;
 
+  if (process.env.NEXT_PUBLIC_USE_SUBDOMAINS !== "true") {
+    return NextResponse.next();
+  }
+
+  if (host.includes("vercel.app") && !host.includes(process.env.NEXT_PUBLIC_CUSTOM_DOMAIN || "")) {
+    return NextResponse.next();
+  }
+
   const parts = host.split(".");
   let subdomain = null;
 
