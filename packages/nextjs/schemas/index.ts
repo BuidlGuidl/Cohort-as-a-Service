@@ -43,7 +43,8 @@ export const CreateCohortSchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens allowed")
     .min(3, "Subdomain must be at least 3 characters")
     .max(30, "Subdomain cannot exceed 30 characters")
-    .optional(),
+    .optional()
+    .or(z.literal("")),
 });
 
 export const CreateProjectSchema = z.object({

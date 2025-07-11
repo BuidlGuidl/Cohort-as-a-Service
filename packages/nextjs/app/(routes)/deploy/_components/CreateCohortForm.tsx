@@ -76,6 +76,7 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
       builderCaps: [],
       requiresApproval: false,
       allowApplications: false,
+      subdomain: "",
     },
     mode: "onChange",
   });
@@ -391,7 +392,7 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
 
             <div className="relative">
               <input
-                className={`input input-bordered w-full ${subdomainError ? "input-error" : ""}`}
+                className={`input input-sm rounded-md input-bordered border border-base-300 w-full ${subdomainError ? "input-error" : ""}`}
                 placeholder="my-cohort"
                 disabled={isSubmitting}
                 {...form.register("subdomain", {
@@ -402,12 +403,12 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
                   },
                 })}
               />
-              <span className="absolute right-3 top-3 text-sm text-base-content/60">.cohorts.fun</span>
+              <span className="absolute right-3 top-1 text-sm text-base-content/60">.cohorts.fun</span>
             </div>
 
-            {subdomainError && (
+            {(subdomainError || errors.subdomain) && (
               <label className="label">
-                <span className="label-text-alt text-error">{subdomainError}</span>
+                <span className="label-text-alt text-error">{subdomainError || errors.subdomain?.message}</span>
               </label>
             )}
           </div>
