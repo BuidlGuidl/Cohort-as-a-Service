@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { formatEther, formatUnits } from "viem";
 import { useAccount } from "wagmi";
-import { ArrowDownIcon, ArrowUpIcon } from "@heroicons/react/24/outline";
+import { ArrowDownIcon, ArrowUpIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { chains } from "~~/data/chains";
 import { useAnalytics } from "~~/hooks/useAnalytics";
@@ -14,6 +14,8 @@ const Analytics = () => {
   const [selectedChain, setSelectedChain] = useState<number | null>(null);
   const [sortField, setSortField] = useState<string>("totalWithdrawn");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const sortedCohorts = data?.cohortAnalytics
     ? [...data.cohortAnalytics]
@@ -55,6 +57,46 @@ const Analytics = () => {
         })
     : [];
 
+  const totalItems = sortedCohorts.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedCohorts = sortedCohorts.slice(startIndex, endIndex);
+
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push("...");
+        pageNumbers.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pageNumbers.push(1);
+        pageNumbers.push("...");
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        pageNumbers.push(1);
+        pageNumbers.push("...");
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push("...");
+        pageNumbers.push(totalPages);
+      }
+    }
+    return pageNumbers;
+  };
+
   const handleSort = (field: string) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -62,6 +104,22 @@ const Analytics = () => {
       setSortField(field);
       setSortDirection("desc");
     }
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleItemsPerPageChange = (value: number) => {
+    setItemsPerPage(value);
+    setCurrentPage(1);
+  };
+
+  const handleChainFilter = (chainId: number | null) => {
+    setSelectedChain(chainId);
+    setCurrentPage(1);
   };
 
   const formatAmount = (amount: bigint, decimals: number, symbol?: string) => {
@@ -140,7 +198,7 @@ const Analytics = () => {
               className={`card shadow-xl cursor-pointer hover:border-primary border border-neutral transition-all ${
                 selectedChain === chain.chainId ? "ring-2 ring-primary" : ""
               }`}
-              onClick={() => setSelectedChain(selectedChain === chain.chainId ? null : chain.chainId)}
+              onClick={() => handleChainFilter(selectedChain === chain.chainId ? null : chain.chainId)}
             >
               <div className="card-body">
                 <h3 className="card-title text-lg">{chain.chainName}</h3>
@@ -177,10 +235,31 @@ const Analytics = () => {
             )}
           </h2>
           {selectedChain && (
-            <button className="btn btn-sm btn-ghost" onClick={() => setSelectedChain(null)}>
+            <button className="btn btn-sm btn-ghost" onClick={() => handleChainFilter(null)}>
               Clear Filter
             </button>
           )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+          <div className="text-sm">
+            Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} entries
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm">Show</label>
+            <select
+              className="select select-bordered select-sm"
+              value={itemsPerPage}
+              onChange={e => handleItemsPerPageChange(Number(e.target.value))}
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <span className="text-sm">entries</span>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -247,7 +326,7 @@ const Analytics = () => {
               </tr>
             </thead>
             <tbody>
-              {sortedCohorts.map(cohort => (
+              {paginatedCohorts.map(cohort => (
                 <tr key={cohort.id} className="hover:bg-neutral">
                   <td>
                     <a
@@ -280,6 +359,59 @@ const Analytics = () => {
             </tbody>
           </table>
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row justify-center items-center mt-6 gap-4">
+            <div className="join">
+              <button
+                className="join-item btn btn-sm btn-neutral"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeftIcon className="w-4 h-4" />
+              </button>
+
+              {getPageNumbers().map((pageNum, index) => (
+                <button
+                  key={index}
+                  className={`join-item btn btn-sm ${
+                    pageNum === currentPage ? "btn-neutral" : "btn-primary"
+                  } ${pageNum === "..." ? "btn-disabled" : ""}`}
+                  onClick={() => typeof pageNum === "number" && handlePageChange(pageNum)}
+                  disabled={pageNum === "..."}
+                >
+                  {pageNum}
+                </button>
+              ))}
+
+              <button
+                className="join-item btn btn-sm btn-neutral"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRightIcon className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm">Go to page:</span>
+              <input
+                type="number"
+                min="1"
+                max={totalPages}
+                value={currentPage}
+                onChange={e => {
+                  const page = parseInt(e.target.value);
+                  if (page >= 1 && page <= totalPages) {
+                    handlePageChange(page);
+                  }
+                }}
+                className="input input-bordered input-sm w-16"
+              />
+              <span className="text-sm">of {totalPages}</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
