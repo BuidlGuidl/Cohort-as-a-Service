@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Project } from "@prisma/client";
@@ -13,14 +12,12 @@ import { CreateProjectSchema } from "~~/schemas";
 import { notification } from "~~/utils/scaffold-eth";
 
 interface EditProjectProps {
+  cohortAddress: string;
   project: Project;
   onSuccess?: () => void;
 }
 
-export const EditProject = ({ project, onSuccess }: EditProjectProps) => {
-  const params = useParams();
-  const cohortAddress = params.cohortAddress as string;
-
+export const EditProject = ({ project, onSuccess, cohortAddress }: EditProjectProps) => {
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [formValues, setFormValues] = useState<z.infer<typeof CreateProjectSchema> | null>(null);

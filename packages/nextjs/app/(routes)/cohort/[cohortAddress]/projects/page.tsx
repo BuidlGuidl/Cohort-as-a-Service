@@ -1,7 +1,7 @@
 import React from "react";
-import Link from "next/link";
 import ProjectList from "./components/ProjectList";
 import { ArrowLongLeftIcon } from "@heroicons/react/24/outline";
+import { CohortLink } from "~~/components/CohortLink";
 import db from "~~/lib/db";
 
 const page = async ({
@@ -26,10 +26,10 @@ const page = async ({
 
   return (
     <div className="max-w-4xl mt-8 px-4 sm:px-6 lg:px-8">
-      <Link href={`/cohort/${params.cohortAddress}`} className="btn btn-ghost btn-sm rounded-sm">
+      <CohortLink href="/" cohortAddress={params.cohortAddress} className="btn btn-ghost btn-sm rounded-sm">
         <ArrowLongLeftIcon className="w-7 h-4" />
         Cohort
-      </Link>
+      </CohortLink>
       <div className="mt-4">
         <ProjectList projects={cohort?.Project} cohortAddress={params.cohortAddress} />
       </div>

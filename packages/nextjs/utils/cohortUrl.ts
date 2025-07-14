@@ -1,19 +1,30 @@
-export const getCohortUrl = (cohortAddress: string) => {
-  if (typeof window !== "undefined") {
-    const currentHost = window.location.host;
-    const isSubdomain = currentHost.match(/^0x[a-fA-F0-9]{40}\./i);
-    const isLocalhost = currentHost.includes("localhost");
-    const isVercelApp = currentHost.includes("cohort-service.vercel.app");
+export const getCohortUrl = (cohortAddress: string, subdomain?: string | null) => {
+  const subdomainsEnabled = process.env.NEXT_PUBLIC_USE_SUBDOMAINS === "true";
 
-    if (isSubdomain || process.env.NEXT_PUBLIC_USE_SUBDOMAINS === "true") {
+  if (!subdomainsEnabled) {
+    return `/cohort/${cohortAddress}`;
+  }
+
+  if (subdomain) {
+    if (typeof window !== "undefined") {
+      const host = window.location.host;
+      const isLocalhost = host.includes("localhost");
+      const isVercelApp = host.includes("vercel.app");
+
       if (isLocalhost) {
-        return `http://${cohortAddress.toLowerCase()}.localhost:3000`;
-      } else if (isVercelApp || !process.env.NEXT_PUBLIC_CUSTOM_DOMAIN) {
-        return `https://${cohortAddress.toLowerCase()}.cohort-service.vercel.app`;
+        return `http://${subdomain}.localhost:3000`;
+      } else if (isVercelApp) {
+        const vercelDomain = host.split(".").slice(-2).join(".");
+        return `https://${subdomain}.${vercelDomain}`;
       } else {
-        return `https://${cohortAddress.toLowerCase()}.${process.env.NEXT_PUBLIC_CUSTOM_DOMAIN}`;
+        const customDomain = process.env.NEXT_PUBLIC_CUSTOM_DOMAIN || "cohorts.fun";
+        return `https://${subdomain}.${customDomain}`;
       }
+    } else {
+      const customDomain = process.env.NEXT_PUBLIC_CUSTOM_DOMAIN || "cohorts.fun";
+      return `https://${subdomain}.${customDomain}`;
     }
   }
+
   return `/cohort/${cohortAddress}`;
 };
