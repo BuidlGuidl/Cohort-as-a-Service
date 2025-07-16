@@ -8,6 +8,7 @@ import { useAccount } from "wagmi";
 import * as z from "zod";
 import { Editor } from "~~/components/editor";
 import { Preview } from "~~/components/preview";
+import { useContentValidator } from "~~/hooks/useContentValidator";
 import { notification } from "~~/utils/scaffold-eth";
 
 interface ApplicationModalProps {
@@ -30,8 +31,12 @@ const CreateApplicationSchema = z.object({
 export const ApplicationModal = ({ cohortAddress, onApplicationSuccess }: ApplicationModalProps) => {
   const { address } = useAccount();
   const router = useRouter();
+  const { validateContent } = useContentValidator();
+
+  const [isValidating, setIsValidating] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [formValues, setFormValues] = useState<z.infer<typeof CreateApplicationSchema> | null>(null);
@@ -48,7 +53,7 @@ export const ApplicationModal = ({ cohortAddress, onApplicationSuccess }: Applic
     mode: "onChange",
   });
 
-  const { isSubmitting, isValid, errors } = form.formState;
+  const { isSubmitting, errors } = form.formState;
 
   useEffect(() => {
     form.setValue("description", description, { shouldValidate: true });
@@ -66,6 +71,7 @@ export const ApplicationModal = ({ cohortAddress, onApplicationSuccess }: Applic
         githubUsername: "",
       });
       setDescription("");
+      setValidationError(null);
 
       if (onApplicationSuccess) {
         onApplicationSuccess();
@@ -109,6 +115,19 @@ export const ApplicationModal = ({ cohortAddress, onApplicationSuccess }: Applic
   const onSubmit = async (values: z.infer<typeof CreateApplicationSchema>) => {
     try {
       setIsPending(true);
+      setIsValidating(true);
+      setValidationError(null);
+
+      const validationResult = await validateContent(values.description);
+
+      if (!validationResult.isValid) {
+        setValidationError(validationResult.reason || "Content contains inappropriate material");
+        setIsPending(false);
+        setIsValidating(false);
+        return;
+      }
+
+      setIsValidating(false);
       setFormValues(values);
       const message = `Submit application for cohort ${cohortAddress}`;
       signMessage({ message });
@@ -161,13 +180,27 @@ export const ApplicationModal = ({ cohortAddress, onApplicationSuccess }: Applic
                     )}
                   </div>
                 ) : (
-                  <Editor value={description} onChange={setDescription} />
+                  <Editor
+                    value={description}
+                    onChange={value => {
+                      setDescription(value);
+                      if (value && value !== "<p><br></p>") {
+                        setValidationError(null);
+                      }
+                    }}
+                  />
                 )}
               </div>
 
               {errors.description && !isPreviewing && (
                 <label className="label">
                   <span className="label-text-alt text-error">{errors.description.message}</span>
+                </label>
+              )}
+
+              {validationError && description && description !== "<p><br></p>" && (
+                <label className="label">
+                  <span className="label-text-alt text-error">{validationError}</span>
                 </label>
               )}
             </div>
@@ -195,10 +228,10 @@ export const ApplicationModal = ({ cohortAddress, onApplicationSuccess }: Applic
             <div className="flex justify-end mt-6">
               <button
                 type="submit"
-                className="btn btn-primary btn-sm rounded-md"
-                disabled={!isValid || isSubmitting || isPending}
+                className="btn btn-primary w-full"
+                disabled={isSubmitting || isPending || isValidating}
               >
-                {isPending ? "Signing..." : "Submit Application"}
+                {isValidating ? "Validating content..." : isPending ? "Submitting..." : "Submit Application"}
               </button>
             </div>
           </form>

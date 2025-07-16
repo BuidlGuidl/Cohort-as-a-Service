@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Editor } from "~~/components/editor";
 import { Preview } from "~~/components/preview";
+import { useContentValidator } from "~~/hooks/useContentValidator";
 import { useEditDescription } from "~~/hooks/useEditDescription";
 
 interface EditDescriptionProps {
@@ -22,7 +23,10 @@ const EditDescriptionSchema = z.object({
 export const EditDescription = ({ cohortAddress, currentDescription }: EditDescriptionProps) => {
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [description, setDescription] = useState(currentDescription);
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
+  const { validateContent } = useContentValidator();
   const { editDescription, isPending, isSuccess } = useEditDescription({
     cohortAddress,
     description,
@@ -53,14 +57,30 @@ export const EditDescription = ({ cohortAddress, currentDescription }: EditDescr
       if (modalCheckbox) {
         modalCheckbox.checked = false;
       }
+      setValidationError(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSuccess]);
 
   const onSubmit = async () => {
     try {
+      setIsValidating(true);
+      setValidationError(null);
+
+      const validationResult = await validateContent(description);
+
+      if (!validationResult.isValid) {
+        setValidationError(validationResult.reason || "Content contains inappropriate material");
+        setIsValidating(false);
+        return;
+      }
+
+      setIsValidating(false);
       await editDescription();
-    } catch {}
+    } catch (error) {
+      console.error("Error in validation or submission:", error);
+      setIsValidating(false);
+    }
   };
 
   return (
@@ -119,7 +139,16 @@ export const EditDescription = ({ cohortAddress, currentDescription }: EditDescr
                     )}
                   </div>
                 ) : (
-                  <Editor value={description} onChange={setDescription} height="300px" />
+                  <Editor
+                    value={description}
+                    onChange={value => {
+                      setDescription(value);
+                      if (value && value !== "<p><br></p>") {
+                        setValidationError(null);
+                      }
+                    }}
+                    height="300px"
+                  />
                 )}
               </div>
 
@@ -128,14 +157,24 @@ export const EditDescription = ({ cohortAddress, currentDescription }: EditDescr
                   <span className="label-text-alt text-error">{errors.description.message}</span>
                 </label>
               )}
+
+              {validationError && description && description !== "<p><br></p>" && (
+                <label className="label">
+                  <span className="label-text-alt text-error">{validationError}</span>
+                </label>
+              )}
             </div>
 
             <div className="flex justify-end gap-2 mt-6">
               <label htmlFor="edit-description-modal" className="btn btn-sm btn-outline">
                 Cancel
               </label>
-              <button type="submit" className="btn btn-sm btn-primary" disabled={!isValid || isSubmitting || isPending}>
-                {isPending ? "Updating..." : "Update Description"}
+              <button
+                type="submit"
+                className="btn btn-sm btn-primary"
+                disabled={!isValid || isSubmitting || isPending || isValidating}
+              >
+                {isValidating ? "Validating content..." : isPending ? "Updating..." : "Update Description"}
               </button>
             </div>
           </form>
