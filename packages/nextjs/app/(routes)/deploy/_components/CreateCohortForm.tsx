@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoadingModal } from "./LoadingModal";
-// Add this import
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getBytecode, getTransactionReceipt } from "@wagmi/core";
 import { readContract } from "@wagmi/core";
@@ -14,9 +13,11 @@ import { erc20Abi, formatEther, parseEther, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 import * as z from "zod";
 import { Editor } from "~~/components/editor";
+import { Preview } from "~~/components/preview";
 import { AddressInput } from "~~/components/scaffold-eth";
 import currencies from "~~/data/currencies";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { useContentValidator } from "~~/hooks/useContentValidator";
 import { useContractSourceCode } from "~~/hooks/useContractSourceCode";
 import { useLocalDeployedContractInfo } from "~~/hooks/useLocalDeployedContractInfo";
 import { CreateCohortSchema } from "~~/schemas";
@@ -39,6 +40,7 @@ interface CreateCohortFormProps {
 const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
   const router = useRouter();
   const { address, chainId } = useAccount();
+  const { validateContent } = useContentValidator();
 
   const [showCustomCurrencyInput, setShowCustomCurrencyInput] = useState(false);
   const [showCustomCycleInput, setShowCustomCycleInput] = useState(false);
@@ -49,6 +51,12 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
   const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
   const [loadingStage, setLoadingStage] = useState(0);
   const [isLoadingError, setIsLoadingError] = useState(false);
+
+  const [isDescriptionValid, setIsDescriptionValid] = useState(true);
+  const [isValidatingDescription, setIsValidatingDescription] = useState(false);
+  const [descriptionValidationError, setDescriptionValidationError] = useState<string | null>(null);
+  const [isPreviewingDescription, setIsPreviewingDescription] = useState(false);
+  const [description, setDescription] = useState("");
 
   const currentChainCurrencies = chainId ? currencies[chainId]?.contracts || [] : [];
 
@@ -82,6 +90,11 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
   });
 
   const { isSubmitting, isValid, errors } = form.formState;
+
+  // Update description field when description state changes
+  useEffect(() => {
+    form.setValue("description", description, { shouldValidate: true });
+  }, [description, form]);
 
   useEffect(() => {
     if (address) {
@@ -198,6 +211,29 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
   };
 
   const onSubmit = async (values: z.infer<typeof CreateCohortSchema>) => {
+    // Validate description content if it exists
+    if (values.description && values.description.trim() !== "" && values.description !== "<p><br></p>") {
+      setIsValidatingDescription(true);
+      setDescriptionValidationError(null);
+
+      try {
+        const validationResult = await validateContent(values.description);
+
+        if (!validationResult.isValid) {
+          setDescriptionValidationError(validationResult.reason || "Description contains inappropriate material");
+          setIsValidatingDescription(false);
+          return;
+        }
+      } catch (error) {
+        console.error("Error validating description:", error);
+        setDescriptionValidationError("Error validating description content");
+        setIsValidatingDescription(false);
+        return;
+      }
+
+      setIsValidatingDescription(false);
+    }
+
     setIsLoadingModalOpen(true);
     setIsLoadingError(false);
     setLoadingStage(0);
@@ -365,22 +401,77 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
           <div className="form-control w-full">
             <label className="label">
               <span className="label-text font-medium">Description (optional)</span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className={`btn btn-xs ${!isPreviewingDescription ? "btn-primary" : "btn-ghost"}`}
+                  onClick={() => setIsPreviewingDescription(false)}
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  className={`btn btn-xs ${isPreviewingDescription ? "btn-primary" : "btn-ghost"}`}
+                  onClick={() => setIsPreviewingDescription(true)}
+                >
+                  Preview
+                </button>
+              </div>
             </label>
 
-            <Editor
-              value={form.watch("description") || ""}
-              onChange={content => {
-                form.setValue("description", content, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                });
-              }}
-              height="150px"
-            />
+            <div className="rounded-md">
+              {isPreviewingDescription ? (
+                <div className="p-4 min-h-[150px] border border-base-300 rounded-md">
+                  {description && description !== "<p><br></p>" ? (
+                    <Preview value={description} />
+                  ) : (
+                    <p className="text-base-content/60 italic">Nothing to preview yet...</p>
+                  )}
+                </div>
+              ) : (
+                <Editor
+                  value={description}
+                  onChange={async value => {
+                    setDescription(value);
 
-            {errors.description && (
+                    if (!value || value === "<p><br></p>") {
+                      setDescriptionValidationError(null);
+                      setIsDescriptionValid(true);
+                      return;
+                    }
+
+                    setIsValidatingDescription(true);
+
+                    try {
+                      const validation = await validateContent(value);
+                      if (!validation.isValid) {
+                        setDescriptionValidationError(validation.reason || "Inappropriate content");
+                        setIsDescriptionValid(false);
+                      } else {
+                        setDescriptionValidationError(null);
+                        setIsDescriptionValid(true);
+                      }
+                    } catch {
+                      setDescriptionValidationError("Validation failed");
+                      setIsDescriptionValid(false);
+                    }
+
+                    setIsValidatingDescription(false);
+                  }}
+                  height="150px"
+                />
+              )}
+            </div>
+
+            {errors.description && !isPreviewingDescription && (
               <label className="label">
                 <span className="label-text-alt text-error -mt-3">{errors.description.message}</span>
+              </label>
+            )}
+
+            {descriptionValidationError && description && description !== "<p><br></p>" && (
+              <label className="label">
+                <span className="label-text-alt text-error">{descriptionValidationError}</span>
               </label>
             )}
           </div>
@@ -687,9 +778,9 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
             <button
               type="submit"
               className="btn btn-primary btn-sm rounded-md mt-4"
-              disabled={!isValid || isSubmitting}
+              disabled={!isValid || isSubmitting || isValidatingDescription || !isDescriptionValid}
             >
-              {isSubmitting ? "Creating..." : "Continue"}
+              {isValidatingDescription ? "Validating content..." : isSubmitting ? "Creating..." : "Continue"}
             </button>
           </div>
         </form>
