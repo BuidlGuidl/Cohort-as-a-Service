@@ -202,7 +202,15 @@ export const BuildersList: React.FC<BuildersListProps> = ({
               <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-6">
                 <div className="flex flex-col md:items-center">
                   <div>
-                    {isERC20 ? tokenSymbol : "Ξ"} {unlocked.toFixed(4)} / {cap.toFixed(4)}
+                    {isERC20 ? (
+                      <>
+                        {tokenSymbol} {unlocked.toFixed(2)} / {cap.toFixed(2)}
+                      </>
+                    ) : (
+                      <>
+                        Ξ {unlocked.toFixed(4)} / {cap.toFixed(4)}
+                      </>
+                    )}
                   </div>
                   <progress
                     className="progress w-56 progress-primary bg-secondary"
