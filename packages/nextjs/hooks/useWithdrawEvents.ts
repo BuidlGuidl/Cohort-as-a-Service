@@ -179,10 +179,32 @@ export const useWithdrawEvents = (cohortAddress: string, selectedAddress: string
     event => event.builderAddress.toLowerCase() === selectedAddress.toLowerCase(),
   );
 
-  const pendingRequestEvents = enrichedRequests.filter(r => r.status === "Pending");
-  const approvedRequestEvents = enrichedRequests.filter(r => r.status === "Approved");
-  const rejectedRequestEvents = enrichedRequests.filter(r => r.status === "Rejected");
-  const completedRequestEvents = enrichedRequests.filter(r => r.status === "Completed");
+  const { pendingRequestEvents, approvedRequestEvents, rejectedRequestEvents, completedRequestEvents } =
+    enrichedRequests.reduce(
+      (acc, r) => {
+        switch (r.status) {
+          case "Pending":
+            acc.pendingRequestEvents.push(r);
+            break;
+          case "Approved":
+            acc.approvedRequestEvents.push(r);
+            break;
+          case "Rejected":
+            acc.rejectedRequestEvents.push(r);
+            break;
+          case "Completed":
+            acc.completedRequestEvents.push(r);
+            break;
+        }
+        return acc;
+      },
+      {
+        pendingRequestEvents: [] as typeof enrichedRequests,
+        approvedRequestEvents: [] as typeof enrichedRequests,
+        rejectedRequestEvents: [] as typeof enrichedRequests,
+        completedRequestEvents: [] as typeof enrichedRequests,
+      },
+    );
 
   const filterEventsByAddress = (address: string) => {
     return {

@@ -10,7 +10,7 @@ const deployerPriceFeed: DeployFunction = async function (hre: HardhatRuntimeEnv
   const network = hre.network;
 
   if (developmentChain.includes(network.name)) {
-    console.log("Local network detetcted: Deploying mocks");
+    console.log("Local network detected: Deploying mocks");
     await deploy("MockV3Aggregator", {
       contract: "MockV3Aggregator",
       from: deployer,
