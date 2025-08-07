@@ -25,6 +25,10 @@ export const ThemeIsolator = ({ children }: { children: React.ReactNode }) => {
 
       resetTheme();
     }
+
+    return () => {
+      document.documentElement.removeAttribute("data-cohort-theme");
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 

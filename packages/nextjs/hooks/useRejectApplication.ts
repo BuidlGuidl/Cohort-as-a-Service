@@ -52,7 +52,7 @@ export const useRejectApplication = ({ applicationId, cohortAddress, note }: Use
 
   return {
     rejectApplication,
-    isPending: false, 
+    isPending: false,
     isSuccess: isSignatureSuccess,
   };
 };
