@@ -166,7 +166,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
 
         {isAdmin ? (
           <CohortLink href="/projects" cohortAddress={params.cohortAddress}>
-            <button className="btn btn-sm rounded-md btn-primary">
+            <button className="btn btn-sm rounded-md btn-primary font-normal">
               {dbCohort?.Project && dbCohort.Project.length > 0 ? "View Projects" : "Add Projects"}
               {(!dbCohort?.Project || dbCohort.Project.length === 0) && <Plus className="h-4 w-4" />}
             </button>
@@ -175,7 +175,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
           dbCohort?.Project &&
           dbCohort.Project.length > 0 && (
             <CohortLink href="/projects" cohortAddress={params.cohortAddress}>
-              <button className="btn btn-sm rounded-md btn-primary mb-4">
+              <button className="btn btn-sm rounded-md btn-primary mb-4 font-normal">
                 {dbCohort?.Project && dbCohort.Project.length > 0 ? "View Projects" : "Add Projects"}
                 {(!dbCohort?.Project || dbCohort.Project.length === 0) && <Plus className="h-4 w-4" />}
               </button>
