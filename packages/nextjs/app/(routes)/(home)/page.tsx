@@ -8,7 +8,7 @@ const Home: NextPage = () => {
   return (
     <>
       {/* Background SVG */}
-      <div className="fixed top-0 right-0 w-1/2 h-full overflow-hidden pointer-events-none opacity-30 z-0">
+      <div className="fixed top-0 right-0 w-1/2 h-full overflow-hidden pointer-events-none opacity-50 z-0">
         <Image
           src="/Clip path group.svg"
           alt=""

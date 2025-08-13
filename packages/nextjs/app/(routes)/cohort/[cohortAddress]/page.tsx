@@ -131,7 +131,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
 
       {buildersData.length <= 8 && (
         <div className="mt-8 ">
-          <h3 className="text-xl font-bold mb-4">Members</h3>
+          <h3 className="text-xl font-bold mb-4 font-share-tech-mono">Members</h3>
           <BuildersList
             cohortAddress={params.cohortAddress}
             builderStreams={builderStreams}
@@ -159,7 +159,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         {buildersData.length > 8 && (
           <div>
             <CohortLink href="/members" cohortAddress={params.cohortAddress}>
-              <button className="btn btn-sm btn-primary rounded-md ">Members</button>
+              <button className="btn btn-sm btn-primary rounded-md font-share-tech-mono">Members</button>
             </CohortLink>
           </div>
         )}
