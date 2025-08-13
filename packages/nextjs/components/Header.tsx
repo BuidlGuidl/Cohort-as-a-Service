@@ -62,7 +62,7 @@ export const HeaderMenuLinks = () => {
             <SubdomainLink
               href={href}
               toMainDomain={true}
-              className={`btn btn-ghost btn-sm justify-start text-sm text-primary-content hover:bg-primary hover:text-primary-content leading-none py-1 ${isActive ? "btn-active" : ""}`}
+              className={`btn btn-ghost btn-sm justify-start text-base text-primary-content hover:bg-primary hover:text-primary-content leading-none py-1 font-normal font-share-tech-mono ${isActive ? "btn-active" : ""}`}
             >
               {icon}
               <span>{label}</span>
@@ -101,11 +101,11 @@ export const Header = () => {
         </details>
         <div className="p-2 hidden lg:flex">
           <SubdomainLink href="/" className="flex items-center gap-1" toMainDomain={true}>
-            <div className="relative w-8 h-8">
-              <Image alt="BG logo" className="cursor-pointer" fill src={"/BG_Logo.svg"} />
+            <div className="relative w-12 h-12 -mt-1">
+              <Image alt="Cohorts logo" className="cursor-pointer" fill src={"/Logo_green.svg"} />
             </div>
-            <div className="flex flex-col mt-2">
-              <span className="font-bold leading-tight text-xs md:text-lg text-base-content">Cohorts.fun</span>
+            <div className="flex flex-col">
+              <span className="font-bold leading-tight text-xs md:text-lg text-base-content/80">Cohorts.fun</span>
             </div>
           </SubdomainLink>
         </div>

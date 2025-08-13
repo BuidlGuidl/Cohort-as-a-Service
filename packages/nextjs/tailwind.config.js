@@ -17,7 +17,7 @@ module.exports = {
           "accent-content": "#212638",
           neutral: "#212638",
           "neutral-content": "#ffffff",
-          "base-100": "#000000",
+          "base-100": "#0f0f0f",
           "base-200": "#F9FBFF",
           "base-300": "#DAE8FF",
           "base-content": "#ffffff",
@@ -44,6 +44,10 @@ module.exports = {
   },
   theme: {
     extend: {
+      fontFamily: {
+        'space-grotesk': ['var(--font-space-grotesk)', 'sans-serif'],
+        'share-tech-mono': ['var(--font-share-tech-mono)', 'monospace'],
+      },
       boxShadow: {
         center: "0 0 12px -2px rgb(0 0 0 / 0.05)",
       },
