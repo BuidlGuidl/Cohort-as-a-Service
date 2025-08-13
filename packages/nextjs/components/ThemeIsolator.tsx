@@ -79,7 +79,7 @@ export const ThemeIsolator = ({ children }: { children: React.ReactNode }) => {
         
         /* Shadow variables */
         --shadow-primary: ${theme.primary}33;  /* With 20% alpha */
-        --shadow-secondary: ${theme.secondary}33;
+        --shadow-secondary: ${theme.secondary}11;
         --shadow-base: ${theme["base-100"]}33;
         --shadow-neutral: ${theme.neutral}33;
       }

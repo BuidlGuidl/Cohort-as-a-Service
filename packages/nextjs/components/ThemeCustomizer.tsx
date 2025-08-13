@@ -55,7 +55,7 @@ export const applyTheme = (theme: Theme) => {
   root.style.setProperty("--border-neutral", theme.neutral);
 
   root.style.setProperty("--shadow-primary", `${theme.primary}33`);
-  root.style.setProperty("--shadow-secondary", `${theme.secondary}33`);
+  root.style.setProperty("--shadow-secondary", `${theme.secondary}11`);
   root.style.setProperty("--shadow-base", `${theme["base-100"]}33`);
   root.style.setProperty("--shadow-neutral", `${theme.neutral}33`);
 
@@ -77,7 +77,7 @@ const updateShadowStyles = (theme: Theme) => {
     }
     
     .shadow-secondary {
-      --tw-shadow-color: ${theme.secondary}33 !important;
+      --tw-shadow-color: ${theme.secondary}11 !important;
       box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
     }
     
@@ -88,7 +88,7 @@ const updateShadowStyles = (theme: Theme) => {
     }
     
     .shadow-md.shadow-secondary {
-      --tw-shadow: 0 4px 6px -1px ${theme.secondary}33, 0 2px 4px -1px ${theme.secondary}33 !important;
+      --tw-shadow: 0 4px 6px -1px ${theme.secondary}11, 0 2px 4px -1px ${theme.secondary}11 !important;
       --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -1px var(--tw-shadow-color) !important;
       box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
     }
@@ -100,7 +100,7 @@ const updateShadowStyles = (theme: Theme) => {
     }
     
     .shadow-lg.shadow-secondary {
-      --tw-shadow: 0 10px 15px -3px ${theme.secondary}33, 0 4px 6px -2px ${theme.secondary}33 !important;
+      --tw-shadow: 0 10px 15px -3px ${theme.secondary}11, 0 4px 6px -2px ${theme.secondary}11 !important;
       --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -2px var(--tw-shadow-color) !important;
       box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow) !important;
     }

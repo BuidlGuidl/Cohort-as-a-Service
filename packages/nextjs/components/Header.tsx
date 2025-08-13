@@ -102,10 +102,12 @@ export const Header = () => {
         <div className="p-2 hidden lg:flex">
           <SubdomainLink href="/" className="flex items-center gap-1" toMainDomain={true}>
             <div className="relative w-12 h-12 -mt-1">
-              <Image alt="Cohorts logo" className="cursor-pointer" fill src={"/Logo_green.svg"} />
+              <Image alt="Cohorts logo" className="cursor-pointer" fill src={"/BG_Logo.svg"} />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold leading-tight text-xs md:text-lg text-base-content/80">Cohorts.fun</span>
+              <span className="font-bold leading-tight text-xs md:text-lg text-base-content/80 font-space-grotesk">
+                Cohorts.fun
+              </span>
             </div>
           </SubdomainLink>
         </div>

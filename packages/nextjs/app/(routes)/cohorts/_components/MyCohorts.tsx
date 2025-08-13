@@ -33,7 +33,7 @@ export const MyCohorts = ({ searchParams, dbCohorts }: MyCohortProps) => {
               <SearchInput />
 
               <Link href="/deploy">
-                <button className="btn btn-sm rounded-md btn-primary">Create new</button>
+                <button className="btn btn-sm rounded-md btn-primary font-share-tech-mono">Create new</button>
               </Link>
             </div>
             <CohortsList items={allMyCohorts} loading={isLoading} dbCohorts={dbCohorts} />

@@ -44,7 +44,7 @@ const Home: NextPage = () => {
 
           <div className="mt-8 flex justify-center">
             <Link href="/deploy">
-              <button className="btn bg-gray-800 hover:bg-gray-700 text-primary-content text-lg w-56 h-12 rounded-lg border-none">
+              <button className="btn bg-gray-800 hover:bg-gray-700 text-primary-content text-lg w-56 h-12 rounded-lg border-none font-share-tech-mono">
                 Deploy Stream
               </button>
             </Link>
