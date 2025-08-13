@@ -122,7 +122,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         <h1 className="text-4xl font-bold mb-8 text-primary-content bg-primary inline-block p-2 font-share-tech-mono">
           Cohort
         </h1>
-        <h2 className="text-2xl font-bold font-space-grotesk">{name}</h2>
+        <h2 className="text-2xl font-bold font-share-tech-mono">{name}</h2>
         <div className="flex gap-2">
           {description && description.length > 0 && description != "<p><br></p>" && <Preview value={description} />}
           {isAdmin && <EditDescription cohortAddress={params.cohortAddress} currentDescription={description} />}
