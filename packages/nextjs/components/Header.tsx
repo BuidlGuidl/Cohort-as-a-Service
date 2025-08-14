@@ -35,12 +35,13 @@ export const HeaderMenuLinks = () => {
 
   useEffect(() => {
     // If on a cohort page and user is not admin/owner of that cohort, hide all nav links
-    if (isOnCohortPage && isCohortAdmin === false) {
+    // This includes when no wallet is connected (isCohortAdmin will be null)
+    if (isOnCohortPage && isCohortAdmin !== true) {
       setMenuLinks([]);
       return;
     }
 
-    // If not connected, show base menu links
+    // If not connected, show base menu links (but only if not on cohort page)
     if (!address) {
       setMenuLinks(baseMenuLinks);
       return;
