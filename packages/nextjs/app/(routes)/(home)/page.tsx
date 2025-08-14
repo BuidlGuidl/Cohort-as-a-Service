@@ -61,7 +61,7 @@ const Home: NextPage = () => {
               <div className="absolute left-px top-1/3 w-8 h-8 border-2 border-base-300 bg-transparent transform rotate-45 -translate-x-1/2 -translate-y-1/2 z-10"></div>
 
               {/* Card Body */}
-              <div className="card bg-transparent shadow-xl border-2 border-base-300 pt-2 h-80">
+              <div className="card bg-transparent shadow-xl border-2 border-base-300 pt-2 h-96 md:h-80">
                 <div className="card-body">
                   <ul className="space-y-2 text-base">
                     <li className="flex items-start text-base-content/80">
@@ -107,7 +107,7 @@ const Home: NextPage = () => {
               <div className="absolute left-px top-1/3 w-10 h-10 border-2 border-base-300 bg-transparent rounded-full transform -translate-x-1/2 -translate-y-1/2 z-10"></div>
 
               {/* Card Body */}
-              <div className="card bg-transparent shadow-xl border-2 border-base-300 pt-2 h-80">
+              <div className="card bg-transparent shadow-xl border-2 border-base-300 pt-2 h-96 md:h-80">
                 <div className="card-body">
                   <ul className="space-y-2 text-base">
                     <li className="flex items-start text-base-content/80">
