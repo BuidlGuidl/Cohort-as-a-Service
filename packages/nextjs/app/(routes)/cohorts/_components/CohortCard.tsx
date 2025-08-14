@@ -43,7 +43,9 @@ export const CohortCard = ({ address, chainName, primaryAdmin, name, role, chain
           </div>
           <div className="flex flex-col pt-4 ">
             <div className="text-2xl font-medium group-hover:text-sky-700 transition line-clamp-2 ">{name}</div>
-            <Address address={address} disableAddressLink={true} />
+            <div className="mt-3">
+              <Address address={address} disableAddressLink={true} />
+            </div>
 
             <div className="flex flex-row items-center justify-start mt-2 text-xs">
               Owner:
