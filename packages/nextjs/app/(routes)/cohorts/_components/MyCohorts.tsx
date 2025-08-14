@@ -40,7 +40,7 @@ export const MyCohorts = ({ searchParams, dbCohorts }: MyCohortProps) => {
           </div>
         ) : (
           <div className="flex justify-center">
-            <div className="[&_.btn]:btn-md [&_.btn]:text-lg">
+            <div className="[&_.btn]:bg-gray-800 [&_.btn]:hover:bg-gray-700 [&_.btn]:text-primary-content [&_.btn]:text-lg [&_.btn]:w-56 [&_.btn]:h-12 [&_.btn]:rounded-lg [&_.btn]:border-none [&_.btn]:font-share-tech-mono">
               <RainbowKitCustomConnectButton />
             </div>
           </div>
