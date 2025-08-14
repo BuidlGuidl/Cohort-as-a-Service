@@ -8,6 +8,7 @@ import { useAccount } from "wagmi";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
+import { useCohortPermissions } from "~~/hooks/useCohortPermissions";
 
 type HeaderMenuLink = {
   label: string;
@@ -29,18 +30,28 @@ const baseMenuLinks: HeaderMenuLink[] = [
 export const HeaderMenuLinks = () => {
   const pathname = usePathname();
   const { address } = useAccount();
+  const { isOnCohortPage, isAdmin: isCohortAdmin } = useCohortPermissions();
   const [menuLinks, setMenuLinks] = useState<HeaderMenuLink[]>(baseMenuLinks);
 
   useEffect(() => {
+    // If on a cohort page and user is not admin/owner of that cohort, hide all nav links
+    if (isOnCohortPage && isCohortAdmin === false) {
+      setMenuLinks([]);
+      return;
+    }
+
+    // If not connected, show base menu links
     if (!address) {
       setMenuLinks(baseMenuLinks);
       return;
     }
 
+    // Check if user is a global BG admin
     const bgAdmins = process.env.NEXT_PUBLIC_BG_ADMINS?.split(",").map(addr => addr.toLowerCase()) || [];
-    const isAdmin = bgAdmins.includes(address.toLowerCase());
+    const isGlobalAdmin = bgAdmins.includes(address.toLowerCase());
 
-    if (isAdmin) {
+    // If user is global admin, show all links including Analytics
+    if (isGlobalAdmin) {
       setMenuLinks([
         ...baseMenuLinks,
         {
@@ -49,9 +60,10 @@ export const HeaderMenuLinks = () => {
         },
       ]);
     } else {
+      // Regular user - show base menu links (unless on cohort page where they're not admin)
       setMenuLinks(baseMenuLinks);
     }
-  }, [address]);
+  }, [address, isOnCohortPage, isCohortAdmin]);
 
   return (
     <>
