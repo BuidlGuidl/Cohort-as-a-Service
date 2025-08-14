@@ -36,13 +36,13 @@ export const CohortCard = ({ address, chainName, primaryAdmin, name, role, chain
       <Link href={cohortUrl}>
         <div className="group hover:shadow-sm transition overflow-hidden border rounded-lg p-2 h-full relative">
           <div className="justify-between flex text-xs">
-            <span>{role}</span>
+            <span className="text-primary font-medium">{role}</span>
             <span className="text-xs" style={{ color: networkColor }}>
               {chainName}
             </span>
           </div>
-          <div className="flex flex-col pt-3 ">
-            <div className="text-2xl font-medium group-hover:text-sky-700 transition line-clamp-2 ">{name}</div>
+          <div className="flex flex-col pt-2 ">
+            <div className="text-xl font-medium group-hover:text-sky-700 transition line-clamp-1 ">{name}</div>
 
             <div className="flex flex-row items-center justify-start mt-2 text-xs">
               Owner:

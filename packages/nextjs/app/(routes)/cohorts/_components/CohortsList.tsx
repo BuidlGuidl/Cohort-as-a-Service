@@ -17,7 +17,7 @@ interface CohortsListProps {
 const CohortsList = ({ items, loading, dbCohorts }: CohortsListProps) => {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[...Array(4)].map((_, index) => (
           <CohortLoadingCard key={index} />
         ))}
@@ -27,7 +27,7 @@ const CohortsList = ({ items, loading, dbCohorts }: CohortsListProps) => {
 
   return (
     <div>
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map(item => (
           <CohortCard
             key={item.address}
