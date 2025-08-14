@@ -50,68 +50,82 @@ const Home: NextPage = () => {
             </Link>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 mt-8">
-            <div className="card bg-transparent shadow-xl border border-base-300">
-              <div className="card-body">
+          <div className="grid md:grid-cols-2 gap-6 mt-16">
+            <div className="relative">
+              {/* Header that breaks the border */}
+              <div className="absolute -top-6 left-8 bg-base-100 px-4 py-2 z-10">
                 <h3 className="text-primary text-2xl font-share-tech-mono">Payment Streams</h3>
-                <ul className="space-y-2 text-base">
-                  <li className="flex items-start text-base-content/80">
-                    <span className="text-primary mr-2">•</span>
-                    Deploy payment streams in seconds
-                  </li>
-                  <li className="flex items-start text-base-content/80">
-                    <span className="text-primary mr-2">•</span>
-                    Stream Ethereum or ERC20 Tokens
-                  </li>
-                  <li className="flex items-start text-base-content/80">
-                    <span className="text-primary mr-2">•</span>
-                    Add/remove builders and set max amounts
-                  </li>
-                  <li className="flex items-start text-base-content/80">
-                    <span className="text-primary mr-2">•</span>
-                    Builders can withdraw on their time
-                  </li>
-                  <li className="flex items-start text-base-content/80">
-                    <span className="text-primary mr-2">•</span>
-                    Streams automatically fill over your set timeframe
-                  </li>
-                  <li className="flex items-start text-base-content/80">
-                    <span className="text-primary mr-2">•</span>
-                    Control withdrawal permissions
-                  </li>
-                  <li className="flex items-start text-base-content/80">
-                    <span className="text-primary mr-2">•</span>
-                    Enable public applications
-                  </li>
-                </ul>
+              </div>
+
+              {/* Card Body */}
+              <div className="card bg-transparent shadow-xl border border-base-300 pt-2 h-80">
+                <div className="card-body">
+                  <ul className="space-y-2 text-base">
+                    <li className="flex items-start text-base-content/80">
+                      <span className="text-primary mr-2">•</span>
+                      Deploy payment streams in seconds
+                    </li>
+                    <li className="flex items-start text-base-content/80">
+                      <span className="text-primary mr-2">•</span>
+                      Stream Ethereum or ERC20 Tokens
+                    </li>
+                    <li className="flex items-start text-base-content/80">
+                      <span className="text-primary mr-2">•</span>
+                      Add/remove builders and set max amounts
+                    </li>
+                    <li className="flex items-start text-base-content/80">
+                      <span className="text-primary mr-2">•</span>
+                      Builders can withdraw on their time
+                    </li>
+                    <li className="flex items-start text-base-content/80">
+                      <span className="text-primary mr-2">•</span>
+                      Streams automatically fill over your set timeframe
+                    </li>
+                    <li className="flex items-start text-base-content/80">
+                      <span className="text-primary mr-2">•</span>
+                      Control withdrawal permissions
+                    </li>
+                    <li className="flex items-start text-base-content/80">
+                      <span className="text-primary mr-2">•</span>
+                      Enable public applications
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
 
-            <div className="card bg-transparent shadow-xl border border-base-300">
-              <div className="card-body">
+            <div className="relative">
+              {/* Header that breaks the border */}
+              <div className="absolute -top-6 left-8 bg-base-100 px-4 py-2 z-10">
                 <h3 className="text-primary text-2xl font-share-tech-mono">Bounty System</h3>
-                <ul className="space-y-2 text-base">
-                  <li className="flex items-start text-base-content/80">
-                    <span className="text-primary mr-2">•</span>
-                    Use the one-time withdraw option to create bounties
-                  </li>
-                  <li className="flex items-start text-base-content/80">
-                    <span className="text-primary mr-2">•</span>
-                    List and describe your current projects
-                  </li>
-                  <li className="flex items-start text-base-content/80">
-                    <span className="text-primary mr-2">•</span>
-                    Set admin approval for withdraws
-                  </li>
-                  <li className="flex items-start text-base-content/80">
-                    <span className="text-primary mr-2">•</span>
-                    Builders are only allowed one withdraw
-                  </li>
-                  <li className="flex items-start text-base-content/80">
-                    <span className="text-primary mr-2">•</span>
-                    Add your chosen builders, or allow any to apply
-                  </li>
-                </ul>
+              </div>
+
+              {/* Card Body */}
+              <div className="card bg-transparent shadow-xl border border-base-300 pt-2 h-80">
+                <div className="card-body">
+                  <ul className="space-y-2 text-base">
+                    <li className="flex items-start text-base-content/80">
+                      <span className="text-primary mr-2">•</span>
+                      Use the one-time withdraw option to create bounties
+                    </li>
+                    <li className="flex items-start text-base-content/80">
+                      <span className="text-primary mr-2">•</span>
+                      List and describe your current projects
+                    </li>
+                    <li className="flex items-start text-base-content/80">
+                      <span className="text-primary mr-2">•</span>
+                      Set admin approval for withdraws
+                    </li>
+                    <li className="flex items-start text-base-content/80">
+                      <span className="text-primary mr-2">•</span>
+                      Builders are only allowed one withdraw
+                    </li>
+                    <li className="flex items-start text-base-content/80">
+                      <span className="text-primary mr-2">•</span>
+                      Add your chosen builders, or allow any to apply
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
