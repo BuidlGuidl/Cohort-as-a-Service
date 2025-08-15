@@ -18,19 +18,34 @@ const ChainItem = ({ chainId, icon, name }: ChainItemProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const currentChainId = searchParams.get("chainId");
+  const currentChainIds = searchParams.get("chainId");
   const currentCohort = searchParams.get("cohort");
   const currentFilter = searchParams.get("filter");
 
-  const isSelected = currentChainId === chainId.toString();
+  // Parse current selected chain IDs
+  const selectedChainIds = currentChainIds ? currentChainIds.split(",").map(id => parseInt(id)) : [];
+  const isSelected = selectedChainIds.includes(chainId);
 
   const onClick = () => {
+    let newChainIds: number[] = [];
+
+    if (isSelected) {
+      // Remove this chain from selection
+      newChainIds = selectedChainIds.filter(id => id !== chainId);
+    } else {
+      // Add this chain to selection
+      newChainIds = [...selectedChainIds, chainId];
+    }
+
+    // Convert back to string for URL (or null if empty)
+    const chainIdParam = newChainIds.length > 0 ? newChainIds.join(",") : null;
+
     const url = qs.stringifyUrl(
       {
         url: pathname,
         query: {
           cohort: currentCohort,
-          chainId: isSelected ? null : chainId,
+          chainId: chainIdParam,
           filter: currentFilter,
         },
       },

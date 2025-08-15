@@ -19,7 +19,18 @@ interface MyCohortProps {
 }
 
 export const MyCohorts = ({ searchParams, dbCohorts }: MyCohortProps) => {
-  const { isLoading, cohorts: allMyCohorts } = useFilteredCohorts({ ...searchParams });
+  // Parse chainId parameter to support multiple chains
+  const parsedSearchParams = {
+    ...searchParams,
+    chainId: searchParams.chainId
+      ? searchParams.chainId
+          .toString()
+          .split(",")
+          .map(id => parseInt(id) as AllowedChainIds)
+      : undefined,
+  };
+
+  const { isLoading, cohorts: allMyCohorts } = useFilteredCohorts(parsedSearchParams);
   const { address } = useAccount();
 
   return (
@@ -28,7 +39,7 @@ export const MyCohorts = ({ searchParams, dbCohorts }: MyCohortProps) => {
         {/* Content - always visible, blur only the main content area */}
         <div className={address ? "" : "blur-sm pointer-events-none relative z-0"}>
           <Chains />
-          <div>
+          <div className="mt-8">
             <div className="pb-2 md:mb-0 flex md:flex-row flex-col gap-2">
               <SearchInput />
 
