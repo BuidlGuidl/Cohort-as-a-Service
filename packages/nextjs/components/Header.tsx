@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { SubdomainLink } from "./SubDomainLink";
+import { CohortsFunLogo } from "./assets/CohortsFunLogo";
 import { useAccount } from "wagmi";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
@@ -114,9 +114,7 @@ export const Header = () => {
         </details>
         <div className="p-2 hidden lg:flex">
           <SubdomainLink href="/" className="flex items-center" toMainDomain={true}>
-            <div className="relative w-48 h-20">
-              <Image alt="Cohorts.fun logo" className="cursor-pointer" fill src={"/CohortsFUN.svg"} />
-            </div>
+            <CohortsFunLogo className="w-48 h-20 cursor-pointer" />
           </SubdomainLink>
         </div>
         <ul className="hidden lg:flex lg:flex-nowrap menu menu-horizontal menu-md gap-4 pl-4">
