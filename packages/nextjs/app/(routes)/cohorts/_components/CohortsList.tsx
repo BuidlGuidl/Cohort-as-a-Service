@@ -1,5 +1,4 @@
 import { CohortCard } from "./CohortCard";
-import { CohortLoadingCard } from "./CohortLoadingCard";
 import { Cohort as DbCohort } from "@prisma/client";
 import { Cohort } from "~~/hooks/useCohorts";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
@@ -17,10 +16,9 @@ interface CohortsListProps {
 const CohortsList = ({ items, loading, dbCohorts }: CohortsListProps) => {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {[...Array(4)].map((_, index) => (
-          <CohortLoadingCard key={index} />
-        ))}
+      <div className="flex flex-col items-center justify-center py-16 space-y-4">
+        <div className="loading loading-spinner loading-lg text-primary"></div>
+        <p className="text-sm text-base-content/60 font-share-tech-mono">Loading your cohorts...</p>
       </div>
     );
   }
