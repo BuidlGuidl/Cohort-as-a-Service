@@ -23,7 +23,12 @@ const ChainItem = ({ chainId, icon, name }: ChainItemProps) => {
   const currentFilter = searchParams.get("filter");
 
   // Parse current selected chain IDs
-  const selectedChainIds = currentChainIds ? currentChainIds.split(",").map(id => parseInt(id)) : [];
+  const selectedChainIds = currentChainIds
+    ? currentChainIds
+        .split(",")
+        .map(id => parseInt(id.trim()))
+        .filter(id => !isNaN(id))
+    : [];
   const isSelected = selectedChainIds.includes(chainId);
 
   const onClick = () => {
@@ -37,8 +42,8 @@ const ChainItem = ({ chainId, icon, name }: ChainItemProps) => {
       newChainIds = [...selectedChainIds, chainId];
     }
 
-    // Convert back to string for URL (or null if empty)
-    const chainIdParam = newChainIds.length > 0 ? newChainIds.join(",") : null;
+    // Convert back to string for URL (or undefined if empty)
+    const chainIdParam = newChainIds.length > 0 ? newChainIds.join(",") : undefined;
 
     const url = qs.stringifyUrl(
       {
@@ -54,6 +59,7 @@ const ChainItem = ({ chainId, icon, name }: ChainItemProps) => {
         skipEmptyString: true,
       },
     );
+
     router.push(url);
   };
 

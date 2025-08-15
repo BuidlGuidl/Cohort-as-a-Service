@@ -1,11 +1,10 @@
 import { MyCohorts } from "./_components/MyCohorts";
 import db from "~~/lib/db";
-import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
 interface SearchPageProps {
   searchParams: {
     cohort: string;
-    chainId: AllowedChainIds;
+    chainId: string;
   };
 }
 

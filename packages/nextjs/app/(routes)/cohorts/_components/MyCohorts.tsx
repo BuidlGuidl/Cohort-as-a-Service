@@ -13,7 +13,7 @@ import { AllowedChainIds } from "~~/utils/scaffold-eth";
 interface MyCohortProps {
   searchParams: {
     cohort: string;
-    chainId: AllowedChainIds;
+    chainId: string;
   };
   dbCohorts: Cohort[];
 }
@@ -23,10 +23,10 @@ export const MyCohorts = ({ searchParams, dbCohorts }: MyCohortProps) => {
   const parsedSearchParams = {
     ...searchParams,
     chainId: searchParams.chainId
-      ? searchParams.chainId
-          .toString()
+      ? (searchParams.chainId
           .split(",")
-          .map(id => parseInt(id) as AllowedChainIds)
+          .map(id => parseInt(id.trim()))
+          .filter(id => !isNaN(id)) as AllowedChainIds[])
       : undefined,
   };
 
