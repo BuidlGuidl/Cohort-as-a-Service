@@ -21,10 +21,10 @@ const CreatePageClient = ({ existingSubdomains }: CreatePageClientProps) => {
         <CreateCohortForm existingSubdomains={existingSubdomains} />
       </div>
 
-      {/* Overlay with Connect Wallet button when not connected */}
+      {/* Fixed floating Connect Wallet button when not connected */}
       {!address && (
-        <div className="absolute inset-0 flex items-center justify-center bg-base-100/20 backdrop-blur-none z-10">
-          <div className="[&_.btn]:bg-gray-800 [&_.btn]:hover:bg-gray-700 [&_.btn]:text-primary-content [&_.btn]:text-lg [&_.btn]:w-56 [&_.btn]:h-12 [&_.btn]:rounded-lg [&_.btn]:border-none [&_.btn]:font-share-tech-mono [&_.btn]:shadow-2xl">
+        <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
+          <div className="pointer-events-auto [&_.btn]:bg-gray-800 [&_.btn]:hover:bg-gray-700 [&_.btn]:text-primary-content [&_.btn]:text-lg [&_.btn]:w-56 [&_.btn]:h-12 [&_.btn]:rounded-lg [&_.btn]:border-none [&_.btn]:font-share-tech-mono [&_.btn]:shadow-2xl">
             <RainbowKitCustomConnectButton />
           </div>
         </div>
