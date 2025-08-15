@@ -15,7 +15,7 @@ type CohortWithRole = Cohort & {
 
 interface useFilteredCohortsProps {
   filter?: "admin" | "builder";
-  chainId?: AllowedChainIds | AllowedChainIds[];
+  chainId?: AllowedChainIds;
   cohort?: string;
 }
 
@@ -163,28 +163,29 @@ export const useFilteredCohorts = ({ filter, chainId, cohort }: useFilteredCohor
   };
 
   useEffect(() => {
-    let filtered = getFilteredCohorts();
-
-    // Apply chain filter if chainId(s) are selected
-    if (chainId) {
-      const chainIds = Array.isArray(chainId) ? chainId : [chainId];
-      filtered = filtered.filter(c => chainIds.some(id => c.chainId.toString() === id.toString()));
+    if (!cohort && !chainId) {
+      setSearchedCohorts(getFilteredCohorts());
+      return;
     }
 
-    // Apply text search filter if cohort search term exists
     if (cohort) {
       const lowerCohort = cohort.toLowerCase();
 
       if (isAddress(cohort)) {
-        filtered = filtered.filter(c => c.address.toLowerCase() === lowerCohort);
+        const filtered = getFilteredCohorts().filter(c => c.address.toLowerCase() === lowerCohort);
+        setSearchedCohorts(filtered);
       } else {
-        filtered = filtered.filter(
+        const filtered = getFilteredCohorts().filter(
           c => c.name.toLowerCase().includes(lowerCohort) || c.description?.toLowerCase().includes(lowerCohort),
         );
+        setSearchedCohorts(filtered);
       }
     }
 
-    setSearchedCohorts(filtered);
+    if (chainId) {
+      const filtered = getFilteredCohorts().filter(c => c.chainId.toString() === chainId.toString());
+      setSearchedCohorts(filtered);
+    }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cohort, combinedCohorts, chainId]);

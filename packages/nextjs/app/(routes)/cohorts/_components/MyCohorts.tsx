@@ -13,24 +13,13 @@ import { AllowedChainIds } from "~~/utils/scaffold-eth";
 interface MyCohortProps {
   searchParams: {
     cohort: string;
-    chainId: string;
+    chainId: AllowedChainIds;
   };
   dbCohorts: Cohort[];
 }
 
 export const MyCohorts = ({ searchParams, dbCohorts }: MyCohortProps) => {
-  // Parse chainId parameter to support multiple chains
-  const parsedSearchParams = {
-    ...searchParams,
-    chainId: searchParams.chainId
-      ? (searchParams.chainId
-          .split(",")
-          .map(id => parseInt(id.trim()))
-          .filter(id => !isNaN(id)) as AllowedChainIds[])
-      : undefined,
-  };
-
-  const { isLoading, cohorts: allMyCohorts } = useFilteredCohorts(parsedSearchParams);
+  const { isLoading, cohorts: allMyCohorts } = useFilteredCohorts({ ...searchParams });
   const { address } = useAccount();
 
   return (
