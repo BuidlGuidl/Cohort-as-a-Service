@@ -17,6 +17,9 @@
   --base-content: #ffffff;
   --font-family: sans-serif;
 
+  /* Logo color matches the primary-content (green) color */
+  --logo-color: #86f644;
+
   /* Border colors */
   --border-primary: #c913ff;
   --border-secondary: #86f644;

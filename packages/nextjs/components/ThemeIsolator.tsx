@@ -71,6 +71,9 @@ export const ThemeIsolator = ({ children }: { children: React.ReactNode }) => {
         --base-content: ${theme["base-content"]};
         --font-family: ${theme.fontFamily};
         
+        /* Logo color matches the primary-content (green) color */
+        --logo-color: ${theme["primary-content"]};
+        
         /* Border variables explicitly set */
         --border-primary: ${theme.primary};
         --border-secondary: ${theme.secondary};
