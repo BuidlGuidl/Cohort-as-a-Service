@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import SearchInput from "../../../../components/search-input";
+import SearchInput from "../../../../components/Search-input";
 import Chains from "./Chains";
 import CohortsList from "./CohortsList";
 import { Cohort } from "@prisma/client";

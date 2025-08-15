@@ -5,8 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Edit } from "lucide-react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Editor } from "~~/components/editor";
-import { Preview } from "~~/components/preview";
+import { Editor } from "~~/components/Editor";
+import { Preview } from "~~/components/Preview";
 import { useContentValidator } from "~~/hooks/useContentValidator";
 import { useEditDescription } from "~~/hooks/useEditDescription";
 

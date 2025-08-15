@@ -1,6 +1,7 @@
 import { CohortCard } from "./CohortCard";
-import { CohortLoadingCard } from "./CohortLoadingCard";
 import { Cohort as DbCohort } from "@prisma/client";
+import { EmptyCohortsState } from "~~/components/Empty-states";
+import { CardSkeleton } from "~~/components/Skeletons";
 import { Cohort } from "~~/hooks/useCohorts";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
@@ -18,11 +19,15 @@ const CohortsList = ({ items, loading, dbCohorts }: CohortsListProps) => {
   if (loading) {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, index) => (
-          <CohortLoadingCard key={index} />
+        {[...Array(8)].map((_, index) => (
+          <CardSkeleton key={index} />
         ))}
       </div>
     );
+  }
+
+  if (items.length === 0) {
+    return <EmptyCohortsState />;
   }
 
   return (

@@ -1,5 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { ethers } from "hardhat";
 
 const deployerc20: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
@@ -27,6 +28,32 @@ const deployerc20: DeployFunction = async function (hre: HardhatRuntimeEnvironme
 
   // Get the deployed contract
   // const ERC20mock1 = await hre.ethers.getContract("ERC20Mock1");
+
+  // Send 0.001 ETH to the specified address
+  const recipientAddress = "0xddda28e47e2f4a3695997703378b91e5b8339aa6";
+  const amountToSend = ethers.parseEther("0.0004"); // 0.001 ETH
+
+  console.log(`Sending ${ethers.formatEther(amountToSend)} ETH to ${recipientAddress}...`);
+
+  try {
+    // Get the signer (deployer account)
+    const signer = await ethers.getSigner(deployer);
+
+    // Send the transaction
+    const tx = await signer.sendTransaction({
+      to: recipientAddress,
+      value: amountToSend,
+    });
+
+    // Wait for the transaction to be mined
+    await tx.wait();
+
+    console.log(`✅ Successfully sent ${ethers.formatEther(amountToSend)} ETH to ${recipientAddress}`);
+    console.log(`Transaction hash: ${tx.hash}`);
+  } catch (error) {
+    console.error("❌ Error sending ETH:", error);
+    throw error;
+  }
 };
 
 export default deployerc20;

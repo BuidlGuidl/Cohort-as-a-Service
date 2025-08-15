@@ -14,8 +14,8 @@ import { useSwitchChain } from "wagmi";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { ArrowLongLeftIcon } from "@heroicons/react/24/outline";
 import { CohortLink } from "~~/components/CohortLink";
+import { Preview } from "~~/components/Preview";
 import { SubdomainLink } from "~~/components/SubDomainLink";
-import { Preview } from "~~/components/preview";
 import { useCohortData } from "~~/hooks/useCohortData";
 import { useWithdrawEvents } from "~~/hooks/useWithdrawEvents";
 

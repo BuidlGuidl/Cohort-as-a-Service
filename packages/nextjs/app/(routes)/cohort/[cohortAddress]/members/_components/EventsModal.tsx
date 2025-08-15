@@ -6,7 +6,7 @@ import { Project } from "@prisma/client";
 import { Github, Globe } from "lucide-react";
 import { formatEther, formatUnits } from "viem";
 import { useAccount } from "wagmi";
-import { Preview } from "~~/components/preview";
+import { Preview } from "~~/components/Preview";
 import { Address } from "~~/components/scaffold-eth";
 import { WithdrawalEvent, WithdrawalRequest } from "~~/hooks/useWithdrawEvents";
 

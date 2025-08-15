@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { Application } from "@prisma/client";
 import { useAccount } from "wagmi";
-import { Preview } from "~~/components/preview";
+import { EmptyApplicationsState } from "~~/components/Empty-states";
+import { Preview } from "~~/components/Preview";
 import { RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 
 interface ApplicationListProps {
@@ -51,7 +52,9 @@ export const ApplicationList = ({ applications }: ApplicationListProps) => {
       ) : (
         <>
           {userApplications.length === 0 ? (
-            <p>No application record</p>
+            <div className="w-full">
+              <EmptyApplicationsState isAdmin={false} />
+            </div>
           ) : (
             <div className="space-y-4">
               <h3 className="text-xl font-bold">Your Applications</h3>

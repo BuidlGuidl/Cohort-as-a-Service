@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import ApplicationActions from "./ApplicationActions";
-import { Application } from "@prisma/client";
+import { Application, ApplicationStatus } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useAccount } from "wagmi";
 import { useSwitchChain } from "wagmi";
-import { Preview } from "~~/components/preview";
+import { EmptyApplicationsState } from "~~/components/Empty-states";
+import { Preview } from "~~/components/Preview";
 import { Address, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useCohortData } from "~~/hooks/useCohortData";
 
@@ -17,7 +18,7 @@ interface AdminApplicationListProps {
 }
 
 export const AdminApplicationList = ({ cohortAddress, applications }: AdminApplicationListProps) => {
-  const [activeFilter, setActiveFilter] = useState<"ALL" | "PENDING" | "APPROVED" | "REJECTED">("ALL");
+  const [activeFilter, setActiveFilter] = useState<ApplicationStatus | "ALL">("ALL");
   const { address, chainId: connectedChainId } = useAccount();
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
 
@@ -91,6 +92,10 @@ export const AdminApplicationList = ({ cohortAddress, applications }: AdminAppli
 
   if (!isAdmin) {
     return <div>You do not have admin access to view applications</div>;
+  }
+
+  if (filteredApplications?.length === 0) {
+    return <EmptyApplicationsState status={activeFilter} isAdmin={true} />;
   }
 
   return (
