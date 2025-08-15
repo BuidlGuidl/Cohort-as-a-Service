@@ -17,7 +17,7 @@ const shareTechMono = Share_Tech_Mono({
 });
 
 export const metadata = getMetadata({
-  title: "Cohorts Services",
+  title: "Cohorts.fun",
   description: "Built with 🏗 Scaffold-ETH 2",
 });
 
