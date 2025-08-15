@@ -113,14 +113,9 @@ export const Header = () => {
           </ul>
         </details>
         <div className="p-2 hidden lg:flex">
-          <SubdomainLink href="/" className="flex items-center gap-1" toMainDomain={true}>
-            <div className="relative w-12 h-12 -mt-1">
-              <Image alt="Cohorts logo" className="cursor-pointer" fill src={"/BG_Logo.svg"} />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-bold leading-tight text-xs md:text-lg text-base-content/80 font-space-grotesk">
-                Cohorts.fun
-              </span>
+          <SubdomainLink href="/" className="flex items-center" toMainDomain={true}>
+            <div className="relative w-48 h-20">
+              <Image alt="Cohorts.fun logo" className="cursor-pointer" fill src={"/CohortsFUN.svg"} />
             </div>
           </SubdomainLink>
         </div>

@@ -26,8 +26,8 @@ interface ThemeCustomizerProps {
 
 export const defaultTheme: Theme = {
   primary: "#c913ff",
-  "primary-content": "#49ff13",
-  secondary: "#49ff13",
+  "primary-content": "#86f644",
+  secondary: "#86f644",
   "secondary-content": "#212638",
   accent: "#93BBFB",
   "accent-content": "#212638",
