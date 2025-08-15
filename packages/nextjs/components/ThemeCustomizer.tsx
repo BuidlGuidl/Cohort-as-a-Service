@@ -59,6 +59,9 @@ export const applyTheme = (theme: Theme) => {
   root.style.setProperty("--shadow-base", `${theme["base-100"]}33`);
   root.style.setProperty("--shadow-neutral", `${theme.neutral}33`);
 
+  // Ensure logo color updates immediately
+  root.style.setProperty("--logo-color", theme["primary-content"]);
+
   updateShadowStyles(theme);
 };
 
@@ -249,12 +252,14 @@ export const ThemeCustomizer = ({ cohortAddress, isAdmin }: ThemeCustomizerProps
                         type="color"
                         value={previewTheme.primary}
                         onChange={e => handleColorChange("primary", e.target.value)}
+                        onInput={e => handleColorChange("primary", (e.target as HTMLInputElement).value)}
                         className="h-10 w-10 rounded cursor-pointer"
                       />
                       <input
                         type="text"
                         value={previewTheme.primary}
                         onChange={e => handleColorChange("primary", e.target.value)}
+                        onInput={e => handleColorChange("primary", (e.target as HTMLInputElement).value)}
                         className="input input-bordered w-full"
                       />
                     </div>
@@ -267,12 +272,14 @@ export const ThemeCustomizer = ({ cohortAddress, isAdmin }: ThemeCustomizerProps
                         type="color"
                         value={previewTheme["primary-content"]}
                         onChange={e => handleColorChange("primary-content", e.target.value)}
+                        onInput={e => handleColorChange("primary-content", (e.target as HTMLInputElement).value)}
                         className="h-10 w-10 rounded cursor-pointer"
                       />
                       <input
                         type="text"
                         value={previewTheme["primary-content"]}
                         onChange={e => handleColorChange("primary-content", e.target.value)}
+                        onInput={e => handleColorChange("primary-content", (e.target as HTMLInputElement).value)}
                         className="input input-bordered w-full"
                       />
                     </div>
@@ -285,12 +292,14 @@ export const ThemeCustomizer = ({ cohortAddress, isAdmin }: ThemeCustomizerProps
                         type="color"
                         value={previewTheme.secondary}
                         onChange={e => handleColorChange("secondary", e.target.value)}
+                        onInput={e => handleColorChange("secondary", (e.target as HTMLInputElement).value)}
                         className="h-10 w-10 rounded cursor-pointer"
                       />
                       <input
                         type="text"
                         value={previewTheme.secondary}
                         onChange={e => handleColorChange("secondary", e.target.value)}
+                        onInput={e => handleColorChange("secondary", (e.target as HTMLInputElement).value)}
                         className="input input-bordered w-full"
                       />
                     </div>
@@ -303,12 +312,14 @@ export const ThemeCustomizer = ({ cohortAddress, isAdmin }: ThemeCustomizerProps
                         type="color"
                         value={previewTheme["secondary-content"]}
                         onChange={e => handleColorChange("secondary-content", e.target.value)}
+                        onInput={e => handleColorChange("secondary-content", (e.target as HTMLInputElement).value)}
                         className="h-10 w-10 rounded cursor-pointer"
                       />
                       <input
                         type="text"
                         value={previewTheme["secondary-content"]}
                         onChange={e => handleColorChange("secondary-content", e.target.value)}
+                        onInput={e => handleColorChange("secondary-content", (e.target as HTMLInputElement).value)}
                         className="input input-bordered w-full"
                       />
                     </div>
@@ -321,12 +332,14 @@ export const ThemeCustomizer = ({ cohortAddress, isAdmin }: ThemeCustomizerProps
                         type="color"
                         value={previewTheme["base-100"]}
                         onChange={e => handleColorChange("base-100", e.target.value)}
+                        onInput={e => handleColorChange("base-100", (e.target as HTMLInputElement).value)}
                         className="h-10 w-10 rounded cursor-pointer"
                       />
                       <input
                         type="text"
                         value={previewTheme["base-100"]}
                         onChange={e => handleColorChange("base-100", e.target.value)}
+                        onInput={e => handleColorChange("base-100", (e.target as HTMLInputElement).value)}
                         className="input input-bordered w-full"
                       />
                     </div>
@@ -339,12 +352,14 @@ export const ThemeCustomizer = ({ cohortAddress, isAdmin }: ThemeCustomizerProps
                         type="color"
                         value={previewTheme["base-content"]}
                         onChange={e => handleColorChange("base-content", e.target.value)}
+                        onInput={e => handleColorChange("base-content", (e.target as HTMLInputElement).value)}
                         className="h-10 w-10 rounded cursor-pointer"
                       />
                       <input
                         type="text"
                         value={previewTheme["base-content"]}
                         onChange={e => handleColorChange("base-content", e.target.value)}
+                        onInput={e => handleColorChange("base-content", (e.target as HTMLInputElement).value)}
                         className="input input-bordered w-full"
                       />
                     </div>
@@ -360,6 +375,7 @@ export const ThemeCustomizer = ({ cohortAddress, isAdmin }: ThemeCustomizerProps
                   <select
                     value={previewTheme.fontFamily}
                     onChange={e => handleColorChange("fontFamily", e.target.value)}
+                    onInput={e => handleColorChange("fontFamily", (e.target as HTMLSelectElement).value)}
                     className="select select-bordered w-full"
                   >
                     {fontOptions.map(font => (
