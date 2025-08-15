@@ -406,6 +406,8 @@ const Analytics = () => {
                     handlePageChange(page);
                   }
                 }}
+                onFocus={e => (e.target as HTMLInputElement).select()}
+                onClick={e => (e.target as HTMLInputElement).select()}
                 className="input input-bordered input-sm w-16 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
               />
               <span className="text-sm">of {totalPages}</span>
