@@ -14,7 +14,7 @@ import { useAccount } from "wagmi";
 import * as z from "zod";
 import { Editor } from "~~/components/editor";
 import { Preview } from "~~/components/preview";
-import { AddressInput } from "~~/components/scaffold-eth";
+import { AddressInput, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import currencies from "~~/data/currencies";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import { useContentValidator } from "~~/hooks/useContentValidator";
@@ -783,13 +783,19 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
           </div>
 
           <div className="flex items-center gap-x-2">
-            <button
-              type="submit"
-              className="btn btn-primary btn-sm rounded-md mt-4 font-share-tech-mono"
-              disabled={!isValid || isSubmitting || isValidatingDescription || !isDescriptionValid}
-            >
-              {isValidatingDescription ? "Validating content..." : isSubmitting ? "Creating..." : "Continue"}
-            </button>
+            {!address ? (
+              <div className="mt-4">
+                <RainbowKitCustomConnectButton />
+              </div>
+            ) : (
+              <button
+                type="submit"
+                className="btn btn-primary btn-sm rounded-md mt-4 font-share-tech-mono"
+                disabled={!isValid || isSubmitting || isValidatingDescription || !isDescriptionValid}
+              >
+                {isValidatingDescription ? "Validating content..." : isSubmitting ? "Creating..." : "Continue"}
+              </button>
+            )}
           </div>
         </form>
       </div>
