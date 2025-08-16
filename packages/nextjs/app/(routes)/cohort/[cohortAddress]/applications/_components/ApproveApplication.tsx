@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, X } from "lucide-react";
-import { Editor } from "~~/components/Editor";
-import { Preview } from "~~/components/Preview";
+import { Editor } from "~~/components/editor";
+import { Preview } from "~~/components/preview";
 import { AddressInput, EtherInput } from "~~/components/scaffold-eth";
 import { useApproveApplication } from "~~/hooks/useApproveApplication";
 import { useRejectApplication } from "~~/hooks/useRejectApplication";

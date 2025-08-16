@@ -7,8 +7,8 @@ import { Github, Globe } from "lucide-react";
 import { formatEther, formatUnits } from "viem";
 import { useAccount } from "wagmi";
 import { EmptyEventsState } from "~~/components/Empty-states";
-import { Preview } from "~~/components/Preview";
 import { ShimmerBlock } from "~~/components/Skeletons";
+import { Preview } from "~~/components/preview";
 import { Address } from "~~/components/scaffold-eth";
 import { WithdrawalEvent, WithdrawalRequest } from "~~/hooks/useWithdrawEvents";
 

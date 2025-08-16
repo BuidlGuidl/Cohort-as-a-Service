@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Application } from "@prisma/client";
 import { useAccount } from "wagmi";
 import { EmptyApplicationsState } from "~~/components/Empty-states";
-import { Preview } from "~~/components/Preview";
+import { Preview } from "~~/components/preview";
 import { RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 
 interface ApplicationListProps {

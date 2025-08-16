@@ -6,8 +6,8 @@ import { useForm } from "react-hook-form";
 import { useSignMessage } from "wagmi";
 import { useAccount } from "wagmi";
 import * as z from "zod";
-import { Editor } from "~~/components/Editor";
-import { Preview } from "~~/components/Preview";
+import { Editor } from "~~/components/editor";
+import { Preview } from "~~/components/preview";
 import { useContentValidator } from "~~/hooks/useContentValidator";
 import { notification } from "~~/utils/scaffold-eth";
 

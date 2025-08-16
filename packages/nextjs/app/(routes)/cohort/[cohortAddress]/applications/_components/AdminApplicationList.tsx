@@ -8,7 +8,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { useAccount } from "wagmi";
 import { useSwitchChain } from "wagmi";
 import { EmptyApplicationsState } from "~~/components/Empty-states";
-import { Preview } from "~~/components/Preview";
+import { Preview } from "~~/components/preview";
 import { Address, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useCohortData } from "~~/hooks/useCohortData";
 
