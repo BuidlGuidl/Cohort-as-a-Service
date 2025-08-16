@@ -94,10 +94,6 @@ export const AdminApplicationList = ({ cohortAddress, applications }: AdminAppli
     return <div>You do not have admin access to view applications</div>;
   }
 
-  if (filteredApplications?.length === 0) {
-    return <EmptyApplicationsState status={activeFilter} isAdmin={true} />;
-  }
-
   return (
     <div className="w-full">
       <h2 className="text-3xl mb-6 inline-block px-4 py-2 bg-primary text-secondary">Manage Applications</h2>
@@ -130,7 +126,7 @@ export const AdminApplicationList = ({ cohortAddress, applications }: AdminAppli
       </div>
 
       {filteredApplications?.length === 0 ? (
-        <div>No applications found with the selected filter.</div>
+        <EmptyApplicationsState status={activeFilter} isAdmin={true} />
       ) : (
         <div className="overflow-x-auto">
           <table className="table w-full">
