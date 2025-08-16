@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { SearchInput } from "./SearchInput";
+import { motion } from "framer-motion";
 import { formatEther, formatUnits } from "viem";
 import { useAccount } from "wagmi";
 import { ArrowDownIcon, ArrowUpIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { EmptyAnalyticsState } from "~~/components/Empty-states";
+import { FilterDropdown } from "~~/components/FilterDropdown";
 import { AnalyticsCardSkeleton } from "~~/components/Skeletons";
 import { RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { chains } from "~~/data/chains";
@@ -18,10 +21,23 @@ const Analytics = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const sortedCohorts = data?.cohortAnalytics
     ? [...data.cohortAnalytics]
-        .filter(cohort => selectedChain === null || cohort.chainId === selectedChain)
+        .filter(cohort => {
+          if (selectedChain !== null && cohort.chainId !== selectedChain) return false;
+
+          if (searchTerm) {
+            const search = searchTerm.toLowerCase();
+            return (
+              cohort.name.toLowerCase().includes(search) ||
+              cohort.chainName.toLowerCase().includes(search) ||
+              cohort.address.toLowerCase().includes(search)
+            );
+          }
+          return true;
+        })
         .sort((a, b) => {
           let aValue: any, bValue: any;
 
@@ -247,7 +263,32 @@ const Analytics = () => {
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 mb-6 tems-start">
+            <SearchInput value={searchTerm} onChange={setSearchTerm} />
+            <div className="flex gap-4 items-center">
+              <FilterDropdown
+                label="Sort By"
+                value={sortField}
+                onChange={setSortField}
+                options={[
+                  { value: "name", label: "Name" },
+                  { value: "totalBuilders", label: "Total Builders" },
+                  { value: "activeBuilders", label: "Active Builders" },
+                  { value: "totalWithdrawn", label: "Total Withdrawn" },
+                  { value: "createdAt", label: "Created Date" },
+                ]}
+              />
+
+              <button
+                className="btn btn-sm btn-ghost"
+                onClick={() => setSortDirection(prev => (prev === "asc" ? "desc" : "asc"))}
+              >
+                {sortDirection === "asc" ? "↑" : "↓"} {sortDirection}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-between  mb-4 gap-4">
             <div className="text-sm">
               Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} entries
             </div>
@@ -331,38 +372,47 @@ const Analytics = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody>
-                {paginatedCohorts.map(cohort => (
-                  <tr key={cohort.id} className="hover:bg-neutral">
-                    <td>
-                      <a
-                        href={`/cohort/${cohort.address}`}
-                        className="link link-primary"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {cohort.name}
-                      </a>
-                    </td>
-                    <td>{cohort.chainName}</td>
-                    <td>
-                      <span className={`badge ${cohort.isERC20 ? "badge-warning" : "badge-primary"}`}>
-                        {cohort.isERC20 ? cohort.tokenSymbol || "ERC20" : "ETH"}
-                      </span>
-                    </td>
-                    <td>{cohort.totalBuilders}</td>
-                    <td>{cohort.activeBuilders}</td>
-                    <td>
-                      {formatAmount(
-                        cohort.totalWithdrawn,
-                        cohort.tokenDecimals,
-                        cohort.isERC20 ? cohort.tokenSymbol : undefined,
-                      )}
-                    </td>
-                    <td>{new Date(Number(cohort.createdAt) * 1000).toLocaleDateString()}</td>
-                  </tr>
-                ))}
-              </tbody>
+              {paginatedCohorts.length > 0 ? (
+                <tbody>
+                  {paginatedCohorts.map((cohort, index) => (
+                    <motion.tr
+                      key={cohort.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <td>
+                        <a
+                          href={`/cohort/${cohort.address}`}
+                          className="link link-primary"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {cohort.name}
+                        </a>
+                      </td>
+                      <td>{cohort.chainName}</td>
+                      <td>
+                        <span className={`badge ${cohort.isERC20 ? "badge-warning" : "badge-primary"}`}>
+                          {cohort.isERC20 ? cohort.tokenSymbol || "ERC20" : "ETH"}
+                        </span>
+                      </td>
+                      <td>{cohort.totalBuilders}</td>
+                      <td>{cohort.activeBuilders}</td>
+                      <td>
+                        {formatAmount(
+                          cohort.totalWithdrawn,
+                          cohort.tokenDecimals,
+                          cohort.isERC20 ? cohort.tokenSymbol : undefined,
+                        )}
+                      </td>
+                      <td>{new Date(Number(cohort.createdAt) * 1000).toLocaleDateString()}</td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              ) : (
+                <div className="flex mx-auto px-4 py-8  w-full ">No cohots found</div>
+              )}
             </table>
           </div>
 
