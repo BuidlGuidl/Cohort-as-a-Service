@@ -36,7 +36,12 @@ export const MyCohorts = ({ searchParams, dbCohorts }: MyCohortProps) => {
                 <button className="btn btn-sm rounded-md btn-primary">Create new</button>
               </Link>
             </div>
-            <CohortsList items={allMyCohorts} loading={isLoading} dbCohorts={dbCohorts} />
+            <CohortsList
+              items={allMyCohorts}
+              loading={isLoading}
+              dbCohorts={dbCohorts}
+              isFiltered={searchParams.cohort?.length > 0 || !!searchParams.chainId}
+            />
           </div>
         ) : (
           <div className="flex justify-center">

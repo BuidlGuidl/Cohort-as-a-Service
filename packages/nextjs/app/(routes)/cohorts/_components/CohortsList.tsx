@@ -13,9 +13,10 @@ interface CohortsListProps {
   items: CohortWithRole[];
   loading: boolean;
   dbCohorts: DbCohort[];
+  isFiltered: boolean;
 }
 
-const CohortsList = ({ items, loading, dbCohorts }: CohortsListProps) => {
+const CohortsList = ({ items, loading, dbCohorts, isFiltered }: CohortsListProps) => {
   if (loading) {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -27,7 +28,7 @@ const CohortsList = ({ items, loading, dbCohorts }: CohortsListProps) => {
   }
 
   if (items.length === 0) {
-    return <EmptyCohortsState />;
+    return <EmptyCohortsState isFiltered={isFiltered} />;
   }
 
   return (

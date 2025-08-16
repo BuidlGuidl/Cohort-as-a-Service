@@ -64,6 +64,29 @@ export const ListSkeleton = ({ items = 3 }) => {
   );
 };
 
+export const MembersSkeleton = () => {
+  return (
+    <div className="flex items-center justify-between p-4 animate-pulse max-w-sm rounded-md">
+      <div className="flex-1 space-y-3">
+        <div className="h-4 bg-gray-700 rounded w-32" />
+
+        <div className="h-2 bg-gray-700 rounded-full w-full" />
+      </div>
+
+      <div className="flex items-center gap-3 ml-6">
+        <div className="h-10 w-10 bg-gray-700 rounded-full" />
+
+        <div className="space-y-2">
+          <div className="h-4 bg-gray-700 rounded w-24" />
+          <div className="h-3 bg-gray-700 rounded w-20" />
+        </div>
+
+        <div className="h-5 w-5 bg-gray-700 rounded" />
+      </div>
+    </div>
+  );
+};
+
 export const AnalyticsCardSkeleton = () => {
   return (
     <div className="card shadow-xl border border-neutral animate-pulse">
@@ -88,7 +111,6 @@ export const AnalyticsCardSkeleton = () => {
   );
 };
 
-// Project list skeleton
 export const ProjectSkeleton = ({ items = 3 }) => {
   return (
     <div className="space-y-10">
@@ -117,36 +139,13 @@ export const ShimmerBlock = ({ className = "" }) => {
   );
 };
 
-export const LoadingOverlay = ({ message = "Loading..." }) => {
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-base-100 rounded-lg p-6 flex flex-col items-center space-y-4">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
-        <p className="text-sm">{message}</p>
-      </div>
-    </div>
-  );
-};
-
-export const InlineLoader = ({ size = "sm" }) => {
-  const sizeClass = {
-    xs: "loading-xs",
-    sm: "loading-sm",
-    md: "loading-md",
-    lg: "loading-lg",
-  }[size];
-
-  return <span className={`loading loading-spinner ${sizeClass}`}></span>;
-};
-
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {
   TableSkeleton,
   CardSkeleton,
   ListSkeleton,
+  MembersSkeleton,
   AnalyticsCardSkeleton,
   ProjectSkeleton,
   ShimmerBlock,
-  LoadingOverlay,
-  InlineLoader,
 };

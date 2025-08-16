@@ -87,12 +87,9 @@ export const EmptyAnalyticsState = () => {
 
 export const EmptyMembersState = () => {
   return (
-    <div className="flex flex-col items-center justify-center py-12">
-      <div className="text-5xl mb-4">👥</div>
+    <div className="flex flex-col py-2">
       <h3 className="text-lg font-semibold mb-2">No members yet</h3>
-      <p className="text-gray-400 text-center max-w-sm text-sm">
-        Members will appear here once applications are approved.
-      </p>
+      <p className="text-gray-400 max-w-sm text-sm">Members added will appear here.</p>
     </div>
   );
 };
@@ -111,12 +108,16 @@ export const EmptySearchState = ({ searchTerm = "" }) => {
   );
 };
 
-export const EmptyEventsState = () => {
+export const EmptyEventsState = ({
+  type,
+}: {
+  type?: "transactions" | "activity" | "withdrawals" | "requests" | "contributions";
+}) => {
   return (
-    <div className="flex flex-col items-center justify-center py-12">
+    <div className="flex flex-col  py-12">
       <div className="text-5xl mb-4">📋</div>
-      <h3 className="text-lg font-semibold mb-2">No activity yet</h3>
-      <p className="text-gray-400 text-center max-w-sm text-sm">Transaction history and events will appear here.</p>
+      <h3 className="text-lg font-semibold mb-2">No {type} yet</h3>
+      <p className="text-gray-400  max-w-sm text-sm">{type} history and events will appear here.</p>
     </div>
   );
 };
@@ -137,16 +138,6 @@ export const EmptyState = ({
   );
 };
 
-export const EmptyNotificationsState = () => {
-  return (
-    <div className="flex flex-col items-center justify-center py-8">
-      <div className="text-4xl mb-3">🔔</div>
-      <h3 className="text-base font-semibold mb-1">No notifications</h3>
-      <p className="text-gray-400 text-center text-sm">You&apos;re all caught up!</p>
-    </div>
-  );
-};
-
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {
   EmptyCohortsState,
@@ -157,5 +148,4 @@ export default {
   EmptySearchState,
   EmptyEventsState,
   EmptyState,
-  EmptyNotificationsState,
 };
