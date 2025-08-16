@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import SearchInput from "../../../../components/search-input";
+import SearchInput from "../../../../components/SearchInput";
 import Chains from "./Chains";
 import CohortsList from "./CohortsList";
 import { Cohort } from "@prisma/client";
@@ -36,7 +36,12 @@ export const MyCohorts = ({ searchParams, dbCohorts }: MyCohortProps) => {
                 <button className="btn btn-sm rounded-md btn-primary">Create new</button>
               </Link>
             </div>
-            <CohortsList items={allMyCohorts} loading={isLoading} dbCohorts={dbCohorts} />
+            <CohortsList
+              items={allMyCohorts}
+              loading={isLoading}
+              dbCohorts={dbCohorts}
+              isFiltered={searchParams.cohort?.length > 0 || !!searchParams.chainId}
+            />
           </div>
         ) : (
           <div className="flex justify-center">

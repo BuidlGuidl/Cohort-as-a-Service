@@ -5,6 +5,8 @@ import AddProject from "./AddProject";
 import { ProjectActions } from "./ProjectActions";
 import { Project } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
+import { EmptyProjectsState } from "~~/components/Empty-states";
+import { ProjectSkeleton } from "~~/components/Skeletons";
 import { useCohortData } from "~~/hooks/useCohortData";
 
 interface ProjectListProps {
@@ -13,7 +15,7 @@ interface ProjectListProps {
 }
 
 export const ProjectList = ({ projects, cohortAddress }: ProjectListProps) => {
-  const { isAdmin } = useCohortData(cohortAddress);
+  const { isAdmin, isLoading } = useCohortData(cohortAddress);
 
   const formatUpdatedTime = (date: Date) => {
     try {
@@ -23,10 +25,20 @@ export const ProjectList = ({ projects, cohortAddress }: ProjectListProps) => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="w-full">
+        <h2 className="text-3xl mb-6 inline-block px-4 py-2 bg-primary text-secondary">Projects</h2>
+        <ProjectSkeleton items={3} />
+      </div>
+    );
+  }
+
   if (!projects || projects.length === 0) {
     return (
-      <div>
-        <p> No projects found.</p>
+      <div className="w-full">
+        <h2 className="text-3xl mb-6 inline-block px-4 py-2 bg-primary text-secondary">Projects</h2>
+        <EmptyProjectsState canAdd={isAdmin} />
         {isAdmin && <AddProject cohortAddress={cohortAddress} />}
       </div>
     );
