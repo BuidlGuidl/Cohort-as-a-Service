@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from "react";
 import ApplicationActions from "./ApplicationActions";
-import { Application } from "@prisma/client";
+import { Application, ApplicationStatus } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
+import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useAccount } from "wagmi";
 import { useSwitchChain } from "wagmi";
+import { EmptyApplicationsState } from "~~/components/Empty-states";
+import { Search } from "~~/components/Search";
 import { Preview } from "~~/components/preview";
 import { Address, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useCohortData } from "~~/hooks/useCohortData";
@@ -17,11 +20,11 @@ interface AdminApplicationListProps {
 }
 
 export const AdminApplicationList = ({ cohortAddress, applications }: AdminApplicationListProps) => {
-  const [activeFilter, setActiveFilter] = useState<"ALL" | "PENDING" | "APPROVED" | "REJECTED">("ALL");
+  const [activeFilter, setActiveFilter] = useState<ApplicationStatus | "ALL">("ALL");
   const { address, chainId: connectedChainId } = useAccount();
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
 
-  const { isERC20: isErc20, tokenDecimals, tokenSymbol, chainId, isAdmin } = useCohortData(cohortAddress);
+  const { isERC20: isErc20, tokenDecimals, tokenSymbol, chainId, isAdmin, isLoading } = useCohortData(cohortAddress);
   const { switchChain } = useSwitchChain();
 
   const formatTime = (date: Date) => {
@@ -89,43 +92,57 @@ export const AdminApplicationList = ({ cohortAddress, applications }: AdminAppli
     return <RainbowKitCustomConnectButton />;
   }
 
-  if (!isAdmin) {
+  if (!isAdmin && !isLoading) {
     return <div>You do not have admin access to view applications</div>;
   }
 
   return (
     <div className="w-full">
-      <h2 className="text-3xl mb-6 inline-block px-4 py-2 bg-primary text-secondary">Manage Applications</h2>
+      <motion.h2
+        className="text-3xl mb-6 inline-block px-4 py-2 bg-primary text-secondary"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+      >
+        Manage Applications
+      </motion.h2>
 
-      <div className="flex gap-2 mb-6">
-        <button
-          className={`btn btn-sm ${activeFilter === "ALL" ? "btn-primary" : "btn-outline"}`}
-          onClick={() => setActiveFilter("ALL")}
+      <div>
+        <Search placeholder="Search by address or description..." paramName="applicationSearch" />
+        <motion.div
+          className="flex gap-2 mt-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
         >
-          All ({applications?.length})
-        </button>
-        <button
-          className={`btn btn-sm ${activeFilter === "PENDING" ? "btn-warning" : "btn-outline"}`}
-          onClick={() => setActiveFilter("PENDING")}
-        >
-          Pending ({applications?.filter(a => a.status === "PENDING").length})
-        </button>
-        <button
-          className={`btn btn-sm ${activeFilter === "APPROVED" ? "btn-success" : "btn-outline"}`}
-          onClick={() => setActiveFilter("APPROVED")}
-        >
-          Approved ({applications?.filter(a => a.status === "APPROVED").length})
-        </button>
-        <button
-          className={`btn btn-sm ${activeFilter === "REJECTED" ? "btn-error" : "btn-outline"}`}
-          onClick={() => setActiveFilter("REJECTED")}
-        >
-          Rejected ({applications?.filter(a => a.status === "REJECTED").length})
-        </button>
+          {["ALL", "PENDING", "APPROVED", "REJECTED"].map((status, index) => (
+            <motion.button
+              key={status}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className={`btn btn-sm ${
+                activeFilter === status
+                  ? status === "ALL"
+                    ? "btn-primary"
+                    : status === "PENDING"
+                      ? "btn-warning"
+                      : status === "APPROVED"
+                        ? "btn-success"
+                        : "btn-error"
+                  : "btn-outline"
+              }`}
+              onClick={() => setActiveFilter(status as ApplicationStatus | "ALL")}
+            >
+              {status} ({applications?.filter(a => (status === "ALL" ? true : a.status === status)).length})
+            </motion.button>
+          ))}
+        </motion.div>
       </div>
 
       {filteredApplications?.length === 0 ? (
-        <div>No applications found with the selected filter.</div>
+        <EmptyApplicationsState status={activeFilter} isAdmin={true} />
       ) : (
         <div className="overflow-x-auto">
           <table className="table w-full">

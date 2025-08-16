@@ -12,6 +12,8 @@ import { Application, Builder } from "@prisma/client";
 import { Plus } from "lucide-react";
 import { AlertCircle } from "lucide-react";
 import { useAccount } from "wagmi";
+import { EmptyMembersState } from "~~/components/Empty-states";
+import { MembersSkeleton } from "~~/components/Skeletons";
 import { Address } from "~~/components/scaffold-eth";
 
 interface BuilderStream {
@@ -163,11 +165,10 @@ export const BuildersList: React.FC<BuildersListProps> = ({
 
       {isLoading ? (
         <div>
-          <div className="text-4xl animate-bounce mb-2">👾</div>
-          <div className="text-lg ">Loading...</div>
+          <MembersSkeleton />
         </div>
       ) : !builderStreams || Array.from(builderStreams.values()).length == 0 ? (
-        <div className="text-sm ml-4">No builders</div>
+        <EmptyMembersState />
       ) : (
         Array.from(builderStreams.values()).map(builderStream => {
           if (builderStream.cap == 0) return null;

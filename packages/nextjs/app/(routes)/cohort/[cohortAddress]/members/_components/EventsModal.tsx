@@ -6,6 +6,8 @@ import { Project } from "@prisma/client";
 import { Github, Globe } from "lucide-react";
 import { formatEther, formatUnits } from "viem";
 import { useAccount } from "wagmi";
+import { EmptyEventsState } from "~~/components/Empty-states";
+import { ShimmerBlock } from "~~/components/Skeletons";
 import { Preview } from "~~/components/preview";
 import { Address } from "~~/components/scaffold-eth";
 import { WithdrawalEvent, WithdrawalRequest } from "~~/hooks/useWithdrawEvents";
@@ -111,9 +113,10 @@ export const EventsModal: React.FC<EventsModalProps> = ({
             {modalView === "contributions" ? (
               <ul>
                 {isLoadingWithdrawEvents ? (
-                  <div>
-                    <div className="text-4xl animate-bounce mb-2">👾</div>
-                    <div className="text-lg">Loading...</div>
+                  <div className="space-y-4">
+                    <ShimmerBlock className="h-20 w-full" />
+                    <ShimmerBlock className="h-20 w-full" />
+                    <ShimmerBlock className="h-20 w-full" />
                   </div>
                 ) : filteredWithdrawnEvents?.length > 0 ? (
                   <div className="flex flex-col">
@@ -185,15 +188,16 @@ export const EventsModal: React.FC<EventsModalProps> = ({
                     })}
                   </div>
                 ) : (
-                  <p>No contributions</p>
+                  <EmptyEventsState type="transactions" />
                 )}
               </ul>
             ) : (
               <ul>
                 {isLoadingRequests ? (
-                  <div>
-                    <div className="text-4xl animate-bounce mb-2">👾</div>
-                    <div className="text-lg">Loading...</div>
+                  <div className="space-y-4">
+                    <ShimmerBlock className="h-20 w-full" />
+                    <ShimmerBlock className="h-20 w-full" />
+                    <ShimmerBlock className="h-20 w-full" />
                   </div>
                 ) : filteredRequestEvents?.length > 0 ? (
                   <div className="flex flex-col">
@@ -298,7 +302,7 @@ export const EventsModal: React.FC<EventsModalProps> = ({
                     })}
                   </div>
                 ) : (
-                  <p>No requests</p>
+                  <EmptyEventsState type="requests" />
                 )}
               </ul>
             )}
