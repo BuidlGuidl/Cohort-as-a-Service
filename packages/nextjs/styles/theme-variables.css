@@ -4,8 +4,8 @@
 :root {
   /* Default theme colors */
   --primary: #c913ff;
-  --primary-content: #49ff13;
-  --secondary: #49ff13;
+  --primary-content: #86f644;
+  --secondary: #86f644;
   --secondary-content: #212638;
   --accent: #93bbfb;
   --accent-content: #212638;
@@ -17,15 +17,18 @@
   --base-content: #ffffff;
   --font-family: sans-serif;
 
+  /* Logo color matches the primary-content (green) color */
+  --logo-color: #86f644;
+
   /* Border colors */
   --border-primary: #c913ff;
-  --border-secondary: #49ff13;
+  --border-secondary: #86f644;
   --border-base: #ffffff;
   --border-neutral: #212638;
 
   /* Shadow colors with transparency */
   --shadow-primary: #c913ff33;
-  --shadow-secondary: #49ff1333;
+  --shadow-secondary: #86f64411;
   --shadow-base: #00000033;
   --shadow-neutral: #21263833;
 }

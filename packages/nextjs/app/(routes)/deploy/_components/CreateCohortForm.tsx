@@ -375,7 +375,7 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="form-control w-full">
             <label className="label">
-              <span className="label-text font-medium">Name</span>
+              <span className="label-text font-medium font-share-tech-mono">Name</span>
             </label>
 
             <input
@@ -400,7 +400,7 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
 
           <div className="form-control w-full">
             <label className="label">
-              <span className="label-text font-medium">Description (optional)</span>
+              <span className="label-text font-medium font-share-tech-mono">Description (optional)</span>
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -478,7 +478,7 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
 
           <div className="form-control w-full">
             <label className="label">
-              <span className="label-text font-medium">Custom Subdomain (optional)</span>
+              <span className="label-text font-medium font-share-tech-mono">Custom Subdomain (optional)</span>
             </label>
 
             <div className="relative">
@@ -506,7 +506,7 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
 
           <div className="form-control w-full">
             <label className="label">
-              <span className="label-text font-medium">Admin address</span>
+              <span className="label-text font-medium font-share-tech-mono">Admin address</span>
             </label>
 
             <AddressInput
@@ -534,7 +534,7 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
 
           <div className="form-control w-full">
             <label className="label">
-              <span className="label-text font-medium">Currency</span>
+              <span className="label-text font-medium font-share-tech-mono">Currency</span>
             </label>
 
             <div className="flex flex-wrap gap-2 mb-2">
@@ -542,7 +542,7 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
                 <button
                   key={currency.address}
                   type="button"
-                  className={`btn btn-sm rounded-md ${selectedCurrency === currency.address && !showCustomCurrencyInput ? "btn-primary" : "btn-outline"}`}
+                  className={`btn btn-sm rounded-md font-share-tech-mono ${selectedCurrency === currency.address && !showCustomCurrencyInput ? "btn-primary" : "btn-outline"}`}
                   onClick={() => handleCurrencySelect(currency.address, currency.name)}
                 >
                   {currency.name}
@@ -550,7 +550,7 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
               ))}
               <button
                 type="button"
-                className={`btn btn-sm rounded-md ${showCustomCurrencyInput ? "btn-primary" : "btn-outline"}`}
+                className={`btn btn-sm rounded-md font-share-tech-mono ${showCustomCurrencyInput ? "btn-primary" : "btn-outline"}`}
                 onClick={() => setShowCustomCurrencyInput(true)}
               >
                 Custom
@@ -582,7 +582,7 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
 
           <div className="form-control w-full">
             <label className="label">
-              <span className="label-text font-medium">Cohort Cycle</span>
+              <span className="label-text font-medium font-share-tech-mono">Cohort Cycle</span>
             </label>
 
             <div className="flex flex-wrap gap-2 mb-2">
@@ -590,7 +590,7 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
                 <button
                   key={cycle.label}
                   type="button"
-                  className={`btn btn-sm rounded-md ${selectedCycle === cycle.value ? "btn-primary" : "btn-outline"}`}
+                  className={`btn btn-sm rounded-md font-share-tech-mono ${selectedCycle === cycle.value ? "btn-primary" : "btn-outline"}`}
                   onClick={() => handleCycleSelect(cycle.value, cycle.label)}
                 >
                   {cycle.label}
@@ -637,7 +637,9 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
 
           <div className="form-control">
             <label className="label cursor-pointer">
-              <span className="label-text font-medium">Require approval for builder withdrawals</span>
+              <span className="label-text font-medium font-space-grotesk">
+                Require approval for builder withdrawals
+              </span>
               <input
                 type="checkbox"
                 className="toggle toggle-primary"
@@ -659,7 +661,9 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
 
           <div className="form-control">
             <label className="label cursor-pointer">
-              <span className="label-text font-medium">Allow builder applications to join cohort</span>
+              <span className="label-text font-medium font-space-grotesk">
+                Allow builder applications to join cohort
+              </span>
               <input
                 type="checkbox"
                 className="toggle toggle-primary"
@@ -682,7 +686,7 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
           <div className="form-control w-full">
             <div className="flex justify-between items-center">
               <label className="label">
-                <span className="label-text font-medium">Builders (Optional)</span>
+                <span className="label-text font-medium font-share-tech-mono">Builders (Optional)</span>
               </label>
             </div>
 
@@ -768,7 +772,11 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
                   </div>
                 </div>
               ))}
-              <button type="button" className="btn btn-primary btn-sm rounded-md mt-2 ml-4" onClick={handleAddBuilder}>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm rounded-md mt-2 ml-4 font-share-tech-mono"
+                onClick={handleAddBuilder}
+              >
                 <Plus className="h-4 w-4 mr-1" /> Add Builder
               </button>
             </div>
@@ -777,7 +785,7 @@ const CreateCohortForm = ({ existingSubdomains }: CreateCohortFormProps) => {
           <div className="flex items-center gap-x-2">
             <button
               type="submit"
-              className="btn btn-primary btn-sm rounded-md mt-4"
+              className="btn btn-primary btn-sm rounded-md mt-4 font-share-tech-mono"
               disabled={!isValid || isSubmitting || isValidatingDescription || !isDescriptionValid}
             >
               {isValidatingDescription ? "Validating content..." : isSubmitting ? "Creating..." : "Continue"}

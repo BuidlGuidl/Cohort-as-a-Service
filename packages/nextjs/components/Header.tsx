@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { SubdomainLink } from "./SubDomainLink";
+import { CohortsFunLogo } from "./assets/CohortsFunLogo";
 import { useAccount } from "wagmi";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useOutsideClick } from "~~/hooks/scaffold-eth";
+import { useCohortPermissions } from "~~/hooks/useCohortPermissions";
 
 type HeaderMenuLink = {
   label: string;
@@ -29,18 +30,29 @@ const baseMenuLinks: HeaderMenuLink[] = [
 export const HeaderMenuLinks = () => {
   const pathname = usePathname();
   const { address } = useAccount();
+  const { isOnCohortPage, isAdmin: isCohortAdmin } = useCohortPermissions();
   const [menuLinks, setMenuLinks] = useState<HeaderMenuLink[]>(baseMenuLinks);
 
   useEffect(() => {
+    // If on a cohort page and user is not admin/owner of that cohort, hide all nav links
+    // This includes when no wallet is connected (isCohortAdmin will be null)
+    if (isOnCohortPage && isCohortAdmin !== true) {
+      setMenuLinks([]);
+      return;
+    }
+
+    // If not connected, show base menu links (but only if not on cohort page)
     if (!address) {
       setMenuLinks(baseMenuLinks);
       return;
     }
 
+    // Check if user is a global BG admin
     const bgAdmins = process.env.NEXT_PUBLIC_BG_ADMINS?.split(",").map(addr => addr.toLowerCase()) || [];
-    const isAdmin = bgAdmins.includes(address.toLowerCase());
+    const isGlobalAdmin = bgAdmins.includes(address.toLowerCase());
 
-    if (isAdmin) {
+    // If user is global admin, show all links including Analytics
+    if (isGlobalAdmin) {
       setMenuLinks([
         ...baseMenuLinks,
         {
@@ -49,9 +61,10 @@ export const HeaderMenuLinks = () => {
         },
       ]);
     } else {
+      // Regular user - show base menu links (unless on cohort page where they're not admin)
       setMenuLinks(baseMenuLinks);
     }
-  }, [address]);
+  }, [address, isOnCohortPage, isCohortAdmin]);
 
   return (
     <>
@@ -62,7 +75,7 @@ export const HeaderMenuLinks = () => {
             <SubdomainLink
               href={href}
               toMainDomain={true}
-              className={`btn btn-ghost btn-sm justify-start text-sm text-primary-content hover:bg-primary hover:text-primary-content leading-none py-1 ${isActive ? "btn-active" : ""}`}
+              className={`btn btn-ghost btn-sm justify-start text-base text-primary-content hover:bg-primary hover:text-primary-content leading-none py-1 font-normal font-share-tech-mono ${isActive ? "btn-active" : ""}`}
             >
               {icon}
               <span>{label}</span>
@@ -100,13 +113,8 @@ export const Header = () => {
           </ul>
         </details>
         <div className="p-2 hidden lg:flex">
-          <SubdomainLink href="/" className="flex items-center gap-1" toMainDomain={true}>
-            <div className="relative w-8 h-8">
-              <Image alt="BG logo" className="cursor-pointer" fill src={"/BG_Logo.svg"} />
-            </div>
-            <div className="flex flex-col mt-2">
-              <span className="font-bold leading-tight text-xs md:text-lg text-base-content">Cohorts.fun</span>
-            </div>
+          <SubdomainLink href="/" className="flex items-center" toMainDomain={true}>
+            <CohortsFunLogo className="w-48 h-20 cursor-pointer" />
           </SubdomainLink>
         </div>
         <ul className="hidden lg:flex lg:flex-nowrap menu menu-horizontal menu-md gap-4 pl-4">

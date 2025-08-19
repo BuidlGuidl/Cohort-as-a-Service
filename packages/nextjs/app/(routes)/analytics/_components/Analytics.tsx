@@ -132,7 +132,7 @@ const Analytics = () => {
   if (!address) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <h2 className="text-2xl mb-4">Connect your wallet to access analytics</h2>
+        <h2 className="text-2xl mb-4 font-space-grotesk">Connect your wallet to access analytics</h2>
         <RainbowKitCustomConnectButton />
       </div>
     );
@@ -141,7 +141,7 @@ const Analytics = () => {
   if (!isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <h2 className="text-2xl text-error">Access Denied</h2>
+        <h2 className="text-2xl text-error font-space-grotesk">Access Denied</h2>
         <p className="mt-4">You don&apos;t have permission to view this page.</p>
       </div>
     );
@@ -158,9 +158,9 @@ const Analytics = () => {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <h2 className="text-2xl text-error">Error Loading Analytics</h2>
+        <h2 className="text-2xl text-error font-space-grotesk">Error Loading Analytics</h2>
         <p className="mt-4 text-center">{error}</p>
-        <button className="btn btn-primary mt-4" onClick={refetch}>
+        <button className="btn btn-primary mt-4 font-share-tech-mono" onClick={refetch}>
           Try Again
         </button>
       </div>
@@ -171,8 +171,8 @@ const Analytics = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <h2 className="text-2xl mb-4">No data available</h2>
-          <button className="btn btn-primary" onClick={refetch}>
+          <h2 className="text-2xl mb-4 font-space-grotesk">No data available</h2>
+          <button className="btn btn-primary font-share-tech-mono" onClick={refetch}>
             Refresh
           </button>
         </div>
@@ -183,14 +183,14 @@ const Analytics = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-4xl font-bold">Cohort Analytics</h1>
-        <button className="btn btn-sm btn-outline" onClick={refetch}>
+        <h1 className="text-4xl font-bold font-share-tech-mono">Cohort Analytics</h1>
+        <button className="btn btn-sm btn-outline font-share-tech-mono" onClick={refetch}>
           Refresh Data
         </button>
       </div>
 
       <div className="mb-12">
-        <h2 className="text-2xl font-semibold mb-6">Chain Overview</h2>
+        <h2 className="text-2xl font-semibold mb-6 font-share-tech-mono">Chain Overview</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {data.chainAnalytics.map(chain => (
             <div
@@ -226,7 +226,7 @@ const Analytics = () => {
 
       <div>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold">
+          <h2 className="text-2xl font-semibold font-share-tech-mono">
             Cohort Details
             {selectedChain && (
               <span className="text-sm font-normal ml-2">
@@ -235,7 +235,7 @@ const Analytics = () => {
             )}
           </h2>
           {selectedChain && (
-            <button className="btn btn-sm btn-ghost" onClick={() => handleChainFilter(null)}>
+            <button className="btn btn-sm btn-ghost font-share-tech-mono" onClick={() => handleChainFilter(null)}>
               Clear Filter
             </button>
           )}
@@ -406,7 +406,9 @@ const Analytics = () => {
                     handlePageChange(page);
                   }
                 }}
-                className="input input-bordered input-sm w-16"
+                onFocus={e => (e.target as HTMLInputElement).select()}
+                onClick={e => (e.target as HTMLInputElement).select()}
+                className="input input-bordered input-sm w-16 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
               />
               <span className="text-sm">of {totalPages}</span>
             </div>

@@ -71,6 +71,9 @@ export const ThemeIsolator = ({ children }: { children: React.ReactNode }) => {
         --base-content: ${theme["base-content"]};
         --font-family: ${theme.fontFamily};
         
+        /* Logo color matches the primary-content (green) color */
+        --logo-color: ${theme["primary-content"]};
+        
         /* Border variables explicitly set */
         --border-primary: ${theme.primary};
         --border-secondary: ${theme.secondary};
@@ -79,7 +82,7 @@ export const ThemeIsolator = ({ children }: { children: React.ReactNode }) => {
         
         /* Shadow variables */
         --shadow-primary: ${theme.primary}33;  /* With 20% alpha */
-        --shadow-secondary: ${theme.secondary}33;
+        --shadow-secondary: ${theme.secondary}11;
         --shadow-base: ${theme["base-100"]}33;
         --shadow-neutral: ${theme.neutral}33;
       }

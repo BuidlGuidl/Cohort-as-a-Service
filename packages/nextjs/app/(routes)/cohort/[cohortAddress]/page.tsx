@@ -109,14 +109,20 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
   return (
     <div className="max-w-4xl text-base-content px-4 sm:px-6 lg:px-8 mt-8">
       {isAdmin && (
-        <SubdomainLink href="/cohorts" className="btn btn-ghost btn-sm rounded-sm mb-5" toMainDomain={true}>
+        <SubdomainLink
+          href="/cohorts"
+          className="btn btn-ghost btn-sm rounded-sm mb-5 font-share-tech-mono"
+          toMainDomain={true}
+        >
           <ArrowLongLeftIcon className="w-7 h-4" />
           My cohorts
         </SubdomainLink>
       )}
       <div>
-        <h1 className="text-4xl font-bold mb-8 text-primary-content bg-primary inline-block p-2">Cohort</h1>
-        <h2 className="text-2xl font-bold">{name}</h2>
+        <h1 className="text-4xl font-bold mb-8 text-primary-content bg-primary inline-block p-2 font-share-tech-mono">
+          Cohort
+        </h1>
+        <h2 className="text-2xl font-bold font-share-tech-mono">{name}</h2>
         <div className="flex gap-2">
           {description && description.length > 0 && description != "<p><br></p>" && <Preview value={description} />}
           {isAdmin && <EditDescription cohortAddress={params.cohortAddress} currentDescription={description} />}
@@ -125,7 +131,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
 
       {buildersData.length <= 8 && (
         <div className="mt-8 ">
-          <h3 className="text-xl font-bold mb-4">Members</h3>
+          <h3 className="text-xl font-bold mb-4 font-share-tech-mono">Members</h3>
           <BuildersList
             cohortAddress={params.cohortAddress}
             builderStreams={builderStreams}
@@ -153,14 +159,14 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         {buildersData.length > 8 && (
           <div>
             <CohortLink href="/members" cohortAddress={params.cohortAddress}>
-              <button className="btn btn-sm btn-primary rounded-md ">Members</button>
+              <button className="btn btn-sm btn-primary rounded-md font-share-tech-mono">Members</button>
             </CohortLink>
           </div>
         )}
 
         {isAdmin ? (
           <CohortLink href="/projects" cohortAddress={params.cohortAddress}>
-            <button className="btn btn-sm rounded-md btn-primary">
+            <button className="btn btn-sm rounded-md btn-primary font-normal">
               {dbCohort?.Project && dbCohort.Project.length > 0 ? "View Projects" : "Add Projects"}
               {(!dbCohort?.Project || dbCohort.Project.length === 0) && <Plus className="h-4 w-4" />}
             </button>
@@ -169,7 +175,7 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
           dbCohort?.Project &&
           dbCohort.Project.length > 0 && (
             <CohortLink href="/projects" cohortAddress={params.cohortAddress}>
-              <button className="btn btn-sm rounded-md btn-primary mb-4">
+              <button className="btn btn-sm rounded-md btn-primary mb-4 font-normal">
                 {dbCohort?.Project && dbCohort.Project.length > 0 ? "View Projects" : "Add Projects"}
                 {(!dbCohort?.Project || dbCohort.Project.length === 0) && <Plus className="h-4 w-4" />}
               </button>
