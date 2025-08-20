@@ -6,6 +6,7 @@ import { Project } from "@prisma/client";
 import { Github, Globe } from "lucide-react";
 import { formatEther, formatUnits } from "viem";
 import { useAccount } from "wagmi";
+import { EmptyEventsState } from "~~/components/EmptyStates";
 import { Preview } from "~~/components/preview";
 import { Address } from "~~/components/scaffold-eth";
 import { WithdrawalEvent, WithdrawalRequest } from "~~/hooks/useWithdrawEvents";
@@ -185,7 +186,7 @@ export const EventsModal: React.FC<EventsModalProps> = ({
                     })}
                   </div>
                 ) : (
-                  <p>No contributions</p>
+                  <EmptyEventsState type="transactions" />
                 )}
               </ul>
             ) : (
@@ -298,7 +299,7 @@ export const EventsModal: React.FC<EventsModalProps> = ({
                     })}
                   </div>
                 ) : (
-                  <p>No requests</p>
+                  <EmptyEventsState type="requests" />
                 )}
               </ul>
             )}
