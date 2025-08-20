@@ -1,5 +1,10 @@
 import Analytics from "./_components/Analytics";
+import { PageAnimation } from "~~/components/PageAnimation";
 
 export default function AnalyticsPage() {
-  return <Analytics />;
+  return (
+    <PageAnimation>
+      <Analytics />
+    </PageAnimation>
+  );
 }

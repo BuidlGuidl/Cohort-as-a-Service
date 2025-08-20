@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Cohort } from "@prisma/client";
+import { AnimatedCard } from "~~/components/AnimatedCard";
 import { Address } from "~~/components/scaffold-eth";
 import { getChainById } from "~~/data/chains";
 import { getNetworkColor } from "~~/hooks/scaffold-eth";
@@ -32,7 +33,7 @@ export const CohortCard = ({ address, chainName, primaryAdmin, name, role, chain
   }, [chainId]);
 
   return (
-    <div>
+    <AnimatedCard>
       <Link href={cohortUrl}>
         <div className="group hover:shadow-sm transition overflow-hidden border rounded-lg p-2 h-full relative">
           <div className="justify-between flex text-xs">
@@ -51,6 +52,6 @@ export const CohortCard = ({ address, chainName, primaryAdmin, name, role, chain
           </div>
         </div>
       </Link>
-    </div>
+    </AnimatedCard>
   );
 };

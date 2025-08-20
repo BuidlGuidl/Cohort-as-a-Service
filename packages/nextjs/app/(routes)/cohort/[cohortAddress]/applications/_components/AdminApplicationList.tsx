@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useAccount } from "wagmi";
 import { useSwitchChain } from "wagmi";
+import { EmptyApplicationsState } from "~~/components/EmptyStates";
 import { Preview } from "~~/components/preview";
 import { Address, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useCohortData } from "~~/hooks/useCohortData";
@@ -125,7 +126,7 @@ export const AdminApplicationList = ({ cohortAddress, applications }: AdminAppli
       </div>
 
       {filteredApplications?.length === 0 ? (
-        <div>No applications found with the selected filter.</div>
+        <EmptyApplicationsState status={activeFilter} isAdmin={isAdmin} />
       ) : (
         <div className="overflow-x-auto">
           <table className="table w-full">

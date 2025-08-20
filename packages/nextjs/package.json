@@ -29,6 +29,7 @@
     "blo": "^1.2.0",
     "burner-connector": "0.0.9",
     "daisyui": "4.12.10",
+    "framer-motion": "^12.23.12",
     "graphql": "^16.9.0",
     "graphql-request": "^7.1.0",
     "isomorphic-dompurify": "^2.26.0",

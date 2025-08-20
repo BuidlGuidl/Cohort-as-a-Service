@@ -167,7 +167,10 @@ export const BuildersList: React.FC<BuildersListProps> = ({
           <div className="text-lg ">Loading...</div>
         </div>
       ) : !builderStreams || Array.from(builderStreams.values()).length == 0 ? (
-        <div className="text-sm ml-4">No builders</div>
+        <div className="flex flex-col py-2">
+          <h3 className="text-lg font-semibold mb-2">No members yet</h3>
+          <p className="text-gray-400 max-w-sm text-sm">Members added will appear here.</p>
+        </div>
       ) : (
         Array.from(builderStreams.values()).map(builderStream => {
           if (builderStream.cap == 0) return null;

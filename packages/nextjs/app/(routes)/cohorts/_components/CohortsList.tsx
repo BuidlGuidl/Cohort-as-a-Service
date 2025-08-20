@@ -1,5 +1,6 @@
 import { CohortCard } from "./CohortCard";
 import { Cohort as DbCohort } from "@prisma/client";
+import { EmptyCohortsState } from "~~/components/EmptyStates";
 import { Cohort } from "~~/hooks/useCohorts";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";
 
@@ -11,9 +12,10 @@ interface CohortsListProps {
   items: CohortWithRole[];
   loading: boolean;
   dbCohorts: DbCohort[];
+  isFiltered: boolean;
 }
 
-const CohortsList = ({ items, loading, dbCohorts }: CohortsListProps) => {
+const CohortsList = ({ items, loading, dbCohorts, isFiltered }: CohortsListProps) => {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-16 space-y-4">
@@ -40,7 +42,7 @@ const CohortsList = ({ items, loading, dbCohorts }: CohortsListProps) => {
           />
         ))}
       </div>
-      {items.length === 0 && <div className="text-center text-sm text-muted-foreground mt-10">No cohort found</div>}
+      {items.length === 0 && <EmptyCohortsState isFiltered={isFiltered} />}
     </div>
   );
 };

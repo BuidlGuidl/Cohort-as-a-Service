@@ -21,7 +21,7 @@ const ChainsLoader = () => {
 const ChainsList = ({ items }: ChainListProps) => {
   return (
     <div className="flex justify-center">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:flex lg:items-center lg:gap-x-2 lg:overflow-x-auto pb-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:flex lg:items-center lg:gap-x-2 lg:overflow-x-auto pb-2 w-full justify-center">
         {items.map(item => (
           <ChainItem key={item.chainId} chainId={item.chainId} icon={item.icon} name={item.name} />
         ))}

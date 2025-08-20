@@ -38,7 +38,12 @@ export const MyCohorts = ({ searchParams, dbCohorts }: MyCohortProps) => {
                 </button>
               </Link>
             </div>
-            <CohortsList items={allMyCohorts} loading={isLoading} dbCohorts={dbCohorts} />
+            <CohortsList
+              items={allMyCohorts}
+              loading={isLoading}
+              dbCohorts={dbCohorts}
+              isFiltered={searchParams.cohort?.length > 0 || !!searchParams.chainId}
+            />
           </div>
         </div>
 
