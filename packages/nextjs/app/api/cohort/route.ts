@@ -6,12 +6,22 @@ export async function POST(req: Request) {
     const { deployedAddress, adminAddress, builderAddresses, builderGithubUsernames, chainId, subdomain } =
       await req.json();
 
+    if (subdomain && subdomain.trim() !== "") {
+      const existingSubdomain = await db.cohort.findFirst({
+        where: { subdomain: subdomain.toLowerCase() },
+      });
+
+      if (existingSubdomain) {
+        return new NextResponse("Subdomain already exists", { status: 400 });
+      }
+    }
+
     const cohort = await db.cohort.create({
       data: {
         address: deployedAddress,
         adminAddresses: [adminAddress],
         chainId: chainId.toString(),
-        subdomain: subdomain.toLowerCase(),
+        subdomain: subdomain && subdomain.trim() !== "" ? subdomain.toLowerCase() : null,
       },
     });
 

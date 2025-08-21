@@ -8,7 +8,7 @@ export default async function SubdomainLayout({
   children: React.ReactNode;
   params: { subdomain: string };
 }) {
-  const cohort = await db.cohort.findUnique({
+  const cohort = await db.cohort.findFirst({
     where: { subdomain: params.subdomain.toLowerCase() },
   });
 

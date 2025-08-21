@@ -3,7 +3,7 @@ import MyApplicationsPage from "../../../cohort/[cohortAddress]/myapplications/p
 import db from "~~/lib/db";
 
 export default async function SubdomainApplicationsPage({ params }: { params: { subdomain: string } }) {
-  const cohort = await db.cohort.findUnique({
+  const cohort = await db.cohort.findFirst({
     where: { subdomain: params.subdomain.toLowerCase() },
   });
 
