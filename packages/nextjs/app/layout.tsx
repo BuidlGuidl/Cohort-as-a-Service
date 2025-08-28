@@ -18,7 +18,9 @@ const shareTechMono = Share_Tech_Mono({
 
 export const metadata = getMetadata({
   title: "Cohorts.fun",
-  description: "Built with 🏗 Scaffold-ETH 2",
+  description:
+    "Launch unstoppable payment streams and bounties in seconds. Automate trust, empower builders, and fuel projects effortlessly.",
+  imageRelativePath: "/unfurl-square.png",
 });
 
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
