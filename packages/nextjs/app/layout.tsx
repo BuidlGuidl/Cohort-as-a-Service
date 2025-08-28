@@ -20,7 +20,7 @@ export const metadata = getMetadata({
   title: "Cohorts.fun",
   description:
     "Launch unstoppable payment streams and bounties in seconds. Automate trust, empower builders, and fuel projects effortlessly.",
-  imageRelativePath: "/unfurl-square.png",
+  imageRelativePath: "/Square-01.png",
 });
 
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
