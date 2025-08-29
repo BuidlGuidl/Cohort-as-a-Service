@@ -67,11 +67,12 @@ export const BuildersList: React.FC<BuildersListProps> = ({
   const { address } = useAccount();
   const router = useRouter();
 
-  const isDbBuilderorAdmin = () => {
+  const isOwnerBuilderOrAdmin = () => {
     if (!address) return false;
-    const isBuilder = dbBuilders?.some(builder => builder.address.toLowerCase() === address.toLowerCase());
-    const isAdmin = dbAdminAddresses?.some(admin => admin.toLowerCase() === address.toLowerCase());
-    return isBuilder || isAdmin;
+    const isDbBuilder = dbBuilders?.some(builder => builder.address.toLowerCase() === address.toLowerCase());
+    const isDbAdmin = dbAdminAddresses?.some(admin => admin.toLowerCase() === address.toLowerCase());
+    // isAdmin prop already includes owner (primaryAdmin) and contract admin checks
+    return isAdmin || isBuilder || isDbBuilder || isDbAdmin;
   };
 
   const getPendingRequestsCount = (builderAddress: string) => {
@@ -133,13 +134,13 @@ export const BuildersList: React.FC<BuildersListProps> = ({
 
   return (
     <div className="flex flex-col gap-6">
-      {address && !isDbBuilderorAdmin() && !isLoading && !canApply() && (
+      {address && !isOwnerBuilderOrAdmin() && !isLoading && !canApply() && (
         <Link href={`/cohort/${cohortAddress}/myapplications`}>
           <button className="btn btn-sm btn-primary rounded-md w-fit">My applications</button>
         </Link>
       )}
 
-      {address && !isDbBuilderorAdmin() && !isLoading && canApply() && allowApplications && (
+      {address && !isOwnerBuilderOrAdmin() && !isLoading && canApply() && allowApplications && (
         <div className="mb-6 flex gap-4 items-center">
           <label
             htmlFor="add-application-modal"
@@ -168,7 +169,7 @@ export const BuildersList: React.FC<BuildersListProps> = ({
         </div>
       ) : !builderStreams || Array.from(builderStreams.values()).length == 0 ? (
         <div className="flex flex-col py-2">
-          <h3 className="text-lg font-semibold mb-2">No members yet</h3>
+          <h3 className="text-lg font-semibold mb-2 font-share-tech-mono">No members yet</h3>
           <p className="text-gray-400 max-w-sm text-sm">Members added will appear here.</p>
         </div>
       ) : (

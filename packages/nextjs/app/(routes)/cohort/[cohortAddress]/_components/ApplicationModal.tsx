@@ -25,6 +25,7 @@ const CreateApplicationSchema = z.object({
       /^(?!-)[a-zA-Z0-9-]+(?<!-)$/,
       "GitHub username may only contain alphanumeric characters or single hyphens, and cannot begin or end with a hyphen",
     )
+    .or(z.literal(""))
     .optional(),
 });
 

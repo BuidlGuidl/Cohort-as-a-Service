@@ -16,7 +16,7 @@ const CreatePageClient = ({ existingSubdomains }: CreatePageClientProps) => {
     <div className="max-w-4xl mt-10 space-y-6 mx-auto relative">
       {/* Content - always visible, blur only the main content area */}
       <div className={address ? "" : "blur-sm pointer-events-none relative z-0"}>
-        <h1 className="text-2xl font-semibold font-space-grotesk">Create a new cohort</h1>
+        <h1 className="text-2xl font-medium font-space-grotesk">Create a new cohort</h1>
         <ChainToggler />
         <CreateCohortForm existingSubdomains={existingSubdomains} />
       </div>

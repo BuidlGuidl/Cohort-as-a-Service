@@ -23,7 +23,7 @@ const ChainToggler = () => {
   return (
     <div>
       <div className="space-y-4">
-        <h2 className="font-semibold font-space-grotesk">Select a chain</h2>
+        <h2 className="font-medium font-space-grotesk">Select a chain</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
           {evmChains.map(chain => (
             <button
