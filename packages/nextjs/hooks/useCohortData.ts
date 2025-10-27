@@ -376,8 +376,10 @@ export const useCohortData = (cohortAddress: string) => {
       };
     },
     enabled: !!cohortAddress && !!publicClient,
-    staleTime: 30_000,
-    refetchInterval: 60_000,
+    staleTime: 2 * 60_000, // Consider data fresh for 2 minutes
+    refetchInterval: 5 * 60_000, // Auto-refetch every 5 minutes (reduced from 60s)
+    refetchIntervalInBackground: false, // Don't refetch when tab is not visible
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
     retry: 3,
   });
 

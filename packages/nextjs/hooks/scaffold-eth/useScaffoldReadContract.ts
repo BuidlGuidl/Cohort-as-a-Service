@@ -39,8 +39,8 @@ export const useScaffoldReadContract = <
   });
 
   const { query: queryOptions, watch, ...readContractConfig } = readConfig;
-  // set watch to true by default
-  const defaultWatch = watch ?? true;
+  // Disable block watching by default to reduce RPC calls - components can opt-in with watch: true
+  const defaultWatch = watch ?? false;
 
   const readContractHookRes = useReadContract({
     chainId: selectedNetwork.id,
