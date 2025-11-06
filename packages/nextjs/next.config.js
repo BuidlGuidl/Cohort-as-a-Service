@@ -1,5 +1,5 @@
 // @ts-check
-
+// Trigger deploy via Railway
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
