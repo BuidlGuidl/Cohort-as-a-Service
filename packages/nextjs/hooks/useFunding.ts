@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { readContract, simulateContract, writeContract } from "@wagmi/core";
 import { parseEther, parseUnits } from "viem";
 import { erc20Abi } from "viem";
@@ -31,6 +32,7 @@ export const useFunding = ({
 }: useFundingProps) => {
   const { address, chain, chainId } = useAccount();
   const writeTx = useTransactor();
+  const queryClient = useQueryClient();
   const [isMining, setIsMining] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { targetNetwork } = useTargetNetwork();
@@ -124,6 +126,8 @@ export const useFunding = ({
 
         await writeTx(makeWriteWithParams);
         setIsSuccess(true);
+        // Invalidate cohort data to refresh balance after funding
+        queryClient.invalidateQueries({ queryKey: ["cohortData", cohortAddress] });
       } catch (e: any) {
         const message = getParsedError(e);
         notification.error(message);

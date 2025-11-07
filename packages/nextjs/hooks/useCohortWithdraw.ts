@@ -1,5 +1,6 @@
 import { useTargetNetwork } from "./scaffold-eth";
 import { useTransactor } from "./scaffold-eth";
+import { useQueryClient } from "@tanstack/react-query";
 import { parseEther, parseUnits } from "viem";
 import { useAccount } from "wagmi";
 import { useWriteContract } from "wagmi";
@@ -27,6 +28,7 @@ export const useCohortWithdraw = ({
 }: useCohortWithdrawProps) => {
   const { chain, chainId } = useAccount();
   const { targetNetwork } = useTargetNetwork();
+  const queryClient = useQueryClient();
   const cohort = contracts?.[baseChainId]["Cohort"];
   const writeTx = useTransactor();
   const { isPending, writeContractAsync, isSuccess } = useWriteContract();
@@ -52,6 +54,8 @@ export const useCohortWithdraw = ({
           });
 
         await writeTx(makeWriteWithParams);
+        // Invalidate cohort data to refresh after withdrawal
+        queryClient.invalidateQueries({ queryKey: ["cohortData", cohortAddress] });
       } catch (e: any) {
         const message = getParsedError(e);
         notification.error(message);
