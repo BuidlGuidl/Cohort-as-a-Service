@@ -1,29 +1,19 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState } from "react";
 import { BuildersList } from "./_components/BuildersList";
 import { EditDescription } from "./_components/EditDescription";
+import { NativeBalance } from "./_components/NativeBalance";
 import { StreamContractInfo } from "./_components/StreamContractInfo";
 import { ThemeCustomizer } from "./_components/ThemeCustomizer";
+import { TokenBalance } from "./_components/TokenBalance";
 import { EventsModal } from "./members/_components/EventsModal";
-import { Application, Builder, Cohort, Project } from "@prisma/client";
-import axios from "axios";
-import { Plus } from "lucide-react";
 import { useAccount } from "wagmi";
-import { useSwitchChain } from "wagmi";
-import { QuestionMarkCircleIcon } from "@heroicons/react/24/outline";
 import { ArrowLongLeftIcon } from "@heroicons/react/24/outline";
 import { CohortLink } from "~~/components/CohortLink";
 import { SubdomainLink } from "~~/components/SubDomainLink";
 import { Preview } from "~~/components/preview";
 import { useCohortData } from "~~/hooks/useCohortData";
-import { useWithdrawEvents } from "~~/hooks/useWithdrawEvents";
-
-type CohortWithBuilder = Cohort & {
-  Builder: Builder[];
-  Application: Application[];
-  Project: Project[];
-};
 
 const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
   const {
@@ -50,88 +40,94 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
     allowApplications,
   } = useCohortData(params.cohortAddress);
 
-  const { switchChain } = useSwitchChain();
-
-  const { address, chainId: connectedChainId } = useAccount();
-
+  const { address } = useAccount();
   const [selectedAddress, setSelectedAddress] = useState("");
-  const [dbCohort, setDbCohort] = useState<CohortWithBuilder>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalView, setModalView] = useState<"contributions" | "requests">("contributions");
-
   const buildersData = builderStreams ? Array.from(builderStreams.values()) : [];
-
-  const {
-    filteredWithdrawnEvents,
-    filteredRequestEvents,
-    pendingRequestEvents,
-    rejectedRequestEvents,
-    completedRequestEvents,
-    isLoadingWithdrawEvents,
-    isLoadingRequests,
-    filterEventsByAddress,
-  } = useWithdrawEvents(params.cohortAddress, selectedAddress);
 
   const openEventsModal = (builderAddress: string, view: "contributions" | "requests") => {
     setSelectedAddress(builderAddress);
     setModalView(view);
-    filterEventsByAddress(builderAddress);
+    // Optional: you may want to filter events on open
     setIsModalOpen(true);
   };
 
-  const fetchCohort = useCallback(async () => {
-    if (!params.cohortAddress) return;
-
-    try {
-      const response = await axios.get(`/api/cohort/${params.cohortAddress}`);
-      const cohort = response.data?.cohort;
-      setDbCohort(cohort);
-    } catch (error) {
-      console.error("Error fetching cohort from db:", error);
-    }
-  }, [params.cohortAddress]);
-
-  useEffect(() => {
-    fetchCohort();
-  }, [fetchCohort, builderStreams]);
-
-  useEffect(() => {
-    if ((isAdmin || isBuilder) && chainId && connectedChainId && chainId !== connectedChainId) {
-      switchChain({ chainId });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId, address, connectedChainId, isAdmin, isBuilder]);
-
-  const handleApplicationSuccess = () => {
-    fetchCohort();
-  };
-
   return (
-    <div className="max-w-4xl text-base-content px-4 sm:px-6 lg:px-8 mt-8">
-      {isAdmin && (
-        <SubdomainLink
-          href="/cohorts"
-          className="btn btn-ghost btn-sm rounded-sm mb-5 font-share-tech-mono"
-          toMainDomain={true}
-        >
-          <ArrowLongLeftIcon className="w-7 h-4" />
-          My cohorts
-        </SubdomainLink>
-      )}
-      <div>
-        <h1 className="text-4xl font-bold mb-8 text-primary-content bg-primary inline-block p-2 font-share-tech-mono">
-          Cohort
+    <div className="max-w-6xl mx-auto px-4 sm:px-8 py-10 space-y-7">
+      {/* Header + Cohort Title */}
+      <div className="flex flex-col items-start gap-4 mb-3">
+        {isAdmin && (
+          <SubdomainLink
+            href="/cohorts"
+            className="btn btn-ghost btn-sm rounded-md font-share-tech-mono"
+            toMainDomain={true}
+          >
+            <ArrowLongLeftIcon className="w-6 h-5" />
+            My cohorts
+          </SubdomainLink>
+        )}
+        <h1 className="text-4xl md:text-5xl font-bold text-primary-content bg-primary px-4 py-2 rounded font-share-tech-mono shadow-sm">
+          {name}
         </h1>
-        <h2 className="text-2xl font-bold font-share-tech-mono">{name}</h2>
-        <div className="flex gap-2">
-          {description && description.length > 0 && description != "<p><br></p>" && <Preview value={description} />}
-          {isAdmin && <EditDescription cohortAddress={params.cohortAddress} currentDescription={description} />}
+        {/* Projects Navigation Button */}
+        <div className="mt-1">
+          <CohortLink
+            href="/projects"
+            cohortAddress={params.cohortAddress}
+            className="btn btn-outline btn-sm rounded-md"
+          >
+            Projects
+          </CohortLink>
         </div>
       </div>
 
-      {buildersData.length <= 8 && (
-        <div className="mt-8 ">
-          <h3 className="text-xl font-bold mb-4 font-share-tech-mono">Members</h3>
+      {/* Description & Quick Admin Controls card */}
+      <div className="bg-base-100 rounded-lg shadow-md p-6 md:flex md:items-start md:justify-between gap-8">
+        <div className="flex-1">
+          <h2 className="text-xl font-bold font-share-tech-mono mb-1">Description</h2>
+          <div className="prose max-w-none mb-2">
+            {description && description.length > 0 && description != "<p><br></p>" ? (
+              <Preview value={description} />
+            ) : (
+              <span className="text-gray-400 italic">No description yet.</span>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col items-end min-w-[180px] space-y-2 ml-0 md:ml-6 mt-6 md:mt-0">
+          {isAdmin && <EditDescription cohortAddress={params.cohortAddress} currentDescription={description} />}
+          <ThemeCustomizer cohortAddress={params.cohortAddress} isAdmin={isAdmin ?? false} />
+        </div>
+      </div>
+
+      {/* Metrics Quick Stats Card */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        <div className="bg-base-100 rounded-lg shadow p-4 flex flex-col items-center">
+          <span className="text-sm text-base-content/60 font-medium">Members</span>
+          <span className="text-3xl font-bold">{buildersData.length}</span>
+        </div>
+        <div className="bg-base-100 rounded-lg shadow p-4 flex flex-col items-center">
+          <span className="text-sm text-base-content/60 font-medium">Type</span>
+          <span className="text-lg font-bold">{isERC20 ? "ERC20" : "Native"}</span>
+        </div>
+        <div className="bg-base-100 rounded-lg shadow p-4 flex flex-col items-center">
+          <span className="text-sm text-base-content/60 font-medium">Cycle</span>
+          <span className="text-lg font-bold">{cycle > 0 ? `${cycle} days` : "One-time"}</span>
+        </div>
+        <div className="bg-base-100 rounded-lg shadow p-4 flex flex-col items-center">
+          <span className="text-sm text-base-content/60 font-medium">Balance</span>
+          {isERC20 ? (
+            <TokenBalance balance={balance ?? 0} tokenSymbol={tokenSymbol ?? ""} />
+          ) : (
+            <NativeBalance address={params.cohortAddress} className="text-lg" chainId={chainId as number} />
+          )}
+        </div>
+      </div>
+
+      {/* Main Content Grid: Members (left), Stream Info (right) */}
+      <div className="grid md:grid-cols-2 grid-cols-1 gap-8">
+        <div className="bg-base-100 rounded-lg shadow-md p-6 flex flex-col h-full">
+          <h3 className="text-xl font-bold font-share-tech-mono mb-4">Members</h3>
           <BuildersList
             cohortAddress={params.cohortAddress}
             builderStreams={builderStreams}
@@ -141,83 +137,42 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
             isERC20={isERC20 ?? false}
             tokenSymbol={tokenSymbol ?? ""}
             isLoading={isLoading}
-            pendingRequestEvents={pendingRequestEvents}
-            completedRequestEvents={completedRequestEvents}
-            rejectedRequestEvents={rejectedRequestEvents}
+            pendingRequestEvents={[]}
+            completedRequestEvents={[]}
+            rejectedRequestEvents={[]}
             openEventsModal={openEventsModal}
             tokenDecimals={tokenDecimals}
-            dbBuilders={dbCohort?.Builder}
-            dbAdminAddresses={dbCohort?.adminAddresses}
-            applications={dbCohort?.Application}
-            onApplicationSuccess={handleApplicationSuccess}
             allowApplications={allowApplications ?? false}
           />
         </div>
-      )}
-
-      <div className="flex gap-3">
-        {buildersData.length > 8 && (
-          <div>
-            <CohortLink href="/members" cohortAddress={params.cohortAddress}>
-              <button className="btn btn-sm btn-primary rounded-md font-share-tech-mono">Members</button>
-            </CohortLink>
-          </div>
-        )}
-
-        {isAdmin ? (
-          <CohortLink href="/projects" cohortAddress={params.cohortAddress}>
-            <button className="btn btn-sm rounded-md btn-primary font-normal">
-              {dbCohort?.Project && dbCohort.Project.length > 0 ? "View Projects" : "Add Projects"}
-              {(!dbCohort?.Project || dbCohort.Project.length === 0) && <Plus className="h-4 w-4" />}
-            </button>
-          </CohortLink>
-        ) : (
-          dbCohort?.Project &&
-          dbCohort.Project.length > 0 && (
-            <CohortLink href="/projects" cohortAddress={params.cohortAddress}>
-              <button className="btn btn-sm rounded-md btn-primary mb-4 font-normal">
-                {dbCohort?.Project && dbCohort.Project.length > 0 ? "View Projects" : "Add Projects"}
-                {(!dbCohort?.Project || dbCohort.Project.length === 0) && <Plus className="h-4 w-4" />}
-              </button>
-            </CohortLink>
-          )
-        )}
+        <div className="bg-base-100 rounded-lg shadow-md p-6 flex flex-col h-full">
+          <h3 className="text-xl font-bold font-share-tech-mono mb-4">Stream Contract Info</h3>
+          <StreamContractInfo
+            owner={primaryAdmin || ""}
+            isBuilder={isBuilder || false}
+            oneTimeAlreadyWithdrawn={oneTimeAlreadyWithdrawn ?? false}
+            cohortAddress={params.cohortAddress}
+            isErc20={isERC20 ?? false}
+            tokenSymbol={tokenSymbol ?? ""}
+            balance={balance ?? 0}
+            chainName={chainName}
+            chainId={chainId}
+            admins={admins ?? []}
+            isLoadingAdmins={isLoading}
+            isAdmin={isAdmin ?? false}
+            connectedAddressRequiresApproval={connectedAddressRequiresApproval ?? false}
+            tokenAddress={tokenAddress ?? ""}
+            isLoading={isLoading}
+            locked={locked ?? false}
+            tokenDecimals={tokenDecimals}
+            cycle={cycle ?? 0}
+            requiresApproval={requiresApproval ?? false}
+            allowApplications={allowApplications ?? false}
+          />
+        </div>
       </div>
 
-      <p className="font-bold mb-2 text-secondary">
-        Stream Contract
-        <span
-          className="tooltip text-white font-normal"
-          data-tip={`All streams and contributions are handled by a contract on ${chainName}.`}
-        >
-          <QuestionMarkCircleIcon className="h-5 w-5 inline-block ml-2" />
-        </span>
-      </p>
-
-      <StreamContractInfo
-        owner={primaryAdmin || ""}
-        isBuilder={isBuilder || false}
-        oneTimeAlreadyWithdrawn={oneTimeAlreadyWithdrawn ?? false}
-        cohortAddress={params.cohortAddress}
-        isErc20={isERC20 ?? false}
-        tokenSymbol={tokenSymbol ?? ""}
-        balance={balance ?? 0}
-        chainName={chainName}
-        chainId={chainId}
-        admins={admins ?? []}
-        isLoadingAdmins={isLoading}
-        isAdmin={isAdmin ?? false}
-        connectedAddressRequiresApproval={connectedAddressRequiresApproval ?? false}
-        tokenAddress={tokenAddress ?? ""}
-        isLoading={isLoading}
-        locked={locked ?? false}
-        tokenDecimals={tokenDecimals}
-        cycle={cycle ?? 0}
-        requiresApproval={requiresApproval ?? false}
-        allowApplications={allowApplications ?? false}
-        projects={dbCohort?.Project}
-      />
-
+      {/* Events Modal (do not display unless open) */}
       <EventsModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -226,16 +181,14 @@ const CohortPage = ({ params }: { params: { cohortAddress: string } }) => {
         setModalView={setModalView}
         isERC20={isERC20 ?? false}
         tokenSymbol={tokenSymbol ?? ""}
-        filteredWithdrawnEvents={filteredWithdrawnEvents}
-        filteredRequestEvents={filteredRequestEvents}
-        isLoadingWithdrawEvents={isLoadingWithdrawEvents}
-        isLoadingRequests={isLoadingRequests}
+        filteredWithdrawnEvents={[]}
+        filteredRequestEvents={[]}
+        isLoadingWithdrawEvents={false}
+        isLoadingRequests={false}
         isAdmin={isAdmin ?? false}
         cohortAddress={params.cohortAddress}
-        projects={dbCohort?.Project}
+        projects={[]}
       />
-
-      <ThemeCustomizer cohortAddress={params.cohortAddress} isAdmin={isAdmin ?? false} />
     </div>
   );
 };

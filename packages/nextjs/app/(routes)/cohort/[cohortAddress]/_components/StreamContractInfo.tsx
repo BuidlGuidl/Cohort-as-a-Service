@@ -228,9 +228,6 @@ export const StreamContractInfo = ({
                 {chainName}
               </span>
             </div>
-            <div className="w-full">
-              <span className="text-xs text-accent/70">{cycle > 0 ? `Cycle: ${cycle} days` : "One Time Cohort"}</span>
-            </div>
           </div>{" "}
           /
           {!isLoading &&
