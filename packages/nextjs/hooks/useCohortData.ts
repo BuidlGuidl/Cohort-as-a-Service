@@ -377,7 +377,7 @@ export const useCohortData = (cohortAddress: string) => {
     },
     enabled: !!cohortAddress && !!publicClient,
     staleTime: 30_000,
-    refetchInterval: 60_000,
+    refetchInterval: 30_000,
     retry: 3,
   });
 
