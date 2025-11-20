@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useTargetNetwork } from "./scaffold-eth";
 import { useTransactor } from "./scaffold-eth";
+import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { parseEther, parseUnits } from "viem";
 import { useAccount, useSignMessage, useWriteContract } from "wagmi";
@@ -28,6 +29,7 @@ export const useAddBuilders = ({
 }: useAddBuildersProps) => {
   const { chain, chainId } = useAccount();
   const { targetNetwork } = useTargetNetwork();
+  const queryClient = useQueryClient();
 
   const { data: signature, signMessage, isSuccess: isSignatureSuccess } = useSignMessage();
 
@@ -86,6 +88,9 @@ export const useAddBuilders = ({
             message,
             signature,
           });
+          // Invalidate cohort data to refresh after adding builders
+          queryClient.invalidateQueries({ queryKey: ["cohortData", cohortAddress] });
+          queryClient.invalidateQueries({ queryKey: ["cohorts"] });
         } catch (error) {
           notification.error("Something went wrong");
           console.error("Error adding builder to db:", error);
